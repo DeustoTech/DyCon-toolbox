@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>WKB expansion for a fractional Schr&ouml;dinger equation</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-09-18"><meta name="DC.source" content="./readmeExtras/WKB_expansion.m"><style type="text/css">
+      --><title>WKB expansion for a fractional Schr&ouml;dinger equation</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-09-18"><meta name="DC.source" content="./imgs/WKB_expansion.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -91,7 +91,7 @@ subplot(1,3,3)
 plot(x,imag(u0(x)))
 title(<span class="string">'img(u_0(x))'</span>)
 xlabel(<span class="string">'x'</span>); ylabel(<span class="string">'u(x)'</span>);
-</pre><img vspace="5" hspace="5" src="./readmeExtras/WKB_expansion_01.png" alt=""> <h2 id="5">Solution for s = 1/2</h2><p>To solve this equation, Need define the next parameters;</p><pre class="codeinput">s   = 0.5  <span class="comment">% Laplacian Order</span>
+</pre><img vspace="5" hspace="5" src="./imgs/WKB_expansion_01.png" alt=""> <h2 id="5">Solution for s = 1/2</h2><p>To solve this equation, Need define the next parameters;</p><pre class="codeinput">s   = 0.5  <span class="comment">% Laplacian Order</span>
 L          <span class="comment">% x in (-L , L)</span>
 Nx         <span class="comment">% Number of points in space</span>
 T   = 5    <span class="comment">% Final time</span>
@@ -122,7 +122,7 @@ clf
 mesh(X,T,u')
 view(0,90)
 xlabel(<span class="string">'x'</span>); ylabel(<span class="string">'t'</span>); title(<span class="string">'Ray Evolution'</span>);
-</pre><img vspace="5" hspace="5" src="./readmeExtras/WKB_expansion_02.png" alt=""> <p>For last, if you type "animation(x,t,u)", in MATLAB console. You can see the evolution in time of this wave.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="./imgs/WKB_expansion_02.png" alt=""> <p>For last, if you type "animation(x,t,u)", in MATLAB console. You can see the evolution in time of this wave.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% WKB expansion for a fractional Schrödinger equation
 % In the particular case under analysis, the construction that we obtain is then applied to the study 

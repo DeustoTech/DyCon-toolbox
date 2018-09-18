@@ -59,7 +59,7 @@ xlabel('x'); ylabel('u(x)');
 ```
 
 
-![](./readmeExtras/WKB_expansion_01.png)
+![](./imgs/WKB_expansion_01.png)
 
 
 ## Solution for s = 1/2
@@ -127,7 +127,7 @@ xlabel('x'); ylabel('t'); title('Ray Evolution');
 ```
 
 
-![](./readmeExtras/WKB_expansion_02.png)
+![](./imgs/WKB_expansion_02.png)
 
 For last, if you type "animation(x,t,u)", in MATLAB console. You can see the evolution in time of this wave.
 

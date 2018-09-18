@@ -121,8 +121,8 @@ else
     texthtml = regexp(texthtml, '\n', 'split')';    
     
     textmd   = strrep(textmd, '&times;', 'x'); % until I figure out how to do this in the XSL file
-    textmd   = strrep(textmd,   tmpbase, fullfile('.', 'readmeExtras', name));
-    texthtml = strrep(texthtml, tmpbase, fullfile('.', 'readmeExtras', name));
+    textmd   = strrep(textmd,   tmpbase, fullfile('.', 'imgs', name));
+    texthtml = strrep(texthtml, tmpbase, fullfile('.', 'imgs', name));
     for ii = 1:length(fname)   
         movefile(fullfile(readmefolder, fname{ii}), fullfile(readmefolder, fnamenew{ii}));
     end
