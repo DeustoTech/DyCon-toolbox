@@ -7,3 +7,9 @@ One of the main outputs of the research conducted within DyCon is the developmen
   - **WP4: Inverse design and control in the presence of singularities (SINV)**
   - **WP5: Models involving memory terms and hybrid PDE+ODE systems (MHM)**
   - **WP6: From finite to infinite-dimensional models (FI)**
+
+## Folder Description
+
+  - source: In this folder is all the source code, that is, the different tools that can be executed.
+  - examples: Here you can find several examples of the different functions of the Dycon platform
+  - plugins: External code used in this project
