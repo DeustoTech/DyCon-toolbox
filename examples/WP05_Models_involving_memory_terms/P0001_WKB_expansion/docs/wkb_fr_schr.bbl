@@ -1,0 +1,128 @@
+\begin{thebibliography}{10}
+
+\bibitem{bardos1992sharp}
+{\sc Bardos, C., Lebeau, G., and Rauch, J.}
+\newblock Sharp sufficient conditions for the observation, control, and
+  stabilization of waves from the boundary.
+\newblock {\em SIAM J. Control Optim. 30}, 5 (1992), 1024--1065.
+
+\bibitem{biccari2014internal}
+{\sc Biccari, U.}
+\newblock Internal control for non-local {S}chr{\"o}dinger and wave equations
+  involving the fractional {L}aplace operator.
+\newblock {\em Preprint - arXiv:1411.7800\/} (2018).
+
+\bibitem{brillouin1926mecanique}
+{\sc Brillouin, L.}
+\newblock La m{\'e}canique ondulatoire de {S}chr{\"o}dinger; une m{\'e}thode
+  g{\'e}n{\'e}rale de r{\'e}solution par approximations successives.
+\newblock {\em Compt. Rend. Hebd. Seances Acad. Sci. 183\/} (1926), 24--26.
+
+\bibitem{burq1997condition}
+{\sc Burq, N., and G{\'e}rard, P.}
+\newblock Condition n{\'e}cessaire et suffisante pour la contr{\^o}labilit{\'e}
+  exacte des ondes.
+\newblock {\em C.R. Acad. Sci. S{\'e}r. I Math. 325}, 7 (1997), 749--752.
+
+\bibitem{vcerveny1982computation}
+{\sc {\v{C}}erven{\`y}, V., Popov, M.~M., and P{\v{s}}en{\v{c}}{\'\i}k, I.}
+\newblock Computation of wave fields in inhomogeneous media - {G}aussian beam
+  approach.
+\newblock {\em Geophysics 70}, 1 (1982), 109--128.
+
+\bibitem{hill2001prestack}
+{\sc Hill, N.~R.}
+\newblock Prestack {G}aussian-beam depth migration.
+\newblock {\em Geophysics 66}, 4 (2001), 1240--1250.
+
+\bibitem{kramers1926wellenmechanik}
+{\sc Kramers, H.~A.}
+\newblock Wellenmechanik und halbzahlige {Q}uantisierung.
+\newblock {\em Zeitschrift f{\"u}r Physik A Hadrons and Nuclei 39}, 10 (1926),
+  828--840.
+
+\bibitem{laskin2000quantum}
+{\sc Laskin, N.}
+\newblock Fractional quantum mechanics.
+\newblock {\em Phys. Rev. E 62}, 3 (2000), 3135.
+
+\bibitem{laskin2000fractional}
+{\sc Laskin, N.}
+\newblock Fractional quantum mechanics and {L}{\'e}vy path integrals.
+\newblock {\em Phys. Letters A 268}, 4 (2000), 298--305.
+
+\bibitem{laskin2002fractional}
+{\sc Laskin, N.}
+\newblock Fractional {S}chr{\"o}dinger equation.
+\newblock {\em Phys. Rev. E 66}, 5 (2002), 056108.
+
+\bibitem{liu2009recovery}
+{\sc Liu, H., and Ralston, J.}
+\newblock Recovery of high frequency wave fields for the acoustic wave
+  equation.
+\newblock {\em Multis. Model. Simul. 8}, 2 (2009), 428--444.
+
+\bibitem{liu2010recovery}
+{\sc Liu, H., and Ralston, J.}
+\newblock Recovery of high frequency wave fields from phase space-based
+  measurements.
+\newblock {\em Multis. Model. Simul. 8}, 2 (2010), 622--644.
+
+\bibitem{liu2013error}
+{\sc Liu, H., Runborg, O., and Tanushev, N.}
+\newblock Error estimates for {G}aussian beam superpositions.
+\newblock {\em Math. Comput. 82}, 282 (2013), 919--952.
+
+\bibitem{liu2015sobolev}
+{\sc Liu, H., Runborg, O., and Tanushev, N.~M.}
+\newblock Sobolev and max norm error estimates for {G}aussian beam
+  superpositions.
+\newblock {\em arXiv preprint arXiv:1510.09120\/} (2015).
+
+\bibitem{longhi2015fractional}
+{\sc Longhi, S.}
+\newblock Fractional {S}chr{\"o}dinger equation in optics.
+\newblock {\em Optics letters 40}, 6 (2015), 1117--1120.
+
+\bibitem{ralston1982gaussian}
+{\sc Ralston, J.}
+\newblock Gaussian beams and the propagation of singularities.
+\newblock {\em Studies in partial differential equations 23\/} (1982),
+  206--248.
+
+\bibitem{spigler1997survey}
+{\sc Spigler, R., and Vianello, M.}
+\newblock A survey on the {L}iouville-{G}reen ({WKB}) approximation for linear
+  difference equations of the second order.
+\newblock In {\em Second International Conference on Difference Equations\/}
+  (1997), Gordon and Breach, pp.~567--577.
+
+\bibitem{stickler2013potential}
+{\sc Stickler, B.}
+\newblock Potential condensed-matter realization of space-fractional quantum
+  mechanics: {T}he one-dimensional {L}{\'e}vy crystal.
+\newblock {\em Phys. Rev. E 88}, 1 (2013), 012120.
+
+\bibitem{tanushev2008superpositions}
+{\sc Tanushev, N.~M.}
+\newblock Superpositions and higher order {G}aussian beams.
+\newblock {\em Comm. Math. Sc. 6}, 2 (2008), 449--475.
+
+\bibitem{tanushev2007mountain}
+{\sc Tanushev, N.~M., Qian, J., and Ralston, J.~V.}
+\newblock Mountain waves and {G}aussian beams.
+\newblock {\em Multiscale Modeling \& Simulation 6}, 2 (2007), 688--709.
+
+\bibitem{biccari2018wkb}
+{\sc Umberto, B., and Aceves, A.}
+\newblock Wkb expansion for a fractional {S}chr{\"o}dinger equation with
+  applications to controllability.
+
+\bibitem{wentzel1926verallgemeinerung}
+{\sc Wentzel, G.}
+\newblock Eine verallgemeinerung der quantenbedingungen f{\"u}r die zwecke der
+  wellenmechanik.
+\newblock {\em Zeitschrift f{\"u}r Physik A Hadrons and Nuclei 38}, 6 (1926),
+  518--529.
+
+\end{thebibliography}
