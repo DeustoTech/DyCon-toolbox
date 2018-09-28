@@ -1,11 +1,13 @@
-%% WKB expansion for a fractional Schrödinger equation
+%% title: WKB expasion
+%% date: 2018-07-21
+%% author: [UmbertoB , AlejandroA , EnriqueZ ]
 % In the particular case under analysis, the construction that we obtain is then applied to the study 
-% of controllability properties for the one dimensional fractional Schrödinger equation.
+% $$\alpha$$ of controllability properties for the one dimensional fractional Schrodinger equation.
 
 %%
 % With highly oscillatory initial datum
 
-Nx = 400;
+Nx = 100;
 L = 1;
 hx = (2*L)/(Nx+1);
 %%
@@ -17,7 +19,9 @@ gamma = hx^(-0.9);
 u0 = @(x) exp(-0.5*gamma*(x-x0).^2).*exp(1i*fr*x/hx);
 %%
 % Can see the representation of initial Datum 
-set(gcf,'Units','normalized','Position',[0.1 0.1 0.6 0.4])
+fig = gcf;
+set(gcf,'Units','pixels','Position',[427 306 712 284])
+%
 x = -L:hx:L;
 %
 subplot(1,3,1)
@@ -35,6 +39,8 @@ subplot(1,3,3)
 plot(x,imag(u0(x)))
 title('img(u_0(x))')
 xlabel('x'); ylabel('u(x)');
+%
+format_plot(fig)
 
 %% Solution for s = 1/2 
 % To solve this equation, Need define the next parameters;
@@ -50,9 +56,12 @@ T   = 5    % Final time
 [X ,T] = meshgrid(x,t);
 %
 clf
-mesh(X,T,u')
-view(0,90)
+mesh(X,T,u');
+format_plot(gcf);view(0,90)
 xlabel('x'); ylabel('t'); title('Ray Evolution');
 %% 
 % For last, if you type "animation(x,t,u)", in MATLAB console. You can see the evolution in time of this wave.
+
+%%
+% ![$$u(t)$$ function](extra-data/wave.gif)
 

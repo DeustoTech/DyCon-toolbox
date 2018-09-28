@@ -27,37 +27,46 @@ path_html=$(echo $path_tex | sed 's/.tex/.html/g')
 
 path_input=$path_input'/docs'
 cd $path_input
-ls
 
+mkdir latexbuild
+cd latexbuild
+cp ../* .
+
+rm -f *.pdf
 pdflatex *.tex
 mv *.aux midlle.aux
 bibtex midlle.aux
 pdflatex *.tex 
 open *.pdf
 
-echo "========"
-
-#cat biblio.bib
-#cat biblio.bib | sed 's/{/{"/g' | sed 's/}/"}/g' > new_biblio.bib
-pandoc pandoc-citeproc biblio.bib --biblatex -o new.html
-
 #pandoc --filter pandoc-citeproc3
-
+# =================
 #
 # latex ==> html
 #
-#pandoc --from latex --to html5 -s -S --mathjax -o $path_html $path_tex --bibliography $path_bib --biblatex
+pandoc --from latex --to html5 -s -S --mathjax -o $path_html $path_tex --bibliography $path_bib --biblatex
 
-echo "========"
 
-open $path_html
+## 
+# cat $path_html | sed 's/..\/figures-latex/figures-latex/g' > other.html
+## Repair links of images 
+cat $path_html | sed 's/..\/figures-latex/assets\/imgs\/'$1'\/'$2'/g' > other.html
 
+mv other.html $path_html
+
+# .md format
 echo '---' > $output_doc
-#author=$(grep "author{" $path_tex  | sed 's/\\author{//g' | sed 's/}//g' |tr '\n' ';')
-#echo 'author : ['$author']' >> $output_doc'/post.md'
 grep "title{"  $path_tex | sed 's/\\title{/ title: /g' | sed 's/{//g' |sed 's/}//g' >> $output_doc
 echo 'categories: '$1 >> $output_doc
 echo 'number: '$2 >> $output_doc
 echo '---' >> $output_doc
-
+# only copy body of html generate by pandoc
 cat $path_html |sed 's/{{/{ {/g'|sed 's/}}/} }/g'|sed -n "/<body>/,/<\/body>/p"  >> $output_doc
+
+# copy images 
+mkdir -p $path_documentation'/assets/imgs/'$1'/'$2
+# 
+cp ../figures-latex/* $path_documentation'/assets/imgs/'$1'/'$2
+
+cd ..
+rm -r latexbuild

@@ -2,3 +2,9 @@
 *.log
 *.aux
 *.auxlock
+*.bbl
+*.blg
+*.fls
+*.out
+*.xml
+latexbuild/

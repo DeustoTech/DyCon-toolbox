@@ -1,8 +1,8 @@
 function [x,t,u] = fractional_schr(s,L,Nx,T,u0)
+%% author: UmbertoB
+%% short_description: Localization along rays and propagation of the solution to the fractional wave equation
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%                                                                   %%%%
-%%%% Localization along rays and propagation of the solution to the    %%%%
-%%%% fractional wave equation                                          %%%%
 %%%%                                                                   %%%%
 %%%% iu_t + (-d_x^2)^s u = 0,            (x,t) in (-L,L)x(0,T)         %%%%
 %%%% u = 0,                              (x,t) in [R\(-L,L)]x(0,T)     %%%%

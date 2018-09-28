@@ -43,7 +43,7 @@ tmpfile = [tempname('.') '.m'];
 [~,tmpbase,~] = fileparts(tmpfile);
 copyfile(mfile, tmpfile);
 
-readmefolder = fullfile(folder, 'imgs');
+readmefolder = fullfile(folder, 'imgs-matlab');
 
 % Remve old published versions
 
@@ -121,8 +121,8 @@ else
     texthtml = regexp(texthtml, '\n', 'split')';    
     
     textmd   = strrep(textmd, '&times;', 'x'); % until I figure out how to do this in the XSL file
-    textmd   = strrep(textmd,   tmpbase, fullfile('.', 'imgs', name));
-    texthtml = strrep(texthtml, tmpbase, fullfile('.', 'imgs', name));
+    textmd   = strrep(textmd,   tmpbase, fullfile('.', 'imgs-matlab', name));
+    texthtml = strrep(texthtml, tmpbase, fullfile('.', 'imgs-matlab', name));
     for ii = 1:length(fname)   
         movefile(fullfile(readmefolder, fname{ii}), fullfile(readmefolder, fnamenew{ii}));
     end
