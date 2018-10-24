@@ -1,0 +1,420 @@
+
+# title: Average Control by classical gradient step method
+
+
+
+## date: 2018-07-21
+
+
+
+## author: [VictorH, JoseV, EnriqueZ]
+
+
+In this work, we address the optimal control of parameter-dependent systems. We introduce the notion of averaged control in which the quantity of interest is the average of the states with respect to the parameter family $$\mathcal{K}= \left\{ \nu_i \in \mathbb{R}, \enspace 1\leq i \leq K \right\}.$$
+
+
+
+```
+Error updating Text.
+
+ Character vector must have valid interpreter syntax: 
+$$\mathcal{K}= \left\{ \nu_i \in \mathbb{R}, \enspace 1\leq i \leq K \right\}.$
+
+```
+
+
+In this case 
+![$\nu_i$](./imgs-matlab/average_control_by_classical_gradient_step_eq13234458220758956063.png)
+ are:
+
+
+
+```matlab
+nu = 1:0.5:6
+```
+
+
+
+
+```
+
+nu =
+
+  Columns 1 through 7
+
+    1.0000    1.5000    2.0000    2.5000    3.0000    3.5000    4.0000
+
+  Columns 8 through 11
+
+    4.5000    5.0000    5.5000    6.0000
+
+
+```
+
+
+And save in K, the number of values
+
+
+
+```matlab
+K = length(nu);
+```
+
+
+Where the finite dimensional linear control system is:
+
+
+$$\begin{align*}  \left\{ \begin{array}{ll} x^\prime \left( t \right) = A
+\left( \nu \right) x \left( t \right) + B \left( \nu \right) u \left( t \right),
+\quad 0 &lt; t &lt;T, \\ x\left( 0 \right) = x^0. \end{array} \right. \end{align*}$$
+
+
+
+```
+Error updating Text.
+
+ Character vector must have valid interpreter syntax: 
+$$\begin{align*}  \left\{ \begin{array}{ll} x^\prime \left( t \right) = A \left( \nu \right) x \left( t \right) + B \left( \nu \right) u \left( t \right), \quad 0 &lt; t &lt;T, \\ x\left( 0 \right) = x^0. \end{array} \right. \end{align*}$$
+
+```
+
+
+We can, define the initial state of all ode's
+
+
+
+```matlab
+N = 3; % dimension of vector state
+x0 = ones(N, 1);
+```
+
+
+Also, need define a initial control, that will be evolve
+
+
+
+```matlab
+dt = 0.02;
+t0 = 0; T  = 1;
+span = (t0:dt:T);
+%
+u = zeros(length(span),1);
+```
+
+
+
+```matlab
+%Moreover, we can define the matrix A's and B's, that determine the problem
+Am = -triu(ones(N))
+```
+
+
+
+
+```
+
+Am =
+
+    -1    -1    -1
+     0    -1    -1
+     0     0    -1
+
+
+```
+
+
+
+```matlab
+Bm = zeros(N, 1);
+Bm(N) = 1
+```
+
+
+
+
+```
+
+Bm =
+
+     0
+     0
+     1
+
+
+```
+
+
+So, we can create these edo's in variable primal_odes.
+
+
+
+```matlab
+primal_odes = zeros(1,K,'ode');
+for index = 1:K
+    A = Am + (nu(index) - 1 )*diag(diag(Am));
+    %
+    primal_odes(index) = ode(A,'B',Bm);
+    % all have the same control
+    primal_odes(index).u  = u;
+    % time intervals
+    primal_odes(index).span = span;
+    % initial state
+    primal_odes(index).x0 = x0;
+end
+```
+
+
+So, we have a 
+![$K$](./imgs-matlab/average_control_by_classical_gradient_step_eq03845174387838694102.png)
+ ordinary differential equations
+
+
+
+```matlab
+primal_odes
+```
+
+
+
+
+```
+
+primal_odes = 
+
+  1x11 ode array with properties:
+
+    A
+    B
+    u
+    x0
+    x
+    span
+    xend
+
+
+```
+
+
+To solve average control problem to x0; in this case:
+
+
+
+```matlab
+xt = ones(N, 1)
+```
+
+
+
+
+```
+
+xt =
+
+     1
+     1
+     1
+
+
+```
+
+
+we can solve the minimization problem
+
+
+$$ \begin{equation*}
+\min_{u \in L^2(0,T)} \mathcal{J}\left( u\right) =
+\min_{u \in L^2(0,T)} \frac{1}{2} \left[ \frac{1}{K} \sum_{\nu \in \mathcal{K}} x \left( T, \nu \right) - \bar{x} \right]^2  +
+\frac{\beta}{2} \int_0^T u^2 \mathrm{d}t, \quad \beta \in \mathbb{R}^+
+\end{equation*} $$
+
+
+
+```
+Error updating Text.
+
+ Character vector must have valid interpreter syntax: 
+$$ \begin{equation*} \min_{u \in L^2(0,T)} \mathcal{J}\left( u\right) = \min_{u \in L^2(0,T)} \frac{1}{2} \left[ \frac{1}{K} \sum_{\nu \in \mathcal{K}} x \left( T, \nu \right) - \bar{x} \right]^2  + \frac{\beta}{2} \int_0^T u^2 \mathrm{d}t, \quad \beta \in \mathbb{R}^+ \end{equation*} $$
+
+```
+
+
+We can use the classical gradient descent method based on the adjoint methodology, and obtain the corresponding adjoint system for [^fn],
+
+
+$$ \begin{align*} \left\{ \begin{array}{ll} p^\prime \left( t \right) =
+-A \left( \nu \right) p \left( t \right), \quad 0 &lt; t &lt;T, \\ \displaystyle p\left( T \right) =
+- \left[ \frac{1}{K} \sum_{\nu \in \mathcal{K}} x \left( T, \nu \right) - \bar{x} \right]. \end{array} \right. \end{align*} $$
+
+
+
+```
+Error updating Text.
+
+ Character vector must have valid interpreter syntax: 
+$$ \begin{align*} \left\{ \begin{array}{ll} p^\prime \left( t \right) = -A \left( \nu \right) p \left( t \right), \quad 0 &lt; t &lt;T, \\ \displaystyle p\left( T \right) = - \left[ \frac{1}{K} \sum_{\nu \in \mathcal{K}} x \left( T, \nu \right) - \bar{x} \right]. \end{array} \right. \end{align*} $$
+
+```
+
+
+The same way that before, we define the adjoints problems
+
+
+
+```matlab
+adjoint_odes = zeros(1,K,'ode');
+for index = 1:K
+    A = primal_odes(index).A';
+    adjoint_odes(index) = ode(A);
+    % all have the same control
+    adjoint_odes(index).u = u;
+    % time intervals
+    adjoint_odes(index).span = span;
+end
+```
+
+
+However the initial state  `adjoint_odes(index).x0` hasn't been assign. This initial state will be assign in every step of solution.
+
+
+To minimize the functional, 
+![$\mathcal{J}\left( u\right)$](./imgs-matlab/average_control_by_classical_gradient_step_eq18426651519827614734.png)
+, we take the steepest descent direction given by
+
+
+$$\begin{equation*}
+u^{\left( k+1 \right)} = u^{\left( k \right)} - \gamma J^\prime \left[ u^{\left( k \right)} \right]
+\end{equation*} $$
+
+
+
+```
+Error updating Text.
+
+ Character vector must have valid interpreter syntax: 
+$$\begin{equation*} u^{\left( k+1 \right)} = u^{\left( k \right)} - \gamma J^\prime \left[ u^{\left( k \right)} \right] \end{equation*} $$
+
+```
+
+
+We process to solve the problem of classical gradient descent
+
+
+
+```matlab
+gamma = 1;
+beta  = 1e-3;
+tol   = 1e-8;  % Tolerance
+error = Inf;
+MaxIter = 50;
+iter = 0;
+xhistory = {}; uhistory = {};  error_history = [];    % array here we will save the evolution of average vector states
+while (error > tol &amp;&amp; iter &lt; MaxIter)
+    iter = iter + 1;
+    % solve primal problem
+    % ====================
+    solve(primal_odes);
+    % calculate mean state final vector of primal problems
+    xMend = forall({primal_odes.xend},'mean');
+
+    % solve adjoints problems
+    % =======================
+    % update new initial state of all adjoint problems
+    for iode = adjoint_odes
+        iode.x0 = -(xMend' - xt);
+    end
+    % solve adjoints problems with the new initial state
+    solve(adjoint_odes);
+
+    % update control
+    % ===============
+    % calculate mean state vector of adjoints problems
+    pM = forall({adjoint_odes.x},'mean');
+    pM = pM*Bm;
+
+    % reverse adjoint variable
+    pM = flipud(pM);
+    % Control update
+    u = primal_odes(1).u; % catch control currently
+    Du = beta*u - pM;
+    u = u - gamma*Du;
+    % update control in primal problems
+    for index = 1:K
+        primal_odes(index).u = u;
+    end
+    % Control error
+    % =============
+    % Calculate area ratio  of Du^2 and u^2
+    Au2   =  trapz(span,u.^2);
+    ADu2  =  trapz(span,Du.^2);
+    %
+
+    error = sqrt(ADu2/Au2);
+    % Save evolution
+    xhistory{iter} = [ span',forall({primal_odes.x},'mean')];
+    uhistory{iter} = [ span',u];
+    error_history  = [ error_history, error];
+end
+```
+
+
+The average control obtain is
+
+
+
+```matlab
+plot(span,u)
+xlabel('time');ylabel('u(t)')
+format_plot(gcf)
+```
+
+
+![](./imgs-matlab/average_control_by_classical_gradient_step_01.png)
+
+Also, on average the objective [0 0 0] has been reached.
+
+
+
+```matlab
+figure;
+plot(iode.span,forall({primal_odes.x},'mean'))
+xlabel('t');ylabel('x_{i}(t)')
+legend(strcat('x_{',num2str((1:N)','%0.1d'),'}(t)'))
+title('Evolution of cordinates of vector state.')
+format_plot(gcf)
+```
+
+
+![](./imgs-matlab/average_control_by_classical_gradient_step_02.png)
+
+You can use the comand
+
+
+`animation_sol(xhistory,uhistory,'XLim',[-0.1 0.25],'ULim',[-0.5 0.0])`
+
+
+We can see ![Evolution in each iteration](extra-data/average_control.gif)
+
+
+If we analyze the evolution in the error, we can see that we should have stopped, in iteration 20.
+
+
+
+```matlab
+plot(error_history,'-*')
+title('Error Evolution')
+ylabel('Error'); xlabel('Iterations')
+format_plot(gcf)
+```
+
+
+![](./imgs-matlab/average_control_by_classical_gradient_step_03.png)
+
+
+## References
+
+
+[^fn]:  E. Zuazua (2014) Averaged Control. Automatica, 50 (12), p. 3077-3087.
+
+
+
+
