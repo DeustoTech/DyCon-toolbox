@@ -1,0 +1,43 @@
+callback([
+
+  {
+    "text": "fractional_schr",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/documentation/fractional_schr-F"
+  } ,
+
+  {
+    "text": "rigidity_fr_laplacian",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/documentation/rigidity_fr_laplacian-F"
+  } ,
+
+  {
+    "text": "Control of PDEs involving non-local terms",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/posts/Control_of_PDE_non_local_terms"
+  } ,
+
+  {
+    "text": "Average Control by classical gradient step method",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/tutorials/wp01/P0001-T"
+  } ,
+
+  {
+    "text": "Rays propagation of a fractional Schrodinger Equation",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/tutorials/wp05/P0001-T"
+  } ,
+
+  {
+    "text": "Gradient Descent in semilinear control",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/tutorials/wp02/P0001-T"
+  } ,
+
+  {
+    "text": "Synchronized Oscillators",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/tutorials/wp01/P0004-T"
+  } ,
+
+  {
+    "text": "Inverted Pendulum Control",
+    "href": "https://DeustoTech.github.io/dycon-platform-documentation/tutorials/wp99/P0002-T"
+  } 
+
+])

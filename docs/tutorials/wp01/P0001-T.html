@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="This MATLAB software is dedicated to the development and learning of control problems for applied mathematics.">
+	<meta property="og:title" content="Average Control by classical gradient step method" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://DeustoTech.github.io//dycon-platform-documentation//tutorials/wp01/P0001-T" />
+<meta property="og:image" content="https://DeustoTech.github.io//dycon-platform-documentation/img/home-bg.gif">
+	
+	
+
+	<meta name="citation_title" content="Project Pages - An Integrated Scientific Blogging Template">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+
+	
+
+	<link rel='shortcut icon' type='image/png' href='/dycon-platform-documentation/favicon.png' />
+
+    <title>Average Control by classical gradient step method - DyCon Platform</title>
+
+    <link rel="canonical" href="https://DeustoTech.github.io/dycon-platform-documentation/tutorials/wp01/P0001-T">
+	
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/clean-blog.css">
+	
+	<!-- Adjust Colors -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/colorscheme.css">
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/syntax.css">
+
+	<link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/dycon.css">
+
+    <!-- Custom Fonts -->
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Lusitana" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+	<!-- Math Jax -->
+	<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+	</script>
+	<script type="text/javascript"
+	src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+		TeX: { equationNumbers: { autoNumber: "AMS" } }
+	});
+	</script>
+
+	<!--<script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js" type="text/javascript"></script>-->
+
+    <!-- jQuery -->
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+	<!-- Bootstrap Core JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+	<!-- Custom Theme JavaScript -->
+	<script src="https://DeustoTech.github.io/dycon-platform-documentation/js/clean-blog.min.js "></script>
+	
+	
+	
+</head>
+
+
+<body>
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/dycon-platform-documentation/"> 
+                 <img style="height: 40px;padding-bottom: 10px;" src= "https://DeustoTech.github.io//dycon-platform-documentation/img/logos/logo_DyCon.png" >
+            </a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="/dycon-platform-documentation/">Home</a>
+                </li>
+				
+                <li>
+                    <a href="/dycon-platform-documentation/projects/documentation">Documentation</a>
+                </li>
+                
+                <li>
+                    <a href="/dycon-platform-documentation/projects/posts">Posts</a>
+                </li>
+                
+                <li>
+                    <a href="/dycon-platform-documentation/projects/tutorials">Tutorials</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/dycon-platform-documentation/GettingStrated">Getting Started</a>
+                </li>
+                
+                <li>
+                        <a href="http://cmc.deusto.eus/">Chair of Computational Mathematics</a>
+                </li>                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+
+    <!-- Post Header -->
+<header class="intro-header" style="background-size: 300px 300px; background-image: url('/dycon-platform-documentation/img/home-bg.gif')">
+    <div class="container" style="padding-top: 70px;">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading" style="padding: 0px 0">
+                    <h1>Average Control by classical gradient step method</h1>
+                    
+					<span class="meta">Posted by: 
+					
+						• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name"><a href="">Victor Hernández Santamaría</a></span></span>
+					
+						• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name"><a href="">José Vicente Lorenzo</a></span></span>
+					
+						• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name"><a href="">Enrique Zuazua</a></span></span>
+					
+					</span>	
+					<span>on July 21, 2018</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+	
+	
+		
+	
+
+<!-- Also Interesting -->
+
+
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+
+		</div>
+		</div>
+
+<!-- Post Content -->
+<style>
+img {
+	display:block;
+	max-width:  100%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+@media only screen and (min-width: 1000px) {
+img {
+	-moz-transition:-moz-transform 0.5s ease-in; 
+	-webkit-transition:-webkit-transform 0.5s ease-in; 
+	-o-transition:-o-transform 0.5s ease-in;
+}
+img:active{
+	-moz-transform:scale(1.2); 
+	-webkit-transform:scale(1.2);
+	-o-transform:scale(1.2);
+}
+}
+
+@media only screen and (min-width: 1250px) {
+img {
+	-moz-transition:-moz-transform 0.5s ease-in; 
+	-webkit-transition:-webkit-transform 0.5s ease-in; 
+	-o-transition:-o-transform 0.5s ease-in;
+}
+img:active{
+	-moz-transform:scale(1.5); 
+	-webkit-transform:scale(1.5);
+	-o-transform:scale(1.5);
+}
+}
+
+@media only screen and (min-width: 1500px) {
+img {
+	-moz-transition:-moz-transform 0.5s ease-in; 
+	-webkit-transition:-webkit-transform 0.5s ease-in; 
+	-o-transition:-o-transform 0.5s ease-in;
+}
+img:active{
+	-moz-transform:scale(2); 
+	-webkit-transform:scale(2);
+	-o-transform:scale(2);
+}
+}
+</style>
+
+<article>
+    <div id="content" class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+				<p>In this work, we address the optimal control of parameter-dependent systems. We introduce the notion of averaged control in which the quantity of interest is the average of the states with respect to the parameter family <script type="math/tex">\mathcal{K}= \left\{ \nu_i \in \mathbb{R}, \enspace 1\leq i \leq K \right\}.</script></p>
+
+<p>In this case $\nu_i$ are:</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">nu</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="mf">0.5</span><span class="p">:</span><span class="mi">6</span>
+</code></pre></div></div>
+
+<p>And save in K, the number of values</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">K</span> <span class="o">=</span> <span class="nb">length</span><span class="p">(</span><span class="n">nu</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Where the finite dimensional linear control system is:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align*}  \left\{ \begin{array}{ll} x^\prime \left( t \right) = A \left( \nu \right) x \left( t \right) + B \left( \nu \right) u \left( t \right), \quad 0 < t <T, \\ x\left( 0 \right) = x^0. \end{array} \right. \end{align*} %]]></script>
+
+<p>We can, define the initial state of all ode’s</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">N</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">% dimension of vector state</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="nb">ones</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>Also, need define a initial control, that will be evolve</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dt</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">;</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">T</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="n">span</span> <span class="o">=</span> <span class="p">(</span><span class="n">t0</span><span class="p">:</span><span class="n">dt</span><span class="p">:</span><span class="n">T</span><span class="p">);</span>
+<span class="c1">%</span>
+<span class="n">u</span> <span class="o">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="nb">length</span><span class="p">(</span><span class="n">span</span><span class="p">),</span><span class="mi">1</span><span class="p">);</span>
+</code></pre></div></div>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">%Moreover, we can define the matrix A's and B's, that determine the problem</span>
+<span class="n">Am</span> <span class="o">=</span> <span class="o">-</span><span class="nb">triu</span><span class="p">(</span><span class="nb">ones</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Bm</span> <span class="o">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="n">Bm</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">=</span> <span class="mi">1</span>
+</code></pre></div></div>
+
+<p>So, we can create these edo’s in variable primal_odes.</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">primal_odes</span> <span class="o">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="s1">'ode'</span><span class="p">);</span>
+<span class="k">for</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">K</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">Am</span> <span class="o">+</span> <span class="p">(</span><span class="n">nu</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">)</span><span class="o">*</span><span class="nb">diag</span><span class="p">(</span><span class="nb">diag</span><span class="p">(</span><span class="n">Am</span><span class="p">));</span>
+    <span class="c1">%</span>
+    <span class="n">primal_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">=</span> <span class="n">ode</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="s1">'B'</span><span class="p">,</span><span class="n">Bm</span><span class="p">);</span>
+    <span class="c1">% all have the same control</span>
+    <span class="n">primal_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">u</span>  <span class="o">=</span> <span class="n">u</span><span class="p">;</span>
+    <span class="c1">% time intervals</span>
+    <span class="n">primal_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">span</span> <span class="o">=</span> <span class="n">span</span><span class="p">;</span>
+    <span class="c1">% initial state</span>
+    <span class="n">primal_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span><span class="p">;</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>So, we have a $K$ ordinary differential equations</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">primal_odes</span>
+</code></pre></div></div>
+
+<p>To solve average control problem to x0; in this case:</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">xt</span> <span class="o">=</span> <span class="nb">ones</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>we can solve the minimization problem</p>
+
+<script type="math/tex; mode=display">\begin{equation*} \min_{u \in L^2(0,T)} \mathcal{J}\left( u\right) = \min_{u \in L^2(0,T)} \frac{1}{2} \left[ \frac{1}{K} \sum_{\nu \in \mathcal{K}} x \left( T, \nu \right) - \bar{x} \right]^2  + \frac{\beta}{2} \int_0^T u^2 \mathrm{d}t, \quad \beta \in \mathbb{R}^+ \end{equation*}</script>
+
+<p>We can use the classical gradient descent method based on the adjoint methodology, and obtain the corresponding adjoint system for <sup id="fnref:fn"><a href="#fn:fn" class="footnote">1</a></sup>,</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align*} \left\{ \begin{array}{ll} p^\prime \left( t \right) = -A \left( \nu \right) p \left( t \right), \quad 0 < t <T, \\ \displaystyle p\left( T \right) = - \left[ \frac{1}{K} \sum_{\nu \in \mathcal{K}} x \left( T, \nu \right) - \bar{x} \right]. \end{array} \right. \end{align*} %]]></script>
+
+<p>The same way that before, we define the adjoints problems</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">adjoint_odes</span> <span class="o">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="s1">'ode'</span><span class="p">);</span>
+<span class="k">for</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">K</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">primal_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">A</span><span class="o">'</span><span class="p">;</span>
+    <span class="n">adjoint_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">=</span> <span class="n">ode</span><span class="p">(</span><span class="n">A</span><span class="p">);</span>
+    <span class="c1">% all have the same control</span>
+    <span class="n">adjoint_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">u</span><span class="p">;</span>
+    <span class="c1">% time intervals</span>
+    <span class="n">adjoint_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">span</span> <span class="o">=</span> <span class="n">span</span><span class="p">;</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>However the initial state  <code class="highlighter-rouge">adjoint_odes(index).x0</code> hasn’t been assign. This initial state will be assign in every step of solution.</p>
+
+<p>To minimize the functional, $\mathcal{J}\left( u\right)$, we take the steepest descent direction given by</p>
+
+<script type="math/tex; mode=display">\begin{equation*} u^{\left( k+1 \right)} = u^{\left( k \right)} - \gamma J^\prime \left[ u^{\left( k \right)} \right] \end{equation*}</script>
+
+<p>We process to solve the problem of classical gradient descent</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">gamma</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="nb">beta</span>  <span class="o">=</span> <span class="mf">1e-3</span><span class="p">;</span>
+<span class="n">tol</span>   <span class="o">=</span> <span class="mf">1e-8</span><span class="p">;</span>  <span class="c1">% Tolerance</span>
+<span class="nb">error</span> <span class="o">=</span> <span class="n">Inf</span><span class="p">;</span>
+<span class="n">MaxIter</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span>
+<span class="n">iter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">xhistory</span> <span class="o">=</span> <span class="p">{};</span> <span class="n">uhistory</span> <span class="o">=</span> <span class="p">{};</span>  <span class="n">error_history</span> <span class="o">=</span> <span class="p">[];</span>    <span class="c1">% array here we will save the evolution of average vector states</span>
+<span class="k">while</span> <span class="p">(</span><span class="nb">error</span> <span class="o">&gt;</span> <span class="n">tol</span> <span class="o">&amp;&amp;</span> <span class="n">iter</span> <span class="o">&lt;</span> <span class="n">MaxIter</span><span class="p">)</span>
+    <span class="n">iter</span> <span class="o">=</span> <span class="n">iter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="c1">% solve primal problem</span>
+    <span class="c1">% ====================</span>
+    <span class="n">solve</span><span class="p">(</span><span class="n">primal_odes</span><span class="p">);</span>
+    <span class="c1">% calculate mean state final vector of primal problems</span>
+    <span class="n">xMend</span> <span class="o">=</span> <span class="n">forall</span><span class="p">({</span><span class="n">primal_odes</span><span class="o">.</span><span class="n">xend</span><span class="p">},</span><span class="s1">'mean'</span><span class="p">);</span>
+
+    <span class="c1">% solve adjoints problems</span>
+    <span class="c1">% =======================</span>
+    <span class="c1">% update new initial state of all adjoint problems</span>
+    <span class="k">for</span> <span class="n">iode</span> <span class="o">=</span> <span class="n">adjoint_odes</span>
+        <span class="n">iode</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">xMend</span><span class="o">'</span> <span class="o">-</span> <span class="n">xt</span><span class="p">);</span>
+    <span class="k">end</span>
+    <span class="c1">% solve adjoints problems with the new initial state</span>
+    <span class="n">solve</span><span class="p">(</span><span class="n">adjoint_odes</span><span class="p">);</span>
+
+    <span class="c1">% update control</span>
+    <span class="c1">% ===============</span>
+    <span class="c1">% calculate mean state vector of adjoints problems</span>
+    <span class="n">pM</span> <span class="o">=</span> <span class="n">forall</span><span class="p">({</span><span class="n">adjoint_odes</span><span class="o">.</span><span class="n">x</span><span class="p">},</span><span class="s1">'mean'</span><span class="p">);</span>
+    <span class="n">pM</span> <span class="o">=</span> <span class="n">pM</span><span class="o">*</span><span class="n">Bm</span><span class="p">;</span>
+
+    <span class="c1">% reverse adjoint variable</span>
+    <span class="n">pM</span> <span class="o">=</span> <span class="nb">flipud</span><span class="p">(</span><span class="n">pM</span><span class="p">);</span>
+    <span class="c1">% Control update</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">primal_odes</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">u</span><span class="p">;</span> <span class="c1">% catch control currently</span>
+    <span class="n">Du</span> <span class="o">=</span> <span class="nb">beta</span><span class="o">*</span><span class="n">u</span> <span class="o">-</span> <span class="n">pM</span><span class="p">;</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">u</span> <span class="o">-</span> <span class="nb">gamma</span><span class="o">*</span><span class="n">Du</span><span class="p">;</span>
+    <span class="c1">% update control in primal problems</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">K</span>
+        <span class="n">primal_odes</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="n">u</span><span class="p">;</span>
+    <span class="k">end</span>
+    <span class="c1">% Control error</span>
+    <span class="c1">% =============</span>
+    <span class="c1">% Calculate area ratio  of Du^2 and u^2</span>
+    <span class="n">Au2</span>   <span class="o">=</span>  <span class="nb">trapz</span><span class="p">(</span><span class="n">span</span><span class="p">,</span><span class="n">u</span><span class="o">.^</span><span class="mi">2</span><span class="p">);</span>
+    <span class="n">ADu2</span>  <span class="o">=</span>  <span class="nb">trapz</span><span class="p">(</span><span class="n">span</span><span class="p">,</span><span class="n">Du</span><span class="o">.^</span><span class="mi">2</span><span class="p">);</span>
+    <span class="c1">%</span>
+
+    <span class="nb">error</span> <span class="o">=</span> <span class="nb">sqrt</span><span class="p">(</span><span class="n">ADu2</span><span class="p">/</span><span class="n">Au2</span><span class="p">);</span>
+    <span class="c1">% Save evolution</span>
+    <span class="n">xhistory</span><span class="p">{</span><span class="n">iter</span><span class="p">}</span> <span class="o">=</span> <span class="p">[</span> <span class="n">span</span><span class="s1">',forall({primal_odes.x},'</span><span class="nb">mean</span><span class="o">'</span><span class="p">)];</span>
+    <span class="n">uhistory</span><span class="p">{</span><span class="n">iter</span><span class="p">}</span> <span class="o">=</span> <span class="p">[</span> <span class="n">span</span><span class="o">'</span><span class="p">,</span><span class="n">u</span><span class="p">];</span>
+    <span class="n">error_history</span>  <span class="o">=</span> <span class="p">[</span> <span class="n">error_history</span><span class="p">,</span> <span class="nb">error</span><span class="p">];</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>The average control obtain is</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">plot</span><span class="p">(</span><span class="n">span</span><span class="p">,</span><span class="n">u</span><span class="p">)</span>
+<span class="nb">xlabel</span><span class="p">(</span><span class="s1">'time'</span><span class="p">);</span><span class="nb">ylabel</span><span class="p">(</span><span class="s1">'u(t)'</span><span class="p">)</span>
+<span class="n">format_plot</span><span class="p">(</span><span class="nb">gcf</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Also, on average the objective [0 0 0] has been reached.</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">figure</span><span class="p">;</span>
+<span class="nb">plot</span><span class="p">(</span><span class="n">iode</span><span class="o">.</span><span class="n">span</span><span class="p">,</span><span class="n">forall</span><span class="p">({</span><span class="n">primal_odes</span><span class="o">.</span><span class="n">x</span><span class="p">},</span><span class="s1">'mean'</span><span class="p">))</span>
+<span class="nb">xlabel</span><span class="p">(</span><span class="s1">'t'</span><span class="p">);</span><span class="nb">ylabel</span><span class="p">(</span><span class="s1">'x_{i}(t)'</span><span class="p">)</span>
+<span class="nb">legend</span><span class="p">(</span><span class="nb">strcat</span><span class="p">(</span><span class="s1">'x_{'</span><span class="p">,</span><span class="nb">num2str</span><span class="p">((</span><span class="mi">1</span><span class="p">:</span><span class="n">N</span><span class="p">)</span><span class="s1">','</span><span class="c1">%0.1d'),'}(t)'))</span>
+<span class="nb">title</span><span class="p">(</span><span class="s1">'Evolution of cordinates of vector state.'</span><span class="p">)</span>
+<span class="n">format_plot</span><span class="p">(</span><span class="nb">gcf</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>You can use the comand</p>
+
+<p><code class="highlighter-rouge">animation_sol(xhistory,uhistory,'XLim',[-0.1 0.25],'ULim',[-0.5 0.0])</code></p>
+
+<p>We can see <img src="../../assets/imgs/WP01/P0001/average_control.gif" alt="Evolution in each iteration" /></p>
+
+<p>If we analyze the evolution in the error, we can see that we should have stopped, in iteration 20.</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">plot</span><span class="p">(</span><span class="n">error_history</span><span class="p">,</span><span class="s1">'-*'</span><span class="p">)</span>
+<span class="nb">title</span><span class="p">(</span><span class="s1">'Error Evolution'</span><span class="p">)</span>
+<span class="nb">ylabel</span><span class="p">(</span><span class="s1">'Error'</span><span class="p">);</span> <span class="nb">xlabel</span><span class="p">(</span><span class="s1">'Iterations'</span><span class="p">)</span>
+<span class="n">format_plot</span><span class="p">(</span><span class="nb">gcf</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="references">References</h2>
+
+<div class="footnotes">
+  <ol>
+    <li id="fn:fn">
+      <p>E. Zuazua (2014) Averaged Control. Automatica, 50 (12), p. 3077-3087. <a href="#fnref:fn" class="reversefootnote">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+
+                <hr>
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/dycon-platform-documentation/posts/Control_of_PDE_non_local_terms" data-toggle="tooltip" data-placement="top" title="Control of PDEs involving non-local terms">&larr; Previous Post</a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/dycon-platform-documentation/tutorials/wp05/P0001-T" data-toggle="tooltip" data-placement="top" title="Rays propagation of a fractional Schrodinger Equation">Next Post &rarr;</a>
+                    </li>
+                    
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<hr>
+
+
+	
+    <!-- Footer -->
+<footer>
+
+
+    <hr>
+    <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                                <img style="width: 300px;" src="/dycon-platform-documentation/img/logos/UAMweb.png " alt="">
+                        </li>			
+                        <li>
+                            <img style="width: 250px;" src="/dycon-platform-documentation/img/logos/DeustoTech.png " alt="">
+                        </li>	
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+</footer>
+
+
+
+</body>
+
+</html>

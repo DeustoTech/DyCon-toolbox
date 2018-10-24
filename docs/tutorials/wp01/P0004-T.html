@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="This MATLAB software is dedicated to the development and learning of control problems for applied mathematics.">
+	<meta property="og:title" content="Synchronized Oscillators" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://DeustoTech.github.io//dycon-platform-documentation//tutorials/wp01/P0004-T" />
+<meta property="og:image" content="https://DeustoTech.github.io//dycon-platform-documentation/img/home-bg.gif">
+	
+	
+
+	<meta name="citation_title" content="Project Pages - An Integrated Scientific Blogging Template">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+<meta name="citation_author" content="">
+
+
+
+	
+
+	<link rel='shortcut icon' type='image/png' href='/dycon-platform-documentation/favicon.png' />
+
+    <title>Synchronized Oscillators - DyCon Platform</title>
+
+    <link rel="canonical" href="https://DeustoTech.github.io/dycon-platform-documentation/tutorials/wp01/P0004-T">
+	
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/clean-blog.css">
+	
+	<!-- Adjust Colors -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/colorscheme.css">
+
+    <!-- Pygments Github CSS -->
+    <link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/syntax.css">
+
+	<link rel="stylesheet" href="https://DeustoTech.github.io/dycon-platform-documentation/css/dycon.css">
+
+    <!-- Custom Fonts -->
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Lusitana" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+	<!-- Math Jax -->
+	<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+	</script>
+	<script type="text/javascript"
+	src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+	</script>
+	<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+		TeX: { equationNumbers: { autoNumber: "AMS" } }
+	});
+	</script>
+
+	<!--<script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.13/d3.min.js" type="text/javascript"></script>-->
+
+    <!-- jQuery -->
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+	<!-- Bootstrap Core JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+	<!-- Custom Theme JavaScript -->
+	<script src="https://DeustoTech.github.io/dycon-platform-documentation/js/clean-blog.min.js "></script>
+	
+	
+	
+</head>
+
+
+<body>
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/dycon-platform-documentation/"> 
+                 <img style="height: 40px;padding-bottom: 10px;" src= "https://DeustoTech.github.io//dycon-platform-documentation/img/logos/logo_DyCon.png" >
+            </a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="/dycon-platform-documentation/">Home</a>
+                </li>
+				
+                <li>
+                    <a href="/dycon-platform-documentation/projects/documentation">Documentation</a>
+                </li>
+                
+                <li>
+                    <a href="/dycon-platform-documentation/projects/posts">Posts</a>
+                </li>
+                
+                <li>
+                    <a href="/dycon-platform-documentation/projects/tutorials">Tutorials</a>
+                </li>
+                
+                
+                <li>
+                    <a href="/dycon-platform-documentation/GettingStrated">Getting Started</a>
+                </li>
+                
+                <li>
+                        <a href="http://cmc.deusto.eus/">Chair of Computational Mathematics</a>
+                </li>                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+
+    <!-- Post Header -->
+<header class="intro-header" style="background-size: 300px 300px; background-image: url('/dycon-platform-documentation/img/home-bg.gif')">
+    <div class="container" style="padding-top: 70px;">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading" style="padding: 0px 0">
+                    <h1>Synchronized Oscillators</h1>
+                    
+					<span class="meta">Posted by: 
+					
+						• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name"><a href="">Ana Navarro</a></span></span>
+					
+						• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name"><a href="">Jesus Oroya</a></span></span>
+					
+						• <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name"><a href="">Umberto Biccari</a></span></span>
+					
+					</span>	
+					<span>on October 19, 2018</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+	
+	
+		
+	
+
+<!-- Also Interesting -->
+
+
+
+	
+	 
+	
+	
+	
+
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+	
+	 
+	
+	
+	
+
+
+		</div>
+		</div>
+
+<!-- Post Content -->
+<style>
+img {
+	display:block;
+	max-width:  100%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+@media only screen and (min-width: 1000px) {
+img {
+	-moz-transition:-moz-transform 0.5s ease-in; 
+	-webkit-transition:-webkit-transform 0.5s ease-in; 
+	-o-transition:-o-transform 0.5s ease-in;
+}
+img:active{
+	-moz-transform:scale(1.2); 
+	-webkit-transform:scale(1.2);
+	-o-transform:scale(1.2);
+}
+}
+
+@media only screen and (min-width: 1250px) {
+img {
+	-moz-transition:-moz-transform 0.5s ease-in; 
+	-webkit-transition:-webkit-transform 0.5s ease-in; 
+	-o-transition:-o-transform 0.5s ease-in;
+}
+img:active{
+	-moz-transform:scale(1.5); 
+	-webkit-transform:scale(1.5);
+	-o-transform:scale(1.5);
+}
+}
+
+@media only screen and (min-width: 1500px) {
+img {
+	-moz-transition:-moz-transform 0.5s ease-in; 
+	-webkit-transition:-webkit-transform 0.5s ease-in; 
+	-o-transition:-o-transform 0.5s ease-in;
+}
+img:active{
+	-moz-transform:scale(2); 
+	-webkit-transform:scale(2);
+	-o-transform:scale(2);
+}
+}
+</style>
+
+<article>
+    <div id="content" class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+
+				<h2 id="whats-a-consensus-problem">What’s a consensus problem?</h2>
+
+<p>We consider a population of N coupled-phase oscillators, $\theta_i(t)$, $i=1,\ldots,N$ and we want to compute a control such that in time $T$ we reach the state $\theta_i(T)=\ldots =\theta_N(T)=:\bar{\theta}$ in which all the oscillators are sincronized.</p>
+
+<h2 id="the-mathematical-model">The mathematical model</h2>
+
+<p>The dynamics of the oscillators is described by the Kuramoto model</p>
+
+<script type="math/tex; mode=display">\dot{\theta}_i(t) = \frac{1}{N}\sum_{j=1}^N \sin(\theta_j(t)-\theta_i(t)) + b_i(t),\;\;\; i=1,\ldots,N</script>
+
+<script type="math/tex; mode=display">\theta_i(0) = \theta_i^0.</script>
+
+<p>The model is non-linear, then, we apply a standard linearization process around the steady state $\bar{\theta}$ obtaining</p>
+
+<script type="math/tex; mode=display">\dot{\Theta}(t) = A\Theta(t),\;\;\;\Theta(0) = \Theta^0,\;\;\;\Theta =(\theta_1,\ldots,\theta_N)^T.</script>
+
+<p>By classical techniques, the control is obtained by minimizing the following cost functional, subject to the linearized Kuramoto model, for each node</p>
+
+<script type="math/tex; mode=display">J(b_i) = \frac{1}{2N} \sum_{j=1}^N(\theta_j(T)-\theta_i(T))^2+\frac{\beta}{2}\int_0^T b_i(t)^2dt,\;\;\;\beta>0,</script>
+
+<p>in which</p>
+
+<ul>
+  <li>
+    <p>the first term measures the distance between the rest of nodes and the target.</p>
+  </li>
+  <li>
+    <p>the second term is a penalization one introduced in order to   avoid using control with a too large size.</p>
+  </li>
+</ul>
+
+<p>In fact, through the above minimization procedure, we find the control $b = (b_1,\ldots,b_N)$ which has minimum norm among all the controls capable to steer the system to the equilibrium dynamics.</p>
+
+<h2 id="how-do-you-usually-solve-this-type-of-problem">How do you usually solve this type of problem?</h2>
+
+<p>The usual technique for solving minimizing problems based on quadratic functionals is the Gradient Descent Method, which is based on the following iterative algorithm</p>
+
+<script type="math/tex; mode=display">b^{k+1}_i = b^k_i - \eta\nabla J(b_i^k).</script>
+
+<p>This technique is tipycally chosen because: - It is (relatively) easy to implement. - It is not very memory demanding.</p>
+
+<h2 id="what-we-propose">What we propose?</h2>
+
+<p>As the functional J(b_i) depend on all nodes $\Theta_j$, the gradient $\nabla J(b_i)$ too. Therefore, in each iteration of the Gradient Descent algorithm we shall consider all nodes in the network. Then, when the number of nodes is large, the complexity if substantial per iteration. To avoid evaluate the full gradient, we propose to approach the problem by means of the Stochastic Descent Gradient method which only uses a small portion of data.</p>
+
+<p>Matrix $A$ of the linearized Kuramoto model</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">N</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">/</span><span class="n">N</span><span class="p">)</span><span class="o">*</span><span class="nb">ones</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">);</span>
+<span class="k">for</span> <span class="nb">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">N</span>
+    <span class="n">A</span><span class="p">(</span><span class="nb">i</span><span class="p">,</span><span class="nb">i</span><span class="p">)</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="k">end</span>
+<span class="n">A</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+A =
+
+   -1.0000    0.2500    0.2500    0.2500
+    0.2500   -1.0000    0.2500    0.2500
+    0.2500    0.2500   -1.0000    0.2500
+    0.2500    0.2500    0.2500   -1.0000
+
+
+</code></pre></div></div>
+
+<p>Initial condition: <script type="math/tex">\Theta(0) = \Theta^0.</script></p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">mu</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+<span class="n">theta0</span> <span class="o">=</span> <span class="n">normrnd</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+theta0 =
+
+   -5.3830
+    5.6136
+    1.3182
+   -0.0987
+
+
+</code></pre></div></div>
+
+<p>Now, choose initial control,</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">t0</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="n">T</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span><span class="n">dt</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">;</span>
+<span class="n">tspan</span> <span class="o">=</span> <span class="n">t0</span><span class="p">:</span><span class="n">dt</span><span class="p">:</span><span class="n">T</span><span class="p">;</span>
+<span class="n">u0</span> <span class="o">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="nb">length</span><span class="p">(</span><span class="n">tspan</span><span class="p">),</span><span class="n">N</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>We can solve with the StochasticGradient function.</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Results_Stochastic</span> <span class="o">=</span>  <span class="n">StochasticGradient</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">theta0</span><span class="p">,</span><span class="n">tspan</span><span class="p">,</span><span class="n">u0</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>And see the convergence</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig1</span> <span class="o">=</span> <span class="n">JPlotConvergence</span><span class="p">(</span><span class="n">Results_Stochastic</span><span class="p">,</span><span class="s1">'Convergence of Stochastic Method'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p><img src="./../../assets/imgs/WP01/P0004/Synchronized_oscillators-md_01.png" alt="" /></p>
+
+<h2 id="comparison-clasical-vs-stochastic">Comparison Clasical vs Stochastic</h2>
+
+<p>In this example, we show that stochastic method is faster than the classical descent in a small network.</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Results_Classical</span> <span class="o">=</span> <span class="p">{};</span><span class="n">Results_Stochastic</span> <span class="o">=</span> <span class="p">{};</span>
+<span class="c1">%</span>
+<span class="n">maxN</span> <span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="c1">% &lt;=== Maximal number of oscillator allowed in the model</span>
+<span class="n">iter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="k">for</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="mi">30</span><span class="p">:</span><span class="n">maxN</span>
+    <span class="c1">% We solve the problem for each N</span>
+    <span class="n">iter</span> <span class="o">=</span> <span class="n">iter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="c1">% Definition of the linearized Kuramoto problem</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">/</span><span class="n">N</span><span class="p">)</span><span class="o">*</span><span class="nb">ones</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">);</span>
+    <span class="k">for</span> <span class="nb">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span><span class="n">N</span>
+        <span class="n">A</span><span class="p">(</span><span class="nb">i</span><span class="p">,</span><span class="nb">i</span><span class="p">)</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="k">end</span>
+    <span class="c1">% Initial state</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+    <span class="n">theta0</span> <span class="o">=</span> <span class="n">normrnd</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+    <span class="c1">% Initial control</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span><span class="n">T</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span><span class="n">dt</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">;</span>
+    <span class="n">tspan</span> <span class="o">=</span> <span class="n">t0</span><span class="p">:</span><span class="n">dt</span><span class="p">:</span><span class="n">T</span><span class="p">;</span>
+    <span class="n">u0</span> <span class="o">=</span> <span class="nb">zeros</span><span class="p">(</span><span class="nb">length</span><span class="p">(</span><span class="n">tspan</span><span class="p">),</span><span class="n">N</span><span class="p">);</span>
+
+    <span class="c1">% Classical Gradient Method</span>
+    <span class="n">Results_Classical</span><span class="p">{</span><span class="n">iter</span><span class="p">}</span>  <span class="o">=</span>  <span class="n">ClassicalGradient</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">theta0</span><span class="p">,</span><span class="n">tspan</span><span class="p">,</span><span class="n">u0</span><span class="p">);</span>
+    <span class="c1">% Stochastic Gradient Method</span>
+    <span class="n">Results_Stochastic</span><span class="p">{</span><span class="n">iter</span><span class="p">}</span> <span class="o">=</span>  <span class="n">StochasticGradient</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">theta0</span><span class="p">,</span><span class="n">tspan</span><span class="p">,</span><span class="n">u0</span><span class="p">);</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>We can graphically see the following result. If the number of nodes increase we can see better the efectiveness of the stochastic gradient descent method with respect to the classical.</p>
+
+<div class="language-matlab highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">% For the next step it is necessary to convert the cells into arrays</span>
+<span class="n">Results_Classical</span>  <span class="o">=</span> <span class="p">[</span><span class="n">Results_Classical</span><span class="p">{:}];</span>
+<span class="n">Results_Stochastic</span> <span class="o">=</span> <span class="p">[</span><span class="n">Results_Stochastic</span><span class="p">{:}];</span>
+<span class="c1">%</span>
+<span class="n">fig2</span> <span class="o">=</span> <span class="nb">figure</span><span class="p">;</span> <span class="n">ax</span>  <span class="o">=</span> <span class="nb">axes</span><span class="p">;</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">FontSize</span> <span class="o">=</span> <span class="mi">17</span><span class="p">;</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">XLabel</span><span class="o">.</span><span class="n">String</span> <span class="o">=</span> <span class="s1">'Number of Oscillators'</span><span class="p">;</span> <span class="n">ax</span><span class="o">.</span><span class="n">YLabel</span><span class="o">.</span><span class="n">String</span> <span class="o">=</span> <span class="s1">'time(s)'</span><span class="p">;</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">XGrid</span> <span class="o">=</span> <span class="s1">'on'</span><span class="p">;</span> <span class="n">ax</span><span class="o">.</span><span class="n">YGrid</span> <span class="o">=</span> <span class="s1">'on'</span><span class="p">;</span>
+<span class="c1">%</span>
+<span class="nb">line</span><span class="p">([</span><span class="n">Results_Stochastic</span><span class="o">.</span><span class="n">N</span><span class="p">],[</span><span class="n">Results_Stochastic</span><span class="o">.</span><span class="n">t</span><span class="p">],</span><span class="s1">'Parent'</span><span class="p">,</span><span class="n">ax</span><span class="p">,</span><span class="s1">'Color'</span><span class="p">,</span><span class="s1">'red'</span><span class="p">,</span><span class="s1">'Marker'</span><span class="p">,</span><span class="s1">'s'</span><span class="p">)</span>
+<span class="nb">line</span><span class="p">([</span><span class="n">Results_Classical</span><span class="o">.</span><span class="n">N</span><span class="p">],[</span><span class="n">Results_Classical</span><span class="o">.</span><span class="n">t</span><span class="p">],</span><span class="s1">'Parent'</span><span class="p">,</span><span class="n">ax</span><span class="p">,</span><span class="s1">'Color'</span><span class="p">,</span><span class="s1">'blue'</span><span class="p">,</span><span class="s1">'Marker'</span><span class="p">,</span><span class="s1">'s'</span><span class="p">)</span>
+<span class="nb">legend</span><span class="p">({</span><span class="s1">'Stochastic Gradient'</span><span class="p">,</span><span class="s1">'Classical Gradient'</span><span class="p">})</span>
+</code></pre></div></div>
+
+<p><img src="./../../assets/imgs/WP01/P0004/Synchronized_oscillators-md_02.png" alt="" /></p>
+
+<p>Altough in this example we are dealing with a small network, we have shown that stochastic method is faster than the classical descent. If the number of nodes increase we can see better the efectiveness of the stochastic gradient descent method with respect to the classical. <img src="../../assets/imgs/WP01/P0004/ClassicalVStochastic.png" alt="" /></p>
+
+
+
+                <hr>
+
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/dycon-platform-documentation/tutorials/wp02/P0001-T" data-toggle="tooltip" data-placement="top" title="Gradient Descent in semilinear control">&larr; Previous Post</a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/dycon-platform-documentation/tutorials/wp99/P0002-T" data-toggle="tooltip" data-placement="top" title="Inverted Pendulum Control">Next Post &rarr;</a>
+                    </li>
+                    
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+
+<hr>
+
+
+	
+    <!-- Footer -->
+<footer>
+
+
+    <hr>
+    <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    <ul class="list-inline text-center">
+                        <li>
+                                <img style="width: 300px;" src="/dycon-platform-documentation/img/logos/UAMweb.png " alt="">
+                        </li>			
+                        <li>
+                            <img style="width: 250px;" src="/dycon-platform-documentation/img/logos/DeustoTech.png " alt="">
+                        </li>	
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+</footer>
+
+
+
+</body>
+
+</html>
