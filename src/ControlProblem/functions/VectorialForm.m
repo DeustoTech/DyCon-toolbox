@@ -2,7 +2,7 @@ function fcnVecotrial = VectorialForm(fcn,simbols,vectorial)
 
     xstr =strjoin(arrayfun(@char, simbols, 'uniform', 0),'), ');
     cmd = ['@',vectorial,' fcn(',xstr,'));'];
-    cmd = replace(cmd,'x','X(');
+    cmd = replace(cmd,'y','Y(');
     cmd = replace(cmd,'u','U(');
     cmd = replace(cmd,'p','P(');
 

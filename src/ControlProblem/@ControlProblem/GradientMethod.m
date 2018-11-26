@@ -1,4 +1,4 @@
-function GradientMethod(iControlProblem,T,varargin)
+function GradientMethod(iControlProblem,varargin)
     % ======================================================
     % ======================================================
     %               PARAMETERS DEFINITION
@@ -8,116 +8,138 @@ function GradientMethod(iControlProblem,T,varargin)
     %% Control Problem Parameters
     pinp = inputParser;
     addRequired(pinp,'iControlProblem')
-    addRequired(pinp,'T')
-    %
-    dt = iControlProblem.ode.dt;
-    iControlProblem.ode.tline = 0:dt:T;
-    tline = iControlProblem.ode.tline;
-    %
-    udefault = ones(length(iControlProblem.ode.tline),length(iControlProblem.ode.symU));
-    addOptional(pinp,'u0',udefault)
+    %%
+    Udefault = zeros(length(iControlProblem.ode.tline),length(iControlProblem.ode.symU));
+    addOptional(pinp,'U0',Udefault)
     %% Method Parameter
-    addOptional(pinp,'maxiter',100)
+    addOptional(pinp,'maxiter',50)
     addOptional(pinp,'tol',0.001)
-    
+    addOptional(pinp,'DescentParameters',{})
+    addOptional(pinp,'graphs',false)
+    addOptional(pinp,'restart',false)
+
+    %% 
     addOptional(pinp,'StoppingCriteria',@FunctionalStopCriteria  )
 
-    parse(pinp,iControlProblem,T,varargin{:})
+    parse(pinp,iControlProblem,varargin{:})
 
-    u0                  = pinp.Results.u0;
+    U0                  = pinp.Results.U0;
     maxiter             = pinp.Results.maxiter;    
-    
+    tol                 = pinp.Results.tol;
+    DescentParameters   = pinp.Results.DescentParameters;
+    graphs              = pinp.Results.graphs;
+    restart              = pinp.Results.restart;
     % ======================================================
     % ======================================================
     %                   INIT PROGRAM
     % ======================================================
     % ======================================================
+    if restart
+        if ~isempty(iControlProblem.UOptimal)
+            U0 = iControlProblem.UOptimal;
+        else
+            warning('The parameter restart need a previus execution.')
+        end
+    end
     tic;
-        
-
-    L   = iControlProblem.Jfun.numL;
-    Psi = iControlProblem.Jfun.numPsi;
-
-    F   = iControlProblem.ode.numF;
     
-    syms t
-    
-    %% Obtenemos dP/dt () 
-    [dP_dt_xuDepen, P0_xt_Depen,dH_du] = GetAdjointProblem(iControlProblem);
-    
-    % Creamos una estructura que se mantendra fija en cada iteracion
-    % 
-    Descent_Struct.iControlProblem  = iControlProblem;
-    Descent_Struct.dX_dt_uDepen     = F;
-    Descent_Struct.dP_dt_xuDepen    = dP_dt_xuDepen;
-    Descent_Struct.P0_xt_Depen      = P0_xt_Depen;
-    Descent_Struct.dH_du            = dH_du;
-    Descent_Struct.T                = T;
+    tline = iControlProblem.ode.tline;
     
     
-    u = u0;
-    xhistory = cell(1,maxiter);
+    U = U0;
+    yhistory = cell(1,maxiter);
     uhistory = cell(1,maxiter);
     Jhistory = zeros(1,maxiter);
     
-    %%%%% Solo son Graficos 
-    f = figure;
-    ax1 = subplot(3,1,1);
-    ax1.XLabel.String = 't'; ax1.YLabel.String = 'x_i(t)';
+    if graphs 
+       f = figure;
+       axY = subplot(1,3,1,'Parent',f);
+       axY.Title.String = 'Y(x,T)';
+       axY.XLabel.String = 'x';
 
-    ax2 = subplot(3,1,2);
-    ax2.XLabel.String = 't';ax2.YLabel.String = 'u_i(t)';
+       axU = subplot(1,3,2,'Parent',f);
+       axU.Title.String = 'U(t)';
+       axU.XLabel.String = 't';
+       
+       axJ = subplot(1,3,3,'Parent',f);
+       axJ.Title.String = 'J';
+       axJ.XLabel.String = 'iter';
+    end
+    
+    %% Obtenemos las primera U Y J
     
     
-    ax3 = subplot(3,1,3);
-    ax3.XLabel.String = 'iter';ax3.YLabel.String = 'J functional';
-    %%%%%%%
+    Uold = U;           
+    solve(iControlProblem.ode,'U',Uold)
     
+    Yold = iControlProblem.ode.Y;
+    Jold = GetFunctional(iControlProblem,Yold,Uold);
+
     
     for iter = 1:maxiter
-        %
-        uOldfun = @(t) interp1(tline,u,t);
-        %
-        [u, xOld] = ClassicalDescent(Descent_Struct,u);
-        %
-        xOldfun = @(t) interp1(tline,xOld,t);
-        
-        %
-        Lvalues = arrayfun(@(t)  L(t,xOldfun(t)',uOldfun(t)),tline);
-        Larea   = trapz(tline,Lvalues);
-        %        % 
-        Jvalue = Larea + Psi(T,xOldfun(T));
+        % Create a funtion u(t) 
+        % Update Control
+
+        [Unew, Ynew,Jnew] = ClassicalDescent(iControlProblem,Uold,Yold,Jold,DescentParameters{:});
+
         
         % Save history of optimization
-        uhistory{iter} = u;
-        xhistory{iter} = xOld;
-        Jhistory(iter) = Jvalue;
+        uhistory{iter} = Unew;
+        yhistory{iter} = Ynew;
+        Jhistory(iter) = Jnew;
         
-        %%%% Solo graficos 
-        delete(ax1.Children)
-        line(tline,xOld(:,1),'LineStyle','-','Color','red','Parent',ax1);
-        line(tline,xOld(:,2),'LineStyle','--','Color','blue','Parent',ax1)
-        line(tline,u,'LineStyle','--','Color','blue','Parent',ax2)
-        line(1:iter,Jhistory(1:iter),'Parent',ax3,'Marker','o')
-        %%%
-        pause(0.1)
-        
+        Uold = Unew;
+        Yold = Ynew;
+        Jold = Jnew;
+
+        % Criterio de Parada
         
         if iter~=1
-           if  abs(Jvalue-Jhistory(iter-1))/Jhistory(iter-1) < 0.001
+           [nrow,ncol] = size(Unew);
+           error = zeros(nrow,ncol);
+            for icol  = 1:length(U(1,:))
+               error(:,icol) = abs(Unew(:,icol) - Uold(:,icol)./Uold(:,icol));
+            end
+            
+            
+           if  sum(sum(error)) < tol
               break 
            end
         end
+        
+        %%
+        %%
+        if graphs
+            line(1:length(Ynew(end,:)),Ynew(end,:),'Parent',axY)
+            
+            Color = {'r','g','b','y','k','c'};
+            LineStyle = {'-','--','.-'};
+            iter_graph = 0;
+            for iu = Unew
+                iter_graph = iter_graph + 1;
+                index_color = mod(iter_graph,length(Color));
+                index_lineS =  mod(iter_graph,length(LineStyle));
+                line(tline,iu,'Parent',axU,'Color',Color{index_color},'LineStyle',LineStyle{index_lineS})
+            end
+            
+            line(1:iter,Jhistory(1:iter),'Parent',axJ,'Color','b','Marker','s')
+            
+            pause(0.05)
+            
+        end
     end
     
-    iter = iter - 1;
+    
+    if iter == maxiter 
+        warning('Max iteration number reached!!')
+    end
     
     iControlProblem.time            = toc; 
-    iControlProblem.uOptimal        = u;
     iControlProblem.iter            = iter;
     iControlProblem.uhistory        = uhistory(1:iter);
-    iControlProblem.xhistory        = xhistory(1:iter);
+    iControlProblem.yhistory        = yhistory(1:iter);
     iControlProblem.Jhistory        = Jhistory(1:iter);
+    
 end
 
 

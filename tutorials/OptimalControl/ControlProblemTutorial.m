@@ -3,20 +3,20 @@ clear;
 %%              symU = [ u1 u2 ]
 syms t
 
-symX = SymsVector('x',2);
+symY = SymsVector('y',2);
 symU = SymsVector('u',2);
 %% Creamos Funcional  
-XT = [ 1; ... 
+YT = [ 1; ... 
        4];
 
-symPsi  = (XT - symX).'*(XT - symX);
+symPsi  = (YT - symY).'*(YT - symY);
 symL    = 0.0001*(symU.'*symU);
 
-Jfun = Functional(symPsi,symL,symX,symU);
+Jfun = Functional(symPsi,symL,symY,symU);
 
 %% Creamos el ODE 
 %%%%%%%%%%%%%%%%
-X0 = [  0; ...
+Y0 = [  0; ...
        +1 ];
 %%%%%%%%%%%%%%%%
 A = [ -1 1  ;  ...
@@ -25,17 +25,19 @@ A = [ -1 1  ;  ...
 B = [ 1 0; ...
       0 1];
 %%%%%%%%%%%%%%%%
-Fsym  = A*symX + B*symU;
+Fsym  = A*symY + B*symU;
 %%%%%%%%%%%%%%%%
-odeEqn = ode(Fsym,symX,symU,X0);
+T = 5;
+
+odeEqn = ode(Fsym,symY,symU,Y0,'T',T);
 
 %% Creamos Problema de Control
-
 iCP1 = ControlProblem(odeEqn,Jfun);
 
 %% Solve Gradient
-T = 5;
-GradientMethod(iCP1,T)
 
+GradientMethod(iCP1,'Graphs',true)
 
-
+% view res
+%  animation(odeEqn)
+% animation(odeEqn,'YLim',[-2 5],'xx',2.0)
