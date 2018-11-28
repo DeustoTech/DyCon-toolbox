@@ -88,25 +88,20 @@ function GradientMethod(iControlProblem,varargin)
         yhistory{iter} = Ynew;
         Jhistory(iter) = Jnew;
         
-        Uold = Unew;
-        Yold = Ynew;
-        Jold = Jnew;
+
 
         % Criterio de Parada
         
         if iter~=1
-           [nrow,ncol] = size(Unew);
-           error = zeros(nrow,ncol);
-            for icol  = 1:length(U(1,:))
-               error(:,icol) = abs(Unew(:,icol) - Uold(:,icol)./Uold(:,icol));
-            end
-            
-            
+            error = norm(Unew - Uold)/norm(Unew);
            if  sum(sum(error)) < tol
               break 
            end
         end
-        
+
+        Uold = Unew;
+        Yold = Ynew;
+        Jold = Jnew;
         %%
         %%
         if graphs

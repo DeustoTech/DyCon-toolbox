@@ -37,15 +37,20 @@ function  [Unew ,Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,varargin)
         % Calculate functional value
         JTry = GetFunctional(iCP,YTry,UTry);
         %%
-                
-        if ((JTry - Jold) <= 0)||(LengthStep < MinLengthStep)||~MiddleStepControl
+     
+        if ((JTry - Jold) <= 0)||~MiddleStepControl
             Unew = UTry;
             Ynew = YTry;
             Jnew = JTry;
             %
             LengthMemory = 2*LengthStep;
             return
-            
+        end
+        if (LengthStep <= MinLengthStep)
+            Unew = Uold;
+            Ynew = Yold;
+            Jnew = Jold;         
+            return
         end
     end
     
