@@ -1,4 +1,4 @@
-classdef Functional
+classdef Functional < handle & matlab.mixin.Copyable
     %FUNCTIONAL Summary of this class goes here
     %   Detailed explanation goes here
     

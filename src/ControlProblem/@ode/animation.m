@@ -36,6 +36,7 @@ function animation(iode,varargin)
         if exist('l','var')
             delete(l)
         end
+        ax.Title.String = ['t = ',num2str(t,'%.2f')];
         l = line(1:ncol,interp1(tline,Y,t),'Parent',ax,'Marker','*','LineStyle','-');
         pause(0.1)
     end

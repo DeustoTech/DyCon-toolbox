@@ -75,7 +75,7 @@ function GradientMethod(iControlProblem,varargin)
     Yold = iControlProblem.ode.Y;
     Jold = GetFunctional(iControlProblem,Yold,Uold);
 
-    
+    clear ClassicalDescent
     for iter = 1:maxiter
         % Create a funtion u(t) 
         % Update Control
@@ -113,12 +113,12 @@ function GradientMethod(iControlProblem,varargin)
             line(1:length(Ynew(end,:)),Ynew(end,:),'Parent',axY)
             
             Color = {'r','g','b','y','k','c'};
-            LineStyle = {'-','--','.-'};
+            LineStyle = {'-','--','-.'};
             iter_graph = 0;
             for iu = Unew
                 iter_graph = iter_graph + 1;
-                index_color = mod(iter_graph,length(Color));
-                index_lineS =  mod(iter_graph,length(LineStyle));
+                index_color = 1+ mod(iter_graph-1,length(Color));
+                index_lineS = 1+ mod(iter_graph-1,length(LineStyle));
                 line(tline,iu,'Parent',axU,'Color',Color{index_color},'LineStyle',LineStyle{index_lineS})
             end
             

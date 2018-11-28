@@ -44,8 +44,8 @@ classdef ControlProblem < handle
             
             parse(p,iode,Jfun,varargin{:})
             
-            obj.ode          = iode;
-            obj.Jfun         = Jfun;
+            obj.ode          = copy(iode);
+            obj.Jfun         = copy(Jfun);
             
            if isempty(obj.T) 
                 if Jfun.T ~= iode.T

@@ -16,7 +16,15 @@ function  [Unew ,Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,varargin)
     MinLengthStep       = p.Results.MinLengthStep;
     MiddleStepControl   = p.Results.MiddleStepControl;
     %%
-    %% Calculamos el valor del functional 
+    
+    persistent LengthMemory
+    
+    if isempty(LengthMemory) 
+        LengthMemory = InitialLengthStep;
+    else
+        InitialLengthStep = LengthMemory;
+    end
+    
     %
     %% Empezamos con un LengthStep
     LengthStep =2*InitialLengthStep;
@@ -34,14 +42,19 @@ function  [Unew ,Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,varargin)
             Unew = UTry;
             Ynew = YTry;
             Jnew = JTry;
+            %
+            LengthMemory = 2*LengthStep;
             return
             
         end
     end
     
+    
     Unew = UTry;
     Ynew = YTry;
     Jnew = JTry;
+    
+    
 end
 %%
 %%

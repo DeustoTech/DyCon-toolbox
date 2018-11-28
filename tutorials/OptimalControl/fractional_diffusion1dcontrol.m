@@ -4,14 +4,16 @@ clear;
 syms t
 %% Discretizacion del espacio
 N = 20;
-xi = 0; xf = 1;
+s = 0.8;
+xi = -1; xf = 1;
 xline = linspace(xi,xf,N);
+a = -0.3; b = 0.5;
 
 symY = SymsVector('y',N);
-symU = SymsVector('u',2);
+symU = SymsVector('u',N);
 %% Creamos Funcional
 
-YT = 4*sin(pi*xline)';
+YT = 0.0*sin(pi*xline)';
 
 symPsi  = (YT - symY).'*(YT - symY);
 symL    = 0.001*(symU.'*symU);
@@ -21,19 +23,17 @@ Jfun = Functional(symPsi,symL,symY,symU);
 %% Creamos el ODE 
 %%%%%%%%%%%%%%%%
 
-Y0 = 2*sin(pi*xline)';
+Y0 = 2+2*cos(pi*xline)';
 %%%%%%%%%%%%%%%%
 
-rho = 1000;
-A = rho*laplacian1d(N);
+%rho = 1000;
+A = -fl_rigidity_sym(s,1,N);
 %%%%%%%%%%%%%%%%  
-B = zeros(N,2);
-B(1,1) = 1;
-B(N,2) = 1;
+B = construction_matrix_B(xline,a,b);
 %%%%%%%%%%%%%%%%
 Fsym  = A*symY + B*symU;
 %%%%%%%%%%%%%%%%
-T = 20;
+T = 5;
 odeEqn = ode(Fsym,symY,symU,'Y0',Y0,'T',T);
 
 
@@ -50,13 +50,14 @@ legend('Target','Free Dynamics')
 iCP1 = ControlProblem(odeEqn,Jfun,'T',5);
 
 %% Solve Gradient
-DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',2.0};
-Gradient_Parameters = {'maxiter',10,'DescentParameters',DescentParameters};
+tol = 1.0;
+DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',5.0};
+
 %
-GradientMethod(iCP1,Gradient_Parameters{:})
+GradientMethod(iCP1,'tol',tol,'DescentParameters',DescentParameters,'graphs',true)
 % Several ways to run
 % GradientMethod(iCP1)
 % GradientMethod(iCP1,'DescentParameters',DescentParameters)
 % GradientMethod(iCP1,'DescentParameters',DescentParameters,'graphs',true)
 
-
+% iCP1.ode

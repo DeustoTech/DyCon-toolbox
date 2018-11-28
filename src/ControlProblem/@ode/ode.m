@@ -1,4 +1,4 @@
-classdef ode < handle
+classdef ode < handle & matlab.mixin.Copyable
     %ODE 
     %% Show by console
     properties
