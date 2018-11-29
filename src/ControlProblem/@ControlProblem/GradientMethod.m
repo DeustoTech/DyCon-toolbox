@@ -16,6 +16,8 @@ function GradientMethod(iControlProblem,varargin)
     addOptional(pinp,'tol',0.001)
     addOptional(pinp,'DescentParameters',{})
     addOptional(pinp,'graphs',false)
+    addOptional(pinp,'Ugraphs','t')
+
     addOptional(pinp,'restart',false)
 
     %% 
@@ -29,6 +31,7 @@ function GradientMethod(iControlProblem,varargin)
     DescentParameters   = pinp.Results.DescentParameters;
     graphs              = pinp.Results.graphs;
     restart              = pinp.Results.restart;
+    Ugraphs              = pinp.Results.Ugraphs;
     % ======================================================
     % ======================================================
     %                   INIT PROGRAM
@@ -57,9 +60,16 @@ function GradientMethod(iControlProblem,varargin)
        axY.Title.String = 'Y(x,T)';
        axY.XLabel.String = 'x';
 
+       
        axU = subplot(1,3,2,'Parent',f);
-       axU.Title.String = 'U(t)';
-       axU.XLabel.String = 't';
+       switch Ugraphs
+           case 't'
+               axU.Title.String = 'U(t)';
+               axU.XLabel.String = 't';
+           case 'X'
+               axU.Title.String = 'U(x,T)';
+               axU.XLabel.String = 'X';
+       end
        
        axJ = subplot(1,3,3,'Parent',f);
        axJ.Title.String = 'J';
@@ -94,7 +104,7 @@ function GradientMethod(iControlProblem,varargin)
         
         if iter~=1
             error = norm(Unew - Uold)/norm(Unew);
-           if  sum(sum(error)) < tol
+           if error < tol
               break 
            end
         end
@@ -110,12 +120,19 @@ function GradientMethod(iControlProblem,varargin)
             Color = {'r','g','b','y','k','c'};
             LineStyle = {'-','--','-.'};
             iter_graph = 0;
-            for iu = Unew
-                iter_graph = iter_graph + 1;
-                index_color = 1+ mod(iter_graph-1,length(Color));
-                index_lineS = 1+ mod(iter_graph-1,length(LineStyle));
-                line(tline,iu,'Parent',axU,'Color',Color{index_color},'LineStyle',LineStyle{index_lineS})
+            
+            switch Ugraphs
+                case 't'
+                    for iu = Unew
+                        iter_graph = iter_graph + 1;
+                        index_color = 1+ mod(iter_graph-1,length(Color));
+                        index_lineS = 1+ mod(iter_graph-1,length(LineStyle));
+                        line(tline,iu,'Parent',axU,'Color',Color{index_color},'LineStyle',LineStyle{index_lineS},'Marker','.')
+                    end                  
+                case 'X'
+                    line(1:length(Unew(end,:)),Unew(end,:),'Parent',axU,'Marker','.')                       
             end
+
             
             line(1:iter,Jhistory(1:iter),'Parent',axJ,'Color','b','Marker','s')
             
@@ -134,7 +151,7 @@ function GradientMethod(iControlProblem,varargin)
     iControlProblem.uhistory        = uhistory(1:iter);
     iControlProblem.yhistory        = yhistory(1:iter);
     iControlProblem.Jhistory        = Jhistory(1:iter);
-    
+    iControlProblem.precision       = error;
 end
 
 

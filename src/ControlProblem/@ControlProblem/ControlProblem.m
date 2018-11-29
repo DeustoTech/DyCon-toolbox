@@ -16,7 +16,7 @@ classdef ControlProblem < handle
     end
     %%
     properties (Hidden)
-        
+        precision
         P
         adjoint
         dH_du

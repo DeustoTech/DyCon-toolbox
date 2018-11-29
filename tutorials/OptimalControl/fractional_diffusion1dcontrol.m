@@ -3,7 +3,7 @@ clear;
 %%              symU = [ u1 u2 ]
 syms t
 %% Discretizacion del espacio
-N = 20;
+N = 50;
 s = 0.8;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N);
@@ -47,14 +47,14 @@ legend('Target','Free Dynamics')
 
 %% Creamos Problema de Control
 
-iCP1 = ControlProblem(odeEqn,Jfun,'T',5);
+iCP1 = ControlProblem(odeEqn,Jfun,'T',T);
 
 %% Solve Gradient
-tol = 1.0;
+tol = 0.001;
 DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',5.0};
 
 %
-GradientMethod(iCP1,'tol',tol,'DescentParameters',DescentParameters,'graphs',true)
+GradientMethod(iCP1,'tol',tol,'DescentParameters',DescentParameters,'graphs',true,'Ugraphs','X')
 % Several ways to run
 % GradientMethod(iCP1)
 % GradientMethod(iCP1,'DescentParameters',DescentParameters)
