@@ -50,19 +50,4 @@ function GetAdjointProblem(iControlProblem)
     %
     iControlProblem.adjoint.P0 = VectorialForm(P0,[t symY.'],'(t,Y)');
     % 
-    %% Direccion del Gradiente
-    % Para cada cordenada de U, calculamos la derivada de dH/du_i
-    dH_du = arrayfun(@(us) diff(formula(Hamil),us), symU.');
-    dH_du = symfun(dH_du,[t symY.' symP symU.']);
-    % Pasamos esta funcion a una function_handle
-    dH_du = matlabFunction(dH_du);
-    % Por ultimo vectorizamos la function handle 
-    %
-    % dH_du (t,Y,P,U)    
-    % donde Y = [y1 y2 ...], 
-    %       U = [u1 u2 ...], 
-    %       P = [p1 p2 ...]
-    
-    iControlProblem.dH_du = VectorialForm(dH_du,[t,symY.',symP,symU.'],'(t,Y,P,U)');
-
 end

@@ -61,7 +61,7 @@ classdef ControlProblem < handle
            end
            
             GetAdjointProblem(obj);
-
+            GetGradient(obj)
         end
         
         

@@ -51,7 +51,7 @@ iCP1 = ControlProblem(odeEqn,Jfun,'T',5);
 
 %% Solve Gradient
 DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',2.0};
-Gradient_Parameters = {'maxiter',10,'DescentParameters',DescentParameters,'Graphs',true,'Ugraphs','X'};
+Gradient_Parameters = {'maxiter',50,'DescentParameters',DescentParameters,'Graphs',true,'Ugraphs','X'};
 %
 GradientMethod(iCP1,Gradient_Parameters{:})
 % Several ways to run
