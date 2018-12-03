@@ -1,4 +1,21 @@
-function GradientMethod(iControlProblem,varargin)
+function GradientMethod(iCP,varargin)
+    % name: GradientMethod
+    % autor: JOroya
+    % MandatoryInputs:   
+    %   iCP: 
+    %       name: Control Problem
+    %       description: 
+    %       class: ControlProblem
+    %       dimension: [1x1]
+    % OptionalInputs;
+    %   U0:
+    %       name: Initial Control 
+    %       description: matrix 
+    %       class: double
+    %       dimension: [length(iCP.tline)]
+    %       default:
+    
+    %%
     % ======================================================
     % ======================================================
     %               PARAMETERS DEFINITION
@@ -9,101 +26,75 @@ function GradientMethod(iControlProblem,varargin)
     pinp = inputParser;
     addRequired(pinp,'iControlProblem')
     %%
-    Udefault = zeros(length(iControlProblem.ode.tline),length(iControlProblem.ode.symU));
+    Udefault = zeros(length(iCP.ode.tline),length(iCP.ode.symU));
     addOptional(pinp,'U0',Udefault)
     %% Method Parameter
     addOptional(pinp,'maxiter',50)
     addOptional(pinp,'tol',0.001)
     addOptional(pinp,'DescentParameters',{})
     addOptional(pinp,'graphs',false)
-    addOptional(pinp,'Ugraphs','t')
+    addOptional(pinp,'TypeGraphs','ODE')
 
     addOptional(pinp,'restart',false)
 
     %% 
     addOptional(pinp,'StoppingCriteria',@FunctionalStopCriteria  )
 
-    parse(pinp,iControlProblem,varargin{:})
+    parse(pinp,iCP,varargin{:})
 
     U0                  = pinp.Results.U0;
     maxiter             = pinp.Results.maxiter;    
     tol                 = pinp.Results.tol;
     DescentParameters   = pinp.Results.DescentParameters;
     graphs              = pinp.Results.graphs;
-    restart              = pinp.Results.restart;
-    Ugraphs              = pinp.Results.Ugraphs;
+    restart             = pinp.Results.restart;
+    TypeGraphs          = pinp.Results.TypeGraphs;
     % ======================================================
     % ======================================================
     %                   INIT PROGRAM
     % ======================================================
     % ======================================================
     if restart
-        if ~isempty(iControlProblem.UOptimal)
-            U0 = iControlProblem.UOptimal;
+        if ~isempty(iCP.UOptimal)
+            U0 = iCP.UOptimal;
         else
             warning('The parameter restart need a previus execution.')
         end
     end
     tic;
     
-    tline = iControlProblem.ode.tline;
-    
-    
-    U = U0;
-    yhistory = cell(1,maxiter);
-    uhistory = cell(1,maxiter);
-    Jhistory = zeros(1,maxiter);
-    
     if graphs 
-       f = figure;
-       axY = subplot(1,3,1,'Parent',f);
-       axY.Title.String = 'Y(x,T)';
-       axY.XLabel.String = 'x';
-
-       
-       axU = subplot(1,3,2,'Parent',f);
-       switch Ugraphs
-           case 't'
-               axU.Title.String = 'U(t)';
-               axU.XLabel.String = 't';
-           case 'X'
-               axU.Title.String = 'U(x,T)';
-               axU.XLabel.String = 'X';
-       end
-       
-       axJ = subplot(1,3,3,'Parent',f);
-       axJ.Title.String = 'J';
-       axJ.XLabel.String = 'iter';
+        % initial axes 
+        [axY,axU,axJ] = init_graphs(TypeGraphs);
     end
     
     %% Obtenemos las primera U Y J
+    Yhistory = cell(1,maxiter);
+    Uhistory = cell(1,maxiter);
+    Jhistory = zeros(1,maxiter);
     
+    Uold = U0;    
     
-    Uold = U;           
-    solve(iControlProblem.ode,'U',Uold)
+    solve(iCP.ode,'U',Uold);
     
-    Yold = iControlProblem.ode.Y;
-    Jold = GetFunctional(iControlProblem,Yold,Uold);
-
+    Yold = iCP.ode.Y;
+    Jold = GetFunctional(iCP,Yold,Uold);
+    % clean the peersisten variable LengthStepMemory
     clear ClassicalDescent
+    
     for iter = 1:maxiter
         % Create a funtion u(t) 
         % Update Control
+        [Unew, Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,DescentParameters{:});
 
-        [Unew, Ynew,Jnew] = ClassicalDescent(iControlProblem,Uold,Yold,Jold,DescentParameters{:});
-
-        
         % Save history of optimization
-        uhistory{iter} = Unew;
-        yhistory{iter} = Ynew;
+        Uhistory{iter} = Unew;
+        Yhistory{iter} = Ynew;
         Jhistory(iter) = Jnew;
         
-
-
-        % Criterio de Parada
-        
+        % Stopping Criteria
         if iter~=1
-            error = norm(Unew - Uold)/norm(Unew);
+            error = norm(Uold-Unew)/norm(Unew);
            if error < tol
               break 
            end
@@ -113,31 +104,9 @@ function GradientMethod(iControlProblem,varargin)
         Yold = Ynew;
         Jold = Jnew;
         %%
-        %%
-        if graphs
-            line(1:length(Ynew(end,:)),Ynew(end,:),'Parent',axY)
-            
-            Color = {'r','g','b','y','k','c'};
-            LineStyle = {'-','--','-.'};
-            iter_graph = 0;
-            
-            switch Ugraphs
-                case 't'
-                    for iu = Unew
-                        iter_graph = iter_graph + 1;
-                        index_color = 1+ mod(iter_graph-1,length(Color));
-                        index_lineS = 1+ mod(iter_graph-1,length(LineStyle));
-                        line(tline,iu,'Parent',axU,'Color',Color{index_color},'LineStyle',LineStyle{index_lineS},'Marker','.')
-                    end                  
-                case 'X'
-                    line(1:length(Unew(end,:)),Unew(end,:),'Parent',axU,'Marker','.')                       
-            end
-
-            
-            line(1:iter,Jhistory(1:iter),'Parent',axJ,'Color','b','Marker','s')
-            
-            pause(0.05)
-            
+        if graphs   
+            % plot the graphical convergence 
+            bucle_graphs(axY,axU,axJ,Ynew,Unew,Jhistory,iCP.ode.tline,iter,TypeGraphs)
         end
     end
     
@@ -146,16 +115,71 @@ function GradientMethod(iControlProblem,varargin)
         warning('Max iteration number reached!!')
     end
     
-    iControlProblem.time            = toc; 
-    iControlProblem.iter            = iter;
-    iControlProblem.uhistory        = uhistory(1:iter);
-    iControlProblem.yhistory        = yhistory(1:iter);
-    iControlProblem.Jhistory        = Jhistory(1:iter);
-    iControlProblem.precision       = error;
+    iCP.time            = toc; 
+    iCP.iter            = iter;
+    iCP.uhistory        = Uhistory(1:iter);
+    iCP.yhistory        = Yhistory(1:iter);
+    iCP.Jhistory        = Jhistory(1:iter);
+    iCP.precision       = error;
 end
 
 
+%% 
+function [axY,axU,axJ] = init_graphs(TypeGraphs)
+   f = figure;
+   axY = subplot(1,3,1,'Parent',f);
+   axU = subplot(1,3,2,'Parent',f);
 
+   switch TypeGraphs
+       case 'ODE'
+           axY.Title.String = 'Y_i(t)';
+           axY.XLabel.String = 't';
+           axU.Title.String = 'U(t)';
+           axU.XLabel.String = 't';
+       case 'PDE'
+           axY.Title.String = 'Y(x,T)';
+           axY.XLabel.String = 'x';
+           axU.Title.String = 'U(x,T)';
+           axU.XLabel.String = 'x';
+   end
+
+   axJ = subplot(1,3,3,'Parent',f);
+   axJ.Title.String = 'J';
+   axJ.XLabel.String = 'iter';
+end
+
+function bucle_graphs(axY,axU,axJ,Ynew,Unew,Jhistory,tline,iter,TypeGraphs)
+
+    Color = {'r','g','b','y','k','c'};
+    LineStyle = {'-','--','-.'};
+
+    switch TypeGraphs
+        case 'ODE'
+            iter_graph = 0;
+            for iy = Ynew
+                iter_graph = iter_graph + 1;
+                index_color = 1+ mod(iter_graph-1,length(Color));
+                index_lineS = 1+ mod(iter_graph-1,length(LineStyle));
+                line(tline,iy,'Parent',axY,'Color',Color{index_color},'LineStyle',LineStyle{index_lineS},'Marker','.')
+            end
+
+            iter_graph = 0;
+            for iu = Unew
+                iter_graph = iter_graph + 1;
+                index_color = 1+ mod(iter_graph-1,length(Color));
+                index_lineS = 1+ mod(iter_graph-1,length(LineStyle));
+                line(tline,iu,'Parent',axU,'Color',Color{index_color},'LineStyle',LineStyle{index_lineS},'Marker','.')
+            end                  
+        case 'PDE'
+            line(1:length(Ynew(end,:)),Ynew(end,:),'Parent',axY)
+            line(1:length(Unew(end,:)),Unew(end,:),'Parent',axU,'Marker','.')                       
+    end
+
+
+    line(1:iter,Jhistory(1:iter),'Parent',axJ,'Color','b','Marker','s')
+
+    pause(0.05)
+end
 
 
 

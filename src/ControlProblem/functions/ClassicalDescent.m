@@ -7,7 +7,7 @@ function  [Unew ,Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,varargin)
     addRequired(p,'Jold')
 
     addOptional(p,'InitialLengthStep',10)
-    addOptional(p,'MinLengthStep',0.01)
+    addOptional(p,'MinLengthStep',0.0001)
     addOptional(p,'MiddleStepControl',true)
     
     parse(p,iCP,Uold,Yold,Jold,varargin{:})
@@ -28,7 +28,7 @@ function  [Unew ,Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,varargin)
     %
     %% Empezamos con un LengthStep
     LengthStep =2*InitialLengthStep;
-    
+
     while true 
         % en cada iteracion dividimos el LengthStep
         LengthStep = LengthStep/2;
@@ -49,17 +49,13 @@ function  [Unew ,Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,varargin)
         if (LengthStep <= MinLengthStep)
             Unew = Uold;
             Ynew = Yold;
-            Jnew = Jold;         
+            Jnew = Jold;
+            
+
             return
         end
     end
-    
-    
-    Unew = UTry;
-    Ynew = YTry;
-    Jnew = JTry;
-    
-    
+   
 end
 %%
 %%
@@ -85,7 +81,7 @@ function [Unew,Ynew] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthStep)
     %                  . . . . . . . ]
     U_fun  = @(t) interp1(tline,Uold,t); 
 
-    Y_fun  = @(t) interp1(tline,Yold,t,'nearest');
+    Y_fun  = @(t) interp1(tline,Yold,t);
     
     %% Resolvemos el problem dual
     % Creamos dp/dt (t,p)  a partir de la funcion dp_dt_xuDepen
@@ -97,7 +93,7 @@ function [Unew,Ynew] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthStep)
     [~,P] = ode45(@(t,P) -dP_dt(t,P),tline,P0);
     P = flipud(P);
     % Obtenemos la funcion p(t) a partir p = [p(t1) p(t2) ... ]
-    P_fun  = @(t) interp1(tline,P,t,'nearest');
+    P_fun  = @(t) interp1(tline,P,t);
     
     %% Calculo del descenso   
     % Obtenemos du(t)
@@ -116,7 +112,8 @@ function [Unew,Ynew] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthStep)
     Unew = Uold - LengthStep*du; 
    
     %% Resolvemos el problem primal
-    solve(iCP.ode,'U',Unew)
+    solve(iCP.ode,'U',Unew);
     Ynew = iCP.ode.Y;
+    
     % Obtenemos x(t)
 end

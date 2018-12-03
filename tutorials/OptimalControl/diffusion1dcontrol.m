@@ -1,9 +1,10 @@
 clear;
-%% Los vectores symY = [ y1 y2 ]
 %%              symU = [ u1 u2 ]
 syms t
 %% Discretizacion del espacio
 N = 20;
+%% Los vectores symY = [ y1 y2 y3 .. yn  ]
+
 xi = 0; xf = 1;
 xline = linspace(xi,xf,N);
 
@@ -47,13 +48,17 @@ legend('Target','Free Dynamics')
 
 %% Creamos Problema de Control
 
-iCP1 = ControlProblem(odeEqn,Jfun,'T',5);
+iCP1 = ControlProblem(odeEqn,Jfun);
 
 %% Solve Gradient
 DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',2.0};
-Gradient_Parameters = {'maxiter',50,'DescentParameters',DescentParameters,'Graphs',true,'Ugraphs','X'};
+Gradient_Parameters = {'maxiter',50,'DescentParameters',DescentParameters,'Graphs',true,'TypeGraphs','PDE'};
 %
 GradientMethod(iCP1,Gradient_Parameters{:})
+
+
+
+
 % Several ways to run
 % GradientMethod(iCP1)
 % GradientMethod(iCP1,'DescentParameters',DescentParameters)

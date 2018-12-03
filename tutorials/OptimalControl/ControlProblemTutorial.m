@@ -1,5 +1,5 @@
 clear;
-%% Los vectores symX = [ x1 x2 ]
+%% Los vectores symY = [ y1 y2 ]
 %%              symU = [ u1 u2 ]
 syms t
 
