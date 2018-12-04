@@ -28,7 +28,6 @@ B = [ 1 0; ...
 Fsym  = A*symY + B*symU;
 %%%%%%%%%%%%%%%%
 T = 5;
-
 odeEqn = ode(Fsym,symY,symU,Y0,'T',T);
 
 %% Creamos Problema de Control
@@ -36,7 +35,7 @@ iCP1 = ControlProblem(odeEqn,Jfun);
 
 %% Solve Gradient
 
-GradientMethod(iCP1,'Graphs',true)
+GradientMethod(iCP1,'Graphs',true,'SaveGif',true)
 
 % view res
 %  animation(odeEqn)

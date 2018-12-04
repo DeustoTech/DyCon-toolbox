@@ -2,7 +2,7 @@ clear;
 %%              symU = [ u1 u2 ]
 syms t
 %% Discretizacion del espacio
-N = 20;
+N = 50;
 %% Los vectores symY = [ y1 y2 y3 .. yn  ]
 
 xi = 0; xf = 1;
