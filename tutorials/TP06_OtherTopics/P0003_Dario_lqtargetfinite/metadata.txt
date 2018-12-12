@@ -1,0 +1,4 @@
+title: Riccati theory in LQ optimization with time-varying target
+subtitle: Numerical computation of the optimal control and the optimal state
+date: 2018-10-26
+author: DarioP

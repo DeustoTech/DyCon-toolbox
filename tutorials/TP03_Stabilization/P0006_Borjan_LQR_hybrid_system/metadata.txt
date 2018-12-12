@@ -1,0 +1,4 @@
+title: LQR optimal control design for a coupled PDE-ODE system.
+subtitle: Stabilization of a coupled PDE-ODE system by means of a feedback LQR control.
+date: 2018-10-28
+author: [BorjanG]

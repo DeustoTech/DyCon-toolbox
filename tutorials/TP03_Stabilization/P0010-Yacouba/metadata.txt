@@ -1,0 +1,4 @@
+title: The control on the Kuramoto model by handling one oscillator
+
+date: 2018-10-29
+author: [YacoubaS]
