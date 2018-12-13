@@ -1,0 +1,4 @@
+title: Optimal control of a  graph evolving in discrete time
+description: blabla.
+date: 2018-10-26
+author: [DomenecR]

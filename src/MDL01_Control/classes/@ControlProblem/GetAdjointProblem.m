@@ -14,6 +14,9 @@ function GetAdjointProblem(iControlProblem)
 %        class: double
 %        dimension: [length(iCP.tline)]
 %        default:
+%  Output:
+%   
+
     syms Hamil t u 
     %%
     Jfun   = iControlProblem.Jfun;

@@ -113,7 +113,7 @@ maxiter = 30;
 DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',0.1,'MinLengthStep',1e-8};
 GradientParameters = {'tol',tol,'DescentParameters',DescentParameters,'graphs',true,'TypeGraphs','PDE','maxiter',maxiter};
 %
-GradientMethod(iCP1,GradientParameters{:})
+%GradientMethod(iCP1,GradientParameters{:})
 % Several ways to run
 % GradientMethod(iCP1)
 % GradientMethod(iCP1,'DescentParameters',DescentParameters)

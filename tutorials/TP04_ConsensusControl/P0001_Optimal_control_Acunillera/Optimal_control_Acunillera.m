@@ -245,5 +245,6 @@ ylabel('States of the nodes','FontSize',16)
 % in all the states of the graph.
 
 %% References
-% [Murray]: R. Olfati-Saber, J. A. Fax, and R. M. Murray, "Consensus and cooperation in networked multi-agent systems". Proc. IEEE. vol. 95, pp. 215–233, Jan. 2007. 
-% [Astrom]: K. J. Åström, and R. M. Murray, "Feedback Systems: An Introduction for Scientists and Engineers". Princeton University Press, 2008, Princeton, NJ.
+% [^Murray]: R. Olfati-Saber, J. A. Fax, and R. M. Murray, "Consensus and cooperation in networked multi-agent systems". Proc. IEEE. vol. 95, pp. 215–233, Jan. 2007. 
+%%
+% [^Astrom]: K. J. Åström, and R. M. Murray, "Feedback Systems: An Introduction for Scientists and Engineers". Princeton University Press, 2008, Princeton, NJ.

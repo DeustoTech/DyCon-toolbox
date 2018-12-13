@@ -17,6 +17,7 @@ function matlabclass2blog(ClassName,FolderDocumentation)
 
     mfile_path = [path_class,'/',ClassName,'.m'];
     help_data = ObtainHelp(mfile_path);
+    help_data = replace(help_data,newline,' ');
     metadata = metaclass(eval([ClassName,'.empty']));    
     
     %% Properties 
@@ -25,10 +26,18 @@ function matlabclass2blog(ClassName,FolderDocumentation)
     for ipl = metadata.PropertyList'
         listofproperties = [listofproperties,sp,ipl.Name,': ',newline];
         
-        help_property = replace(strtrim(help([ClassName,'.',ipl.Name])),newline,' ');
+        help_property = ObtainHelp([ClassName,'.',ipl.Name]);
+        help_property = strsplit(help_property,newline);
+        if length(help_property) ~= 3
+           continue 
+        end
+        for index = 1:length(help_property)
+            help_property{index} = [sp,sp,help_property{index}];
+        end
+        help_property = join(help_property,newline);
+        help_property = help_property{:};
         
-        listofproperties = [listofproperties,sp,sp,'description: "',help_property,'"',newline];
-        listofproperties = [listofproperties,sp,sp,'type: "',help_property,'"',newline];
+        listofproperties = [listofproperties,help_property,newline];
         
         if ipl.HasDefault
            text_default = evalc('ipl.DefaultValue');
@@ -63,6 +72,10 @@ function matlabclass2blog(ClassName,FolderDocumentation)
     
     md = fopen([data_class(2).path,'/',help_mfile,'.md'],'r');
     mdcontent = fscanf(md,'%c');
+    mdcontent = strsplit(mdcontent,[newline,newline]);
+    mdcontent = mdcontent(2:end);
+    mdcontent = join(mdcontent,[newline,newline]);
+    mdcontent = mdcontent{:};
     
     fclose(md)
     

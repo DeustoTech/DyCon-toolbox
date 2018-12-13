@@ -1,3 +1,4 @@
+
 %% 
 % En este tutorial veremos como utilizar la implementacion para el control optimo en 
 % la DyConLib, para ello es necesario definir algunas notaciones. Dado que el control optimo viene definido 

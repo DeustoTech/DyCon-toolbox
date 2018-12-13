@@ -64,7 +64,7 @@
 %%
 % Matrix $A$ of the linearized Kuramoto model
 %%
-N = 7;
+N = 2;
 A = (1/N)*ones(N,N);
 for i = 1:N
     A(i,i) = -1;
@@ -77,7 +77,7 @@ mu = 4;sigma = 10;
 theta0 = normrnd(mu,sigma,N,1) 
 %%
 % Now, choose initial control,
-t0 = 0;T = 1;dt = 0.1;
+t0 = 0;T = 1;dt = 0.5;
 tspan = t0:dt:T;
 u0 = zeros(length(tspan),N); 
 %%
@@ -96,9 +96,9 @@ fig2 = LastThetaPlot(Results_Stochastic);
 %%
 Results_Classical = {};Results_Stochastic = {};
 %
-maxN = 500; % <=== Maximal number of oscillator allowed in the model
+maxN = 5; % <=== Maximal number of oscillator allowed in the model
 iter = 0;
-for N = 1:100:maxN
+for N = 1:1:maxN
     % We solve the problem for each N
     iter = iter + 1;
     % Definition of the linearized Kuramoto problem

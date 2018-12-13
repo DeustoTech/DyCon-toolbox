@@ -60,16 +60,10 @@ classdef ControlProblem < handle
         % OptionalInputs:
         %   T:
         %       name: Final Time 
-        %       description: This parameter represent the final time of simulation.  
+        %       description: matrix 
         %       class: double
         %       dimension: [1x1]
-        %       default: iode.T 
-        %   dt:
-        %       name: Final Time 
-        %       description: "This parameter represent is the interval to interpolate the control u and state y to obtain the functional $J$ and the gradient $\frac{dH}{du}$"
-        %       class: double
-        %       dimension: [1x1]
-        %       default: iode.dt         
+        %       default:
         
 
             p = inputParser;
@@ -90,18 +84,12 @@ classdef ControlProblem < handle
                     warning('The parameter T (final time), is different in Jfunction and ODE problem. We use ODE.T for all.')
                 end
                 Jfun.T = iode.T;
-           else
-               Jfun.T = obj.T;
-               iode.T = obj.T;
            end
            if isempty(obj.dt) 
                 if Jfun.dt ~= iode.dt
                     warning('The parameter dt (step time), is different in Jfunction and ODE problem. We use ODE.dt for all.')
                 end
                 Jfun.dt = iode.dt;
-           else
-               Jfun.dt = obj.dt;
-               iode.dt = obj.dt;
            end
            
             GetAdjointProblem(obj);

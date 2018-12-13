@@ -84,6 +84,7 @@ function examples2blog(name,varargin)
     fprintf(OUTMD,'---\n');
     fprintf(OUTMD,INMetadata_content);
     fprintf(OUTMD,'layout: tutorial\n');
+    fprintf(OUTMD,['matlab: ',name,'\n']);
 
     fprintf(OUTMD,['categories: [tutorial,',module,']\n']);
     fprintf(OUTMD,'---\n');

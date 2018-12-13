@@ -1,4 +1,4 @@
-function  solveStochasticGradient(ACProblem,xt,varargin)
+function  solveStochasticGradientControlsimul(ACProblem,xt,varargin)
 
 %SOLVE_SG Summary of this function goes here
 %   Detailed explanation goes here

@@ -1,28 +1,74 @@
 classdef AverageControl < handle & matlab.mixin.Copyable
-    %AVERAGECONTROL Summary of this class goes here
-    %   Detailed explanation goes here
-    
+% The Average Control class is able to calculate the average control given the matrices
+% that depend on the parameter. It has as parameter the state where you want to take all 
+% the equations that depend on the parameters.    
     properties
-        A         % A(:,:,K) with K number of parameter
-        B         % B(:,:,K) with K number of parameter
-        x0        % initial state of all ode's
-        %
-        u0        % Initial control, must have same dimesion of span
-        span      % Time line [t0 : dt : T],  
-        K         % length of parameters list
-        N         % dimesion of vector state
+        % type: "Functional"
+        % default: "none"
+        % description: "This property represent the cost of optimal control"
+        A   
+        % type: "Functional"
+        % default: "none"
+        % description: "This property represent the cost of optimal control"
+        B         
+        % type: "Functional"
+        % default: "none"
+        % description: "This property represent the cost of optimal control"
+        x0        
+        % type: "Functional"
+        % default: "none"
+        % description: "This property represent the cost of optimal control"
+        u0        
+        % type: "Functional"
+        % default: "none"
+        % description: "This property represent the cost of optimal control"
+        span        
+        % type: "Functional"
+        % default: "none"
+        % description: "This property represent the cost of optimal control"
+        K         
+        % type: "Functional"
+        % default: "none"
+        % description: "This property represent the cost of optimal control"
+        N   
+        addata      % aditional data
+
     end
     
     properties (Hidden)
         u                   % control 
-        addata      % aditional data
     end
     
     
     methods
         function obj = AverageControl(A,B,x0,u0,span)
-            %AVERAGECONTROL Construct an instance of this class
-            %   Detailed explanation goes here
+        % name: AverageControl
+        % description: AverageControl constructor
+        % autor: JOroya
+        % MandatoryInputs:   
+        %   iode: 
+        %       name: Ordinary Differential Equation 
+        %       description: Ordinary Differential Equation represent the constrain to minimization the functional 
+        %       class: ode
+        %       dimension: [1x1]
+        %   Jfun: 
+        %       name: functional
+        %       description: Cost function to obtain the optimal control 
+        %       class: Functional
+        %       dimension: [1x1]        
+        % OptionalInputs:
+        %   T:
+        %       name: Final Time 
+        %       description: This parameter represent the final time of simulation.  
+        %       class: double
+        %       dimension: [1x1]
+        %       default: iode.T 
+        %   dt:
+        %       name: Final Time 
+        %       description: "This parameter represent is the interval to interpolate the control u and state y to obtain the functional
+        %       class: double
+        %       dimension: [1x1]
+        %       default: iode.dt 
             obj.A    = A;
             obj.B    = B;
             obj.x0   = x0;
