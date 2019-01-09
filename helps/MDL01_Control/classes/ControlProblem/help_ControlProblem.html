@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>tp99a92d08_8dab_44bd_8dc2_8352c299572c</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-12-13"><meta name="DC.source" content="tp99a92d08_8dab_44bd_8dc2_8352c299572c.m"><style type="text/css">
+      --><title>./imgs-matlab/help_ControlProblem</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-12-17"><meta name="DC.source" content="./imgs-matlab/help_ControlProblem.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,10 +66,97 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><p>Ejemplo de control problem</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+  </style></head><body><div class="content"><pre class="codeinput">clear;
+</pre><p>first define symbolics vectors:</p><p><img src="./imgs-matlab/help_ControlProblem_eq16899647242732457595.png" alt="$$ symY = \\left( \\begin{matrix}   y1 \\\\&#xA;                                  y2&#xA;                 \\end{matrix} \\right) $$"></p><p><img src="./imgs-matlab/help_ControlProblem_eq04942597875809680023.png" alt="$$ symU = \\left( \\begin{matrix}   u1 \\\\&#xA;                                  u2&#xA;                  \\end{matrix} \\right) $$"></p><p>We will use symbolic variables to define them.</p><pre class="codeinput">syms <span class="string">t</span>
+symY = SymsVector(<span class="string">'y'</span>,2);
+symU = SymsVector(<span class="string">'u'</span>,2);
+</pre><p>In this case we will define the following differential equation</p><pre class="codeinput">Y0 = [  0; <span class="keyword">...</span>
+       +1 ];
+<span class="comment">%</span>
+A = [ -1  1  ;  <span class="keyword">...</span>
+       0 -2 ];
+<span class="comment">%</span>
+B = [  1 0; <span class="keyword">...</span>
+       0 1 ];
+</pre><pre class="codeinput">Fsym  = A*symY + B*symU;
+</pre><p>To do this, we create an object differential equation. We can do it with the ODE constructor, in the following way:</p><pre class="codeinput">odeEqn = ode(Fsym,symY,symU,Y0);
+</pre><p>Create the Funcional</p><pre class="codeinput">YT = [ 1; <span class="keyword">...</span>
+       4];
+
+symPsi  = (YT - symY).'*(YT - symY);
+symL    = 0.0001*(symU.'*symU);
+
+Jfun = Functional(symPsi,symL,symY,symU);
+</pre><p>Now can create the object ControlProblem</p><pre class="codeinput">iCP1 = ControlProblem(odeEqn,Jfun);
+iCP1
+</pre><pre class="codeoutput">
+iCP1 = 
+
+  ControlProblem with properties:
+
+        Jfun: [1&times;1 Functional]
+         ode: [1&times;1 ode]
+           T: 1
+          dt: 0.1000
+    UOptimal: []
+
+</pre><p>Solve Gradient</p><pre class="codeinput">GradientMethod(iCP1)
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% 
-% Ejemplo de control problem
+clear;
+%%
+% first define symbolics vectors:
+%%
+% $$ symY = \\left( \\begin{matrix}   y1 \\\\
+%                                   y2 
+%                  \\end{matrix} \\right) $$
+%%
+% $$ symU = \\left( \\begin{matrix}   u1 \\\\
+%                                   u2 
+%                   \\end{matrix} \\right) $$
+%%
+% We will use symbolic variables to define them.
+syms t
+symY = SymsVector('y',2);
+symU = SymsVector('u',2);
+%%
+% In this case we will define the following differential equation
+
+Y0 = [  0; ...
+       +1 ];
+%
+A = [ -1  1  ;  ...
+       0 -2 ];
+%  
+B = [  1 0; ...
+       0 1 ];
+%%
+Fsym  = A*symY + B*symU;
+%%
+% To do this, we create an object differential equation.
+% We can do it with the ODE constructor, in the following way:
+
+odeEqn = ode(Fsym,symY,symU,Y0);
+
+%%
+% Create the Funcional  
+YT = [ 1; ... 
+       4];
+
+symPsi  = (YT - symY).'*(YT - symY);
+symL    = 0.0001*(symU.'*symU);
+
+Jfun = Functional(symPsi,symL,symY,symU);
+
+%%
+% Now can create the object ControlProblem
+iCP1 = ControlProblem(odeEqn,Jfun);
+iCP1
+%%
+% Solve Gradient
+
+GradientMethod(iCP1)
 
 ##### SOURCE END #####
 --></body></html>

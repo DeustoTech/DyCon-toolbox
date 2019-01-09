@@ -1,14 +1,21 @@
 function Jvalue = GetFunctional(iControlProblem,Y,U)
 % description: Metodo de Es
-% autor: JOroya
+% autor: Xinlung
 % MandatoryInputs:   
-% iCP: 
+%  iCP: 
 %    name: Control Problem
 %    description: 
 %    class: ControlProblem
 %    dimension: [1x1]
 % OptionalInputs:
-% U0:
+%  U0:
+%    name: Initial Control 
+%    description: matrix 
+%    class: double
+%    dimension: [length(iCP.tline)]
+%    default:   empty
+% Outputs:
+%  U0:
 %    name: Initial Control 
 %    description: matrix 
 %    class: double

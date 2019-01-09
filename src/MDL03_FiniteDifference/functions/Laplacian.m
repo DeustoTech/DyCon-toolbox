@@ -8,6 +8,6 @@ function matrix= laplacian1d(N)
         matrix(i,i+1) = 1;
         matrix(i+1,i) = 1;
     end
-    matrix = (1/N^2)*matrix;
+    matrix = (N^2)*matrix;
 end
 

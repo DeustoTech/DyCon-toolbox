@@ -1,9 +1,11 @@
 function A = FractionalLaplacian(s,L,N)
-% description: Metodo de Es
-% autor: JOroya
+% description: Compute the rigidity matrix for solving the Poisson problem
+%                   $$(-\Delta)^s u = F  \ \in (-L,L)$$
+%                   where $u=0, \in R(-L,L)$ using linear finite elements on a mesh of N points
+% autor: UmbertoB
 % MandatoryInputs:   
-%   iCP: 
-%       name: Control Problem Object
+%   s: 
+%       name: fractrio
 %       d: [1x1]
 %       class: ControlProblem
 %       dimension: [1x1]
@@ -23,17 +25,6 @@ function A = FractionalLaplacian(s,L,N)
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Compute the rigidity matrix for solving the Poisson problem
-%  |(-Delta)^s u = F, in (-L,L)
-%  | u=0,             in R\(-L,L)
-%
-%  using linear finite elements on a mesh of N points.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 x = linspace(-L,L,N+2);

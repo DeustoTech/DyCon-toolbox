@@ -1,12 +1,12 @@
 
 %% 
-% En este tutorial veremos como utilizar la implementacion para el control optimo en 
-% la DyConLib, para ello es necesario definir algunas notaciones. Dado que el control optimo viene definido 
-% como un problema de optimizacion con una restriccion, la ecuacion diferencial. Seguiremos la notación utiliza da 
-% en el artículo [Pontryagin Maximum Principle](https://en.wikipedia.org/wiki/Pontryagin%27s_maximum_principle#Formal_statement_of_necessary_conditions_for_minimization_problem)
+% In this tutorial we will see how to use the implementation for optimal control in the DyCon Toolbox,
+% for this it is necessary to define some notations. Since the optimal control is defined as an optimization 
+% problem with a constraint, the differential equation. We will follow the notation used in the article Pontryagin
+% Maximum Principle
 clear;
 %%
-% Los vectores 
+% The vectors
 %%
 % $$ symY = \left( \begin{matrix}   y1 \\
 %                                   y2 
@@ -16,37 +16,60 @@ clear;
 %                                   u2 
 %                   \end{matrix} \right) $$
 %%
-% Utilizaremos variable simbolicas para definirlos 
+% We will use symbolic variables to define them.
 syms t
 symY = SymsVector('y',2);
 symU = SymsVector('u',2);
 %%
-% Das las Creamos el ODE 
-%%%%%%%%%%%%%%%%
+% ##  Ordinary differential equation
+%%
+% In this case we will define the following differential equation
+%%
+% $$ \dot{\textbf{Y}} = \left( \begin{matrix} 
+%   -1  &  1 \\
+%    0  & -2 \\
+%   \end{matrix} \right) * \textbf{Y} + 
+%   \left( \begin{matrix} 
+%    1  &  0 \\
+%    0  &  1 \\
+%   \end{matrix} \right) * \textbf{U} 
+% $$ 
 Y0 = [  0; ...
        +1 ];
-%%%%%%%%%%%%%%%%
-A = [ -1 1  ;  ...
-      0 -2 ];
-%%%%%%%%%%%%%%%%  
-B = [ 1 0; ...
-      0 1];
-%%%%%%%%%%%%%%%%
+%
+A = [ -1  1  ;  ...
+       0 -2 ];
+%  
+B = [  1 0; ...
+       0 1 ];
+%%
 Fsym  = A*symY + B*symU;
-%%%%%%%%%%%%%%%%
+%%
+% To do this, we create an object differential equation. We can do it with the ODE constructor, in the following way.
 T = 5;
 odeEqn = ode(Fsym,symY,symU,Y0,'T',T);
 
-% Creamos Funcional  
+%%
+% ##  Cost Functional 
+%%
+% $$ J = \Psi(Y(T),t) + \int_0^T L(Y(t,U),U(t),t) dt$$
+%%
+% For this, we choose a target of vector state  
 YT = [ 1; ... 
        4];
-
+%%
+% Then, 
+%%
+% $$\Psi(Y,t) = \abs{Y(T) - Y(t)}^2 $$
 symPsi  = (YT - symY).'*(YT - symY);
+%%
+% and 
+%%
+% $$ L(Y(t,U),U(t),t) = \beta \abs{U(t)}^2$$
 symL    = 0.0001*(symU.'*symU);
-
+%% 
+% For last, you an create the functional object
 Jfun = Functional(symPsi,symL,symY,symU);
-
-
 
 %% Creamos Problema de Control
 iCP1 = ControlProblem(odeEqn,Jfun);
@@ -54,10 +77,24 @@ iCP1 = ControlProblem(odeEqn,Jfun);
 %% Solve Gradient
 
 GradientMethod(iCP1)
-
-% view res
-%  animation(odeEqn)
 %%
 % ![](extra-data/081472.gif)
+%%
 
-% animation(odeEqn,'YLim',[-2 5],'xx',2.0)
+
+% Resolvemos la ecuacion sin controlfree dynamics 
+solve(odeEqn) 
+% 
+figure
+plot(odeEqn.tline',odeEqn.Y(:,1),'Color','red')
+line(odeEqn.tline',odeEqn.Y(:,2),'Color','green')
+legend({'Y_1','Y_2'})
+%% 
+% La solucion obtenida en el metodo del gradiente es:
+odec = iCP1.ode;
+figure
+plot(odec.tline',odec.Y(:,1),'Color','red')
+line(odec.tline',odec.Y(:,2),'Color','green')
+legend({'Y_1','Y_2'})
+
+

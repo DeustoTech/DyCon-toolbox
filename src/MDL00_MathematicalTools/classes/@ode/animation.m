@@ -1,6 +1,19 @@
 function animation(iode,varargin)
-%ANIMATION Summary of this function goes here
-%   Detailed explanation goes here
+% description: Metodo de Es
+% autor: JOroya
+% MandatoryInputs:   
+% iCP: 
+%    name: Control Problem
+%    description: 
+%    class: ControlProblem
+%    dimension: [1x1]
+% OptionalInputs:
+% U0:
+%    name: Initial Control 
+%    description: matrix 
+%    class: double
+%    dimension: [length(iCP.tline)]
+%    default:   empty
     p = inputParser;
     
     addRequired(p,'iode')

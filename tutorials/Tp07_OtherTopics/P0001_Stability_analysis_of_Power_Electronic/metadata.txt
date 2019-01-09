@@ -1,0 +1,4 @@
+title: Stability analysis of Power Electronic Converters Connected to AC Grids 
+description: Stability analysis of a simplified model for Power Electronic Converters Connected to AC Grids in dependence on the characteristical physical parameters.
+date: 2018-11-15
+author: [UmbertoB ,JesusO]

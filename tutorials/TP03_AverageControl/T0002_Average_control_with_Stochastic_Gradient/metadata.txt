@@ -1,4 +1,4 @@
-title: Optimal control of a  graph evolving in discrete time
-sutitle: Stabilizing the graph by minimizing a discrete LQR and driving it to a reference state.
-date: 2018-10-26
-author: [AlejandroC]
+title: Average Control by Stochastic Gradient method
+description: In this tutorial the main goal is to apply the stochastic gradient descent method to obtain the minimun of the same optimal control problem.
+date: 2018-11-13
+author: [AnaN, EnriqueZ]

@@ -1,71 +1,90 @@
-classdef ode < handle & matlab.mixin.Copyable
-    %ODE Es una clase hecha para Dycon
-    
+classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
+    % description: The class ode structure the idea of an ordinary differential equation, 
+    %               so that in this way you can create different methods on the same matlab
+    %               structure. Given that matlab leaves a freedom to define the representation
+    %               of an equation, we chose to create a matlab class with the most important 
+    %               properties of an ODE.
+    % visible: true
     properties
-
-    %% ----------------|-------------------------------|---------------------------------------------- %
-    %       Name       |           Dimension           |      Type                                     %
-    %% ----------------|-------------------------------|---------------------------------------------- %
-    
-    % Symbolic vector Y = [y1 y2 y3 ...]^T 
-            symY                                                sym                          
-        
-    %% ----------------|-------------------------------|---------------------------------------------- %
-    
-    % Symbolic vector U = [u1 u2 u3 ...]^T   
-            symU                                                sym        
-        
-    %% ----------------|-------------------------------|---------------------------------------------- %
-            
-    % Numeric derivative  dY/dt = F(t,Y,U)   
-            numF                                                function_handle     
-        
-    %% ----------------|-------------------------------|---------------------------------------------- %
-     
-    % Symbolic dY/dt = F(t,Y,U) 
-            symF                                                sym                                        
-    
-    %% ----------------|-------------------------------|---------------------------------------------- %
-    
-    % Initial State Y = [y1(0) y2(0) y3(0) ... ]^T 
-            Y0                                                  double                  
-      
-    %% ----------------|-------------------------------|---------------------------------------------- %
-    
-        % Final Time
-            T                     (1,1)                         double                                                    
-        
-    %% ----------------|-------------------------------|---------------------------------------------- %
-        
-        % Time interval
-            dt                    (1,1)                         double                                                  
-
-    %% ----------------|-------------------------------|---------------------------------------------- %
-    
-        % Numerical Solution Y = [y1(t0) y2(t0) y3(t0)     
-        %                         y1(t1) y2(t1) y3(t1)       
-        %                         y1(t2) y2(t2) y3(t2)     
-        %                           .       .     .   ];   
-            Y                                                   double     
-    %% ----------------|-------------------------------|---------------------------------------------- %
+        % type: "symbolic"
+        % dimension: [1x1]
+        % default: "none"
+        % description: "Symbolic Vector of State"
+        symY                                                sym                              
+        % type: "symbolic"
+        % dimension: [1x1]
+        % default: "none"
+        % description: "Symbolic Vector of Control"
+        symU                                                sym                    
+        % type: "function_handle"
+        % dimension: [1x1]
+        % default: "none"
+        % description: "Numerical Expresion of Y'=F(Y,U)"
+        numF                                                function_handle          
+        % type: "symbolic function"
+        % dimension: [1x1]
+        % default: "none"
+        % description: "Symbolic Expresion of Y'=F(Y,U)"
+        symF                                                sym                                            
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State"
+        Y0                                                  double     
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Final State"
+        YT                                                  double  
+        % type: "double"
+        % dimension: [1x1]
+        % default: "1"
+        % description: "Time final of simulation"
+        T                     (1,1)                         double                                                            
+        % type: "double"
+        % dimension: [1x1]
+        % default: "none"
+        % description: "Time interval of plots. ATTENTION - the solution of ode is obtain by ode45, with adatative step"
+        dt                    (1,1)                         double                                                      
+        % type: "double"
+        % dimension: [1x1]
+        % default: "none"
+        % description: "Solution of problem"
+        Y                                                   double   
     end
 
     %% Fake Properties 
     properties (Dependent = true)
-    %%
-    % ------------------------------------------------------------------------------------------------ %
-    %       Name       |           Dimension           |      Type                                     %
-    % ------------------------------------------------------------------------------------------------ %
-    
-        % Tline t = 0:dt:tline
-            tline                                               double
-    %% ----------------|-------------------------------|---------------------------------------------- %
+        % type: "double"
+        % dimension: [NxN]
+        % default: "none"
+        % description: "Time grid to plot the solution, and interpolate the control"
+        tline                                               double
+        % type: "double"
+        % dimension: [NxN]
+        % default: "none"
+        % description: "Time grid to plot the solution, and interpolate the control"
+        Yend
     end
     
     
     methods
         function obj = ode(symF,symY,symU,varargin)
-            %ODE 
+            % description: Metodo de Es
+            % autor: JOroya
+            % MandatoryInputs:   
+            % iCP: 
+            %    name: Control Problem
+            %    description: 
+            %    class: ControlProblem
+            %    dimension: [1x1]
+            % OptionalInputs:
+            % U0:
+            %    name: Initial Control 
+            %    description: matrix 
+            %    class: double
+            %    dimension: [length(iCP.tline)]
+            %    default:   empty   
             
             %% Control input Parameters 
             p = inputParser;
@@ -99,6 +118,15 @@ classdef ode < handle & matlab.mixin.Copyable
         %%
         function tline = get.tline(obj)
                 tline = 0:obj.dt:obj.T;
+        end
+        %%
+        function Yend = get.Yend(obj)
+                Yend = obj.Y(end,:);
+        end
+        %% 
+        function obj = set.Y0(obj,Y0) 
+            obj.Y0 = Y0; 
+            obj.Y = [];
         end
     end
 end

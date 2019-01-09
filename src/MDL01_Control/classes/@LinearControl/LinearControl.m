@@ -1,35 +1,18 @@
-classdef LinearControl < handle & matlab.mixin.Copyable
-    %AVERAGECONTROL Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-        A         % A(:,:) 
-        B         % B(:,:) 
-        x0        % initial state of all ode's
-        %
-        u0        % Initial control, must have same dimesion of span
-        span      % Time line [t0 : dt : T],  
-        K         % length of parameters list
-        N         % dimesion of vector state
-    end
-    
-    properties (Hidden)
-        u           % control 
-        addata      % aditional data
-    end
-    
+classdef LinearControl < ControlProblem
+% description: This class is able to solve optimization problems of a function restricted to an ordinary equation. This scheme is used to solve optimal control problems in which the functional derivative is calculated. <strong>ControlProblem</strong> class has methods that
+%               help us find optimal control as well as obtaining the attached problem and it's derivative form, 
+%               in both symbolic and numerical versions.
+% visible: true
     
     methods
-        function obj = AverageControl(A,B,x0,u0,span)
-            %AVERAGECONTROL Construct an instance of this class
-            %   Detailed explanation goes here
-            obj.A    = A;
-            obj.B    = B;
-            obj.x0   = x0;
-            obj.u0   = u0;
-            obj.span = span;
-            %
-            [~ ,obj.N ,obj.K] = size(obj.A);         
+        function obj = LinearControl(iLinearODE,Jfun,varargin)
+        % description: This class is able to solve optimization problems of a function restricted to an ordinary equation. This scheme is used to solve optimal control problems in which the functional derivative is calculated. <strong>ControlProblem</strong> class has methods that
+        %               help us find optimal control as well as obtaining the attached problem and it's derivative form, 
+        %               in both symbolic and numerical versions.
+        % visible: true
+            
+            obj@ControlProblem(iLinearODE,Jfun,varargin{:});
+
         end
         
     end

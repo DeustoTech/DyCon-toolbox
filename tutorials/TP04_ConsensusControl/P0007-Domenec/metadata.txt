@@ -1,3 +1,0 @@
-title: Stabilization of a collective behavior model
-date: 2018-10-28
-author: [DomenecR]

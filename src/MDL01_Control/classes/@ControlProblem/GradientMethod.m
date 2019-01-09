@@ -134,8 +134,8 @@ function GradientMethod(iCP,varargin)
     
     iCP.time            = toc; 
     iCP.iter            = iter;
-    iCP.uhistory        = Uhistory(1:(1+iter));
-    iCP.yhistory        = Yhistory(1:(1+iter));
+    iCP.Uhistory        = Uhistory(1:(1+iter));
+    iCP.Yhistory        = Yhistory(1:(1+iter));
     iCP.Jhistory        = Jhistory(1:(1+iter));
     iCP.precision       = error;
 end

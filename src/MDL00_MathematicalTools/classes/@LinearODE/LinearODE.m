@@ -1,54 +1,49 @@
-classdef LinearODE < handle
-    %ode % dx/dt = A*x + B*u(x)
-    
+classdef LinearODE < ode
+    % description: The representation of ode Y'(t) = A*Y + B*U
+    % visible: true
     
     properties
-        % Definition of differential equation 
-        A   = 1             % Linear square matrix 
-        B                % Matrix of control
-        % 
-        u                   % Function control 
-        %
-        x0                  % Initial state
-        x                   % Solution 
-        span                % [t0 T0]
-        xend                % Last vector state 
+        % type: "double"
+        % dimension: [NxN]
+        % default: "none"
+        % description: "Matrix Dynamics"
+        A                                           double
+        % type: "double"
+        % dimension: [NxM]
+        % default: "none"
+        % description: "Control Matrix"
+        B                                           double
     end
     
     methods
-        function obj = LinearODE(A,varargin)
-           
+        function obj = LinearODE(A,B)
             if nargin == 0
-                return
+               A = 1;
+               B = 1;
+            end
+            [nrowA, ncolA] = size(A);
+            
+            if nrowA ~= ncolA
+                error('A must be square')
             end
             
-            p = inputParser;
-            addRequired(p,'A')
-            addOptional(p,'B',[])
-            
-            parse(p,A,varargin{:})
-            
-            obj.B = p.Results.B;
-            obj.A = A; 
-        end
-        
-        function obj = solve(obj)
-            
-            for iedo = obj
-                
-                if isempty(iedo.B)||isempty(iedo.u)
-                    ecuation = @(t, x) iedo.A*x;
-                else
-                    ecuation = @(t, x) iedo.A*x + iedo.B*interp1(iedo.span,iedo.u, t);
-                end
-                                
-                [~, iedo.x] = ode45(ecuation,iedo.span, iedo.x0);
-                iedo.xend = iedo.x(end,:);
+            [nrowB, ncolB] = size(B);
+            if nrowB ~= nrowA
+                error(['B must have ',num2str(nrowA),' rows.'])
             end
+            
+            syms t
+            symY = SymsVector('y',nrowA);
+            symU = SymsVector('u',ncolB);
+
+%%
+            Fsym  = A*symY + B*symU;
+           
+            obj = obj@ode(Fsym,symY,symU);
+            obj.A = A;
+            obj.B = B;
         end
-        
-        
-        
+             
     end
     %%
     methods (Static)

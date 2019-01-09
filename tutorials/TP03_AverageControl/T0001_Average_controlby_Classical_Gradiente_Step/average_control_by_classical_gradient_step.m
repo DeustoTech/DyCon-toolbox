@@ -24,7 +24,7 @@
 %%
 % In this case $\nu_i$ are
 %
-nu = 1:0.5:6
+nu = 1:3:6
 %%
 % And save in K, the number of values  
 K = length(nu);

@@ -1,4 +1,4 @@
-classdef Functional < handle & matlab.mixin.Copyable
+classdef Functional < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     %FUNCTIONAL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -56,7 +56,10 @@ classdef Functional < handle & matlab.mixin.Copyable
             %%
             
         end
-        
+        function tline = get.tline(obj)
+            tline = 0:obj.dt:obj.T;
+        end
     end
+    
 end
 
