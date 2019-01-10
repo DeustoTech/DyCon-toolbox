@@ -1,5 +1,5 @@
-function display(iCP)
-%  description: display function of ControlProblem class
+function resume(iCP)
+%  description: show the most importants parameters of the control problem
 %  autor: JOroya
 %  MandatoryInputs:   
 %    iCP: 
@@ -9,7 +9,7 @@ tab = '     ';
 display([newline,'  Control Problem'])
 display('  ===============')
 
-display(iCP.ode)
+resume(iCP.ode)
 display(iCP.Jfun)
 
 end

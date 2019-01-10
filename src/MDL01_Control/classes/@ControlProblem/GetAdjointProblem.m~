@@ -1,20 +1,29 @@
   function GetAdjointProblem(iControlProblem)
-% description: This method adds the problem adjoint to the Control Problem object, since we have
+% little_description: Metodo capaz de calcular el problema adjunto de la ecuacion diferencial atravez del hamiltoniano
+%                      asociado (Principi de Pontriagin). Mediante la formula $ \\frac{d\\textbf{P}}{dt} = \\vec{\\nabla}_{Y} H $
+% description: Este metodo agrega el problema adjunto al objecto ControlProblem, dado que tenemos 
 %               $$ \\dot{\\textbf{Y}} = f(\\textbf{Y},t) $$ 
-%               and the functional
+%               y el funcional 
 %               $$ J = \\Psi(\\textbf{Y}(T)) + \\int_{0}^T L(\\textbf{Y},U,t)dt $$ 
-%               we can create the Hamiltonian 
+%               podemos crear el Hamiltoniano 
 %               $$ H = L + P*F $$
-%               where $\\textbf{P} = [p_1 p_2 p_3 ... ]^T$ . So according to the principle of the maximum of pontriagin,
-%               we can calculate the attached problems through the formulas
+%               donde $\\textbf{P} = [p_1 p_2 p_3 ... ]^T$ . Entonces 
+%               segun el principio del maximo de pontriagin 
+%               podemos calcular el problemas adjunto mediantes las formulas 
 %               $$ \\frac{d\\textbf{P}}{dt} = \\vec{\\nabla}_{Y} H = 
 %               (\\frac{\\partial H}{ \\partial y_1},\\frac{\\partial H}{ \\partial y_2},...)$$
-%               with the final time condition
+%               con la condicion final 
 %               $$ \\textbf{P}(T) = 
 %               (\\frac{\\partial \\Psi}{ \\partial y_1},\\frac{\\partial \\Psi}{ \\partial y_2},...)$$
-% little_description: Method capable of obtaining the attached problem and its final condition.
+% little_description: This method is able to update the value of the control by decreasing the value of the functional. 
 % autor: JOroya
 % MandatoryInputs:   
+%    iCP: 
+%        name: Control Problem
+%        description: Control problem object
+%        class: ControlProblem
+%        dimension: [1x1]
+% Outputs:
 %    iCP: 
 %        name: Control Problem
 %        description: Control problem object

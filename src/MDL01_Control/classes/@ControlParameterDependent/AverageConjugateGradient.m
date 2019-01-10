@@ -5,6 +5,8 @@ function [u,aditional_data] = AverageConjugateGradient(iCPD,xt,varargin)
 %   resulting states depend on a certain parameter. Therefore, the functional is
 %   constructed to control the average of the states with respect to this parameter.
 %   See Also in AverageClassicalGradient
+% little_description: This function solve a particular optimal control problem using
+%                   the stochastic gradient descent algorithm.
 % autor: AnaN
 % MandatoryInputs:   
 %   iCPD: 

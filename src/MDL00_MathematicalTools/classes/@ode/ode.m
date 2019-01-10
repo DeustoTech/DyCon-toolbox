@@ -49,8 +49,23 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % type: "double"
         % dimension: [1x1]
         % default: "none"
-        % description: "Solution of problem"
-        Y                                                   double   
+        % description: "Solution of problem. If the problem hasn't been solved this property is empty"
+        Y                                                   double                                                         
+        % type: "double"
+        % dimension: [1x1]
+        % default: "none"
+        % description: "Control with has been solve the problem. If the problem hasn't been solved this property is empty"
+        U                                                   double  
+        % type: logical
+        % dimesion: [1x1]
+        % default: true
+        % description "If this property is false, the ode is only numerical. The property symF, symY, symU are empty"
+        sym                                                 logical
+        % type: double
+        % dimesion: [1x1]
+        % default: none
+        % description Dimesion of control
+        Udim                                                double
     end
 
     %% Fake Properties 
@@ -73,18 +88,25 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             % description: Metodo de Es
             % autor: JOroya
             % MandatoryInputs:   
-            % iCP: 
-            %    name: Control Problem
-            %    description: 
-            %    class: ControlProblem
-            %    dimension: [1x1]
+            %   symF: 
+            %       description: simbolic expresion
+            %       class: symbolic
+            %       dimension: [1x1]
+            %   symY: 
+            %       description: simbolic expresion
+            %       class: symbolic
+            %       dimension: [1x1]
+            %   symU: 
+            %       description: simbolic expresion
+            %       class: symbolic
+            %       dimension: [1x1]
             % OptionalInputs:
-            % U0:
-            %    name: Initial Control 
-            %    description: matrix 
-            %    class: double
-            %    dimension: [length(iCP.tline)]
-            %    default:   empty   
+            %   U0:
+            %       name: Initial Control 
+            %       description: matrix 
+            %       class: double
+            %       dimension: [length(iCP.tline)]
+            %       default:   empty   
             
             %% Control input Parameters 
             p = inputParser;
@@ -92,26 +114,41 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             addRequired(p,'symF')
             addRequired(p,'symY')
             addRequired(p,'symU')
-            addOptional(p,'Y0',zeros(length(symY),1))
             addOptional(p,'dt',0.1)
             addOptional(p,'T',1)
-            
+            addOptional(p,'Y0',zeros(length(symY),1))
+            addOptional(p,'sym',true)
+            addOptional(p,'numF',[])
+
+
             parse(p,symF,symY,symU,varargin{:})
             
             obj.dt = p.Results.dt;
             obj.Y0 = p.Results.Y0;
             obj.T  = p.Results.T;
             obj.dt = p.Results.dt;
+            obj.sym = p.Results.sym;
+            numF    = p.Results.numF;
             %% Init Program
-            syms t
-            
-            obj.symY = symY;
-            obj.symU = symU;
-            
-            obj.symF = symfun(symF,[t,symY.',symU.']);
-            
-            obj.numF = matlabFunction(obj.symF);
-            obj.numF  = VectorialForm(obj.numF,[t,symY.',symU.'],'(t,Y,U)');
+            if obj.sym
+                syms t
+
+                obj.symY = symY;
+                obj.symU = symU;
+
+                obj.symF = symfun(symF,[t,symY.',symU.']);
+
+                obj.numF = matlabFunction(obj.symF);
+                obj.numF  = VectorialForm(obj.numF,[t,symY.',symU.'],'(t,Y,U)');
+                obj.Udim =  length(symU);
+
+            else
+                if isempty(numF)
+                   error('If sym is false, you must put the parameter numF') 
+                end
+                obj.numF = numF;
+            end
+
    
             
         end
@@ -128,6 +165,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             obj.Y0 = Y0; 
             obj.Y = [];
         end
+        
     end
 end
 

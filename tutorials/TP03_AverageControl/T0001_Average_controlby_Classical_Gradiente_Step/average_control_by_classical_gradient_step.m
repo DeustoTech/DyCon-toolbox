@@ -31,14 +31,11 @@ K = length(nu);
 %%
 % We can, define the initial state of all ODE's
 N = 3; % dimension of vector state
-x0 = ones(N, 1);
+Y0 = ones(N, 1);
 %%
 % Also, need define a initial control, that will be evolve 
-dt = 0.02;
-t0 = 0; T  = 1;
-span = (t0:dt:T);
-%
-u = zeros(length(span),1);
+dt = 0.02; T  = 1;
+
 %%
 % Moreover, we can define the matrix A's and B's, that determine the problem
 Am = -triu(ones(N))
@@ -47,24 +44,24 @@ Bm = zeros(N, 1);
 Bm(N) = 1
 %%
 % So, we can create these edo's in variable primal_odes.
-primal_odes = zeros(1,K,'LinearODE');
+parmsODE = {'dt',dt,'T',T};
+ParameticODE = LinearODE.empty;
 for index = 1:K
     A = Am + (nu(index) - 1 )*diag(diag(Am));
     %
-    primal_odes(index) = LinearODE(A,'B',Bm);
-    % all have the same control
-    primal_odes(index).u  = u;
+    ParameticODE(index) = LinearODE(A,Bm,parmsODE{:});
     % time intervals
-    primal_odes(index).span = span;
     % initial state
-    primal_odes(index).x0 = x0;
+    ParameticODE(index).Y0 = Y0;
 end
 %%
 % So, we have a $K$ ordinary differential equations 
-primal_odes
+ParameticODE
+%%
+span = ParameticODE(1).tline;
 %% 
 % We take as final target
-xt = zeros(N, 1) 
+YT = zeros(N, 1);
 %%
 % We can use the classical gradient descent method based on the adjoint methodology to obtain the iterative method
 % in order to compute the optimal control. Applying this methodology we obtain the corresponding adjoint system for [^fn],
@@ -74,14 +71,11 @@ xt = zeros(N, 1)
 % - \left[ \frac{1}{|\mathcal{K}|} \sum_{\nu \in \mathcal{K}} x \left( T, \nu \right) - \bar{x} \right]. \end{array} \right. \end{align*} $$
 %%
 % The same way that before, we define the adjoints problems 
-adjoint_odes = zeros(1,K,'LinearODE');
+AdjointODEs =  LinearODE.empty;
 for index = 1:K
-    A =primal_odes(index).A';
-    adjoint_odes(index) = LinearODE(A);
-    % all have the same control
-    adjoint_odes(index).u = u;
-    % time intervals
-    adjoint_odes(index).span = span;
+    A = ParameticODE(index).A';
+    B = ones(size(A));
+    AdjointODEs(index) = LinearODE(A,B,parmsODE{:});
 end
 %%
 % However the initial state  `adjoint_odes(index).x0` has not been assign. This initial state will be assign in every step of solution. 
@@ -104,66 +98,62 @@ while (error > tol && iter < MaxIter)
     iter = iter + 1;
     % solve primal problem
     % ====================
-    solve(primal_odes);
+    solve(ParameticODE);
     % calculate mean state final vector of primal problems  
-    xMend = forall({primal_odes.xend},'mean');
+    YMend = forall({ParameticODE.Yend},'mean');
     
     % solve adjoints problems
     % =======================
     % update new initial state of all adjoint problems
-    for iode = adjoint_odes
-        iode.x0 = -(xMend' - xt);
+    for iode = AdjointODEs
+        iode.Y0 = -(YMend' - YT);
     end
     % solve adjoints problems with the new initial state
-    solve(adjoint_odes);
+    solve(AdjointODEs);
     
     % update control
     % ===============
     % calculate mean state vector of adjoints problems  
-    pM = forall({adjoint_odes.x},'mean');
+    pM = forall({AdjointODEs.Y},'mean');
     pM = pM*Bm;
     
     % reverse adjoint variable
     pM = flipud(pM);    
     % Control update
-    u = primal_odes(1).u; % catch control currently
-    Du = beta*u - pM;
-    u = u - gamma*Du;
+    U = ParameticODE(1).U; % catch control currently
+    DU = beta*U - pM;
+    U = U - gamma*DU;
     % update control in primal problems 
     for index = 1:K
-        primal_odes(index).u = u;
+        ParameticODE(index).U = U;
     end
     % Control error
     % =============
     % Calculate area ratio  of Du^2 and u^2
-    Au2   =  trapz(span,u.^2);
-    ADu2  =  trapz(span,Du.^2);
+    Au2   =  trapz(span,U.^2);
+    ADu2  =  trapz(span,DU.^2);
     %
     
     error = sqrt(ADu2/Au2);
     % Save evolution
-    xhistory{iter} = [ span',forall({primal_odes.x},'mean')];
-    uhistory{iter} = [ span',u]; 
+    xhistory{iter} = [ span',forall({ParameticODE.Y},'mean')];
+    uhistory{iter} = [ span',U]; 
     error_history  = [ error_history, error];
 end
 %% 
 % The average control obtain is 
-plot(span,u)
+plot(span,U)
 xlabel('time');ylabel('u(t)')
 format_plot(gcf)
 %%
 % Also, on average the objective [0 0 0] has been reached.
 figure;
-plot(iode.span,forall({primal_odes.x},'mean'))
+plot(iode.tline,forall({ParameticODE.Y},'mean'))
 xlabel('t');ylabel('x_{i}(t)')
 legend(strcat('x_{',num2str((1:N)','%0.1d'),'}(t)'))
 title('Evolution of cordinates of vector state.')
 format_plot(gcf)
 %% 
-% You can use the comand
-%
-% `animation(xhistory,uhistory,'XLim',[-0.1 0.25],'ULim',[-0.5 0.0])`
-% 
 % We can see
 % ![Evolution in each iteration](extra-data/average_control.gif)
 %% 

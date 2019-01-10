@@ -1,10 +1,13 @@
-function  AverageStochasticGradient(ACProblem,xt,varargin)
-% description:  This function solve a particular optimal control problem using
-%   the stochastic gradient descent algorithm. The restriction of the optimization 
-%   problem is a parameter-dependent finite dimensional linear system. Then, the 
-%   resulting states depend on a certain parameter. Therefore, the functional is
-%   constructed to control the average of the states with respect to this parameter.
-%   See Also in AverageClassicalGradient
+function  AverageStochasticGradient(CPD,YT,varargin)
+% description:  This function solves a particular optimal control problem using
+%               the stochastic gradient descent algorithm. The restriction of the optimization 
+%               problem is a parameter-dependent finite dimensional linear system. Then, the 
+%               resulting states depend on a certain parameter. Hence, the functional is
+%               constructed to control the average of the states with respect to this parameter
+%               $$ \\frac{1}{\\vert \\mathcal{K} \\vert} \\sum_{\\nu \\in \\mathcal{K}}x(T,\\nu) = xt  $$
+%               See Also in AverageClassicalGradient
+% little_description: This function solves a particular optimal control problem using
+%                       the stochastic gradient descent algorithm.
 % autor: AnaN
 % MandatoryInputs:   
 %   iCPD: 
@@ -12,72 +15,75 @@ function  AverageStochasticGradient(ACProblem,xt,varargin)
 %    class: ControlParameterDependent
 %    dimension: [1x1]
 %   xt: 
-%    description: The target vector where you want the system to go
+%    description: The final target. The system will be controlled to starting in x0 ending in xt.
 %    class: double
 %    dimension: [iCPD.Nx1]
 % OptionalInputs:
 %   tol:
-%    description: tolerance of algorithm, this number is compare with $J(k)-J(k-1)$
+%    description: tolerance of algorithm, this number is compare with the
+%                   following error in order to stop the algorithm
+%                   $$\\frac{\\vert \\vert u_{k+1}-u_{k}\\vert \\vert}{\\vert \\vert u_{k+1}\\vert
+%                   \\vert}$$
 %    class: double
 %    dimension: [1x1]
 %    default:   1e-5
 %   beta:
-%    description: This number is the power of the control, is define by follow expresion $$J = \\min_{u \\in L^2(0,T)} \\frac{1}{2} \\left[ \\frac{1}{|\\mathcal{K}|} \\sum_{\\nu \\in \\mathcal{K}} x \\left( T, \\nu \\right) - \\bar{x} \\right]^2  + \\frac{\\beta}{2} \\int_0^T u^2 \\mathrm{d}t, \\quad \\beta \\in \\mathbb{R}^+ $$ 
-%    class: double
-%    dimension: [1x1]
-%    default:   1e-5
-%   gamma0:
-%    description: Length Step of the gradient Method. The control is update as follow $$u_{k+1} = u_{k} + \\gamma \\nabla u_{k}$$. In Stochastic method $\\gamma_{k} = \\gamma_0 * \\frac{1}/{\\sqrt{k}}$
+%    description: This value is applied to regularize the control in the optimal control problem
+%                   $$ \\min_{u \\in L^2(0,T)} J(u)=\\frac{1}{2} \\left( \\frac{1}{|\\mathcal{K}|} \\sum_{\\nu \\in \\mathcal{K}} x \\left( T, \\nu \\right) - xt \\right)^2  + \\frac{\\beta}{2} \\int_0^T u^2 \\mathrm{d}t, \\quad \\beta \\in \\mathbb{R}^+ $$ 
 %    class: double
 %    dimension: [1x1]
 %    default:   1e-1
+%   gamma0:
+%    description: Initial step of the method. The control is update as follow
+%                   $$u_{k+1} = u_{k} + \\gamma_{k} \\nabla J_{i_{k}}(u_{k})(u_{k}),$$
+%                   where $\\gamma_{k} = \\gamma_0 * \\frac{1}/{\\sqrt{k}}$
+%    class: double
+%    dimension: [1x1]
+%    default:   0.5
 %   MaxIter:
 %    description: Maximun of iterations of this method
 %    class: double
 %    dimension: [1x1]
-%    default:   100
+%    default:   1000
     p = inputParser;
     addRequired(p,'ACProblem')
     addRequired(p,'xt',@xt_valid)
     addOptional(p,'tol',1e-5)
     addOptional(p,'beta',1e-1)
     addOptional(p,'gamma0',0.5)
-    addOptional(p,'MaxIter',100)
+    addOptional(p,'MaxIter',1000)
     
-    parse(p,ACProblem,xt,varargin{:})
+    parse(p,CPD,YT,varargin{:})
 
     tol     = p.Results.tol;
     beta    = p.Results.beta;
     gamma0   = p.Results.gamma0;
     MaxIter = p.Results.MaxIter;
 
-    K = ACProblem.K;
-    A = ACProblem.A;
-    B = ACProblem.B;
-    span = ACProblem.span;
+    K = CPD.K;
+    A = CPD.A;
+    B = CPD.B;
+    span = CPD.span;
     
     %% init
     tic;
-    primal_odes = zeros(1,ACProblem.K,'LinearODE');
+    dt = span(2) - span(1); T  = span(end);
+    parmsODE = {'dt',dt,'T',T};
+
+    ParameticODE = LinearODE.empty;
     for index = 1:K
-        %
-        primal_odes(index)      = LinearODE(A(:,:,index),'B',B(:,:,index));
-        % all have the same control
-        primal_odes(index).u    = ACProblem.u0;
-        % time intervals
-        primal_odes(index).span = span;
+        % Create the ODE object
+        ParameticODE(index) = LinearODE(A(:,:,index),B(:,:,index),parmsODE{:});
         % initial state
-        primal_odes(index).x0   = ACProblem.x0;
+        ParameticODE(index).Y0 = CPD.x0;
     end
 
     %
-    adjoint_odes = zeros(1,K,'LinearODE');
+    AdjointODEs =  LinearODE.empty;
     for index = 1:K
-        adjoint_odes(index)      = LinearODE(A(:,:,index)');
-        % all have the same control
-        adjoint_odes(index).u    = ACProblem.u0;
-        % time intervals
-        adjoint_odes(index).span = span;
+        Aadj = ParameticODE(index).A';
+        Badj = ones(size(Aadj));
+        AdjointODEs(index) = LinearODE(Aadj,Badj,parmsODE{:});
     end
 
   
@@ -94,47 +100,47 @@ function  AverageStochasticGradient(ACProblem,xt,varargin)
         iter = iter + 1;
         % solve primal problem
         % ====================
-        solve(primal_odes);
+        solve(ParameticODE);
         % calculate mean state final vector of primal problems  
-        xMend = forall({primal_odes.xend},'mean');
+        YMend = forall({ParameticODE.Yend},'mean');
 
         % choose randomly a parameter $nu_{i_k}$ 
         j = randi([1,K]);
         % solve adjoint problem with 
-        adjoint_odes(j).x0 = -(xMend' - xt);
-        solve(adjoint_odes(j));
+        AdjointODEs(j).Y0 = -(YMend' - YT);
+        solve(AdjointODEs(j));
         
-        pM=adjoint_odes(j).x;
+        pM=AdjointODEs(j).Y;
         
         pM=pM*B(:,:,j);
         % reverse adjoint variable
         pM = flipud(pM);    
         % Control update
-        u = primal_odes(1).u; % catch control currently
-        Du = beta*u - pM;
+        U = ParameticODE(1).U; % catch control currently
+        DU = beta*U - pM;
         
         gamma = gamma0/sqrt(iter);
         
-        u = u - gamma*Du;
+        U = U - gamma*DU;
         % update control in primal problems 
         for index = 1:K
-            primal_odes(index).u = u;
+            ParameticODE(index).U = U;
         end
         % Control error
         % =============
         % Calculate area ratio  of Du^2 and u^2
-        Au2   =  trapz(span,u.^2);
+        Au2   =  trapz(span,U.^2);
         %ADu2  =  trapz(span,Du.^2);
         %
-        Jcurrent =  0.5*(xMend' - xt)'*(xMend' - xt) + 0.5*beta*Au2;
+        Jcurrent =  0.5*(YMend' - YT)'*(YMend' - YT) + 0.5*beta*Au2;
         
         if iter ~= 1
             error =  abs(Jhistory(iter-1) - Jcurrent);
         end
         
         % Save evolution
-        xhistory{iter} = [ span',forall({primal_odes.x},'mean')];
-        uhistory{iter} = [ span',u]; 
+        xhistory{iter} = [ span',forall({ParameticODE.Y},'mean')];
+        uhistory{iter} = [ span',U]; 
         error_history(iter) = error;
         Jhistory(iter) = Jcurrent;
     end
@@ -143,16 +149,16 @@ function  AverageStochasticGradient(ACProblem,xt,varargin)
         warning('The maximum iteration has been reached. Convergence may not have been achieved')
     end
     %%
-    ACProblem.addata.xhistory = xhistory(1:(iter-1));
-    ACProblem.addata.uhistory = uhistory(1:(iter-1));
-    ACProblem.addata.error_history = error_history(1:(iter-1));
-    ACProblem.addata.time_execution = toc;
-    ACProblem.addata.Jhistory = Jhistory(1:(iter-1));
+    CPD.addata.xhistory = xhistory(1:(iter-1));
+    CPD.addata.uhistory = uhistory(1:(iter-1));
+    CPD.addata.error_history = error_history(1:(iter-1));
+    CPD.addata.time_execution = toc;
+    CPD.addata.Jhistory = Jhistory(1:(iter-1));
     %%
     function xt_valid(xt)
         [nrow, ncol] = size(xt);
-        if nrow ~= ACProblem.N ||ncol~=1
-           error(['The xt, target state must have a dimension: [',num2str(ACProblem.N),'x1].', ...
+        if nrow ~= CPD.N ||ncol~=1
+           error(['The xt, target state must have a dimension: [',num2str(CPD.N),'x1].', ...
                    ' Your targer have a dimension: [',num2str(nrow),'x',num2str(ncol),']']);
         end
     end

@@ -3,6 +3,7 @@ function  plot(iAverageProblem,varargin)
 %              three graphs that represent the evolution of the different dimensions 
 %              of the state variable, the optimal control that leads the average state 
 %              to the desired target, in addition to the convergence of the process.
+% little_description: The plot function applied to a ControlParameterDepent object shows  the evolution of optimization
 % autor: JOroya
 % MandatoryInputs:   
 %   iAverageProblem: 

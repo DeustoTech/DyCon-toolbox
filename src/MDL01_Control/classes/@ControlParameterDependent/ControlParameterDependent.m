@@ -1,7 +1,11 @@
 classdef ControlParameterDependent < handle & matlab.mixin.Copyable
-% description: ANA Cambio - The Average Control class is able to calculate the average control given the matrices
-% that depend on the parameter. It has as parameter the state where you want to take all 
-% the equations that depend on the parameters.    
+% description: The goal of this class is to solve optimal control problems where the states are defined via 
+%               finite dimensional parameter-dependent systems of the form 
+%               $$\\dot{x}(t,\\nu)=A(\\nu)x(t,\\nu)+B(\\nu)u(t), \\, t>T, \\quad x(0)=x0,$$ 
+%               being $\\nu$ the parameter that can be discrete or continuous. 
+%               Different iterative algorithms based on gradient descent methods are performed 
+%               to reach this objective. For example, the classical gradient descent technique or stochastic 
+%               gradient descent method, which has become important in the last years.   
 % visible: true
     properties
         % type: "Numeric value"
@@ -43,9 +47,6 @@ classdef ControlParameterDependent < handle & matlab.mixin.Copyable
 
     end
     
-
-    
-    
     methods
         function obj = ControlParameterDependent(A,B,x0,u0,span)
         % name: ControlParameterDependent
@@ -80,7 +81,6 @@ classdef ControlParameterDependent < handle & matlab.mixin.Copyable
         %       default: iode.dt 
         % Outputs:
         %   obj:
-        %       name: Control Prameter Dependent
         %       description: Control Prameter Dependent Class
             obj.A    = A;
             obj.B    = B;

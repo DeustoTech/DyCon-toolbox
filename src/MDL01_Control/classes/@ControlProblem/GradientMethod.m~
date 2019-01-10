@@ -1,7 +1,6 @@
 function GradientMethod(iCP,varargin)
     % name: GradientMethod
-    % description: The gradient method is able to optimize the given functional, going down the gradient.
-    % little_description: The gradient method is able to optimize the given functional, going down the gradient.
+    % description: Metodo de Es
     % autor: JOroya
     % MandatoryInputs:   
     %   iCP: 
@@ -15,47 +14,50 @@ function GradientMethod(iCP,varargin)
     %       description: matrix 
     %       class: double
     %       dimension: [length(iCP.tline)]
-    %       default: zeros
+    %       default: null
     %   MaxIter:
     %       name: Initial Control 
     %       description: matrix 
     %       class: double
-    %       dimension: [1x1]
-    %       default: 50
+    %       dimension: 50
+    %       default:
     %   tol:
     %       name: Initial Control 
     %       description: matrix 
     %       class: double
-    %       dimension: 
-    %       dimension: [1x1]
+    %       dimension: [length(iCP.tline)]
+    %       default:    
     %   DescentParameters:
-    %       description: Parmater of Descent Method 
-    %       class: double
-    %       dimension: cell
-    %       default: cell.empty    
-    %   Graphs:
-    %       description: Parameter that indicate if the method must plot the optimization, while is calculate 
-    %       class: logical
-    %       dimension: [1x1]
-    %       default: false        
-    %   TypeGraphs:
-    %       description: Type of graphs. This parameter can be 'ODE' or 'PDE' 
-    %       class: string
-    %       dimension: [1x1]
-    %       default: 'ODE'
-    %   SaveGif:
-    %       name: If this parameter is true, A gif of the optimization process is created
+    %       name: Initial Control 
     %       description: matrix 
     %       class: double
     %       dimension: [length(iCP.tline)]
-    %       default: false
-    %   restart:
-    %       description: The optimization start with U0 = iCP.UOptimal
+    %       default:        
+    %   Graphs:
+    %       name: Initial Control 
+    %       description: matrix 
     %       class: double
-    %       dimension: [1x1]
-    %       default: false
-    
-    
+    %       dimension: [length(iCP.tline)]
+    %       default:        
+    %   TypeGraphs:
+    %       name: Initial Control 
+    %       description: matrix 
+    %       class: double
+    %       dimension: [length(iCP.tline)]
+    %       default:
+    %   SaveGif:
+    %       name: Initial Control 
+    %       description: matrix 
+    %       class: double
+    %       dimension: [length(iCP.tline)]
+    %       default:
+    %   restart:
+    %       name: Initial Control 
+    %       description: matrix 
+    %       class: double
+    %       dimension: [length(iCP.tline)]
+    %       default:
+    %%
     % ======================================================
     % ======================================================
     %               PARAMETERS DEFINITION

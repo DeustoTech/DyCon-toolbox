@@ -2,13 +2,13 @@ function GetGradient(iControlProblem)
 % description: Metodo de Es
 % autor: JOroya
 % MandatoryInputs:   
-% iCP: 
+%  iCP: 
 %    name: Control Problem
 %    description: 
 %    class: ControlProblem
 %    dimension: [1x1]
 % OptionalInputs:
-% U0:
+%  U0:
 %    name: Initial Control 
 %    description: matrix 
 %    class: double

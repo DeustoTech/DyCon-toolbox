@@ -1,4 +1,4 @@
-function display(iode)
+function resume(iode)
 %DISPLAY Summary of this function goes here
 %   Detailed explanation goes here
 tab = '     ';

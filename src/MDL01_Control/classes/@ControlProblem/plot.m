@@ -1,6 +1,8 @@
 function plot(iCP,varargin)
 % name: GradientMethod
-% description: Metodo de Es
+% description: Since most of the optimization methods require an iterative process, plot shows how the dynamics, 
+%               the control and the functional in the optimization evolve.
+% little_description: shows how the dynamics, the control and the functional in the optimization evolve.
 % autor: JOroya
 % MandatoryInputs:   
 %   iCP: 
@@ -9,12 +11,22 @@ function plot(iCP,varargin)
 %       class: ControlProblem
 %       dimension: [1x1]
 % OptionalInputs:
-%   U0:
-%       name: Initial Control 
+%   Graphs:
+%       description: Parameter that indicate if the method must plot the optimization, while is calculate 
+%       class: logical
+%       dimension: [1x1]
+%       default: false        
+%   TypeGraphs:
+%       description: Type of graphs. This parameter can be 'ODE' or 'PDE' 
+%       class: string
+%       dimension: [1x1]
+%       default: 'ODE'
+%   SaveGif:
+%       name: If this parameter is true, A gif of the optimization process is created
 %       description: matrix 
 %       class: double
 %       dimension: [length(iCP.tline)]
-%       default:
+%       default: false
 
     p = inputParser;
     
@@ -36,7 +48,7 @@ function plot(iCP,varargin)
     tline = iCP.ode.tline;
     for iter = 2:iCP.iter
         Ynew = iCP.Yhistory{iter};
-        Unew = iCP.Yhistory{iter};
+        Unew = iCP.Uhistory{iter};
         bucle_graphs(axY,axU,axJ,Ynew,Unew,Jhistory,tline,iter,TypeGraphs,SaveGif)
     end
 end

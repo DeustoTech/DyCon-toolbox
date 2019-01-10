@@ -1,15 +1,13 @@
 function  AverageClassicalGradient(iCPD,xt,varargin)
-% description: The Average Control solve an optimal control problem which is constructed to
-%   control the distance between the average of the states in the last time
-%   and a given final target. The states are defined via a
-%   parameter-dependent linear system of differential equations
-%   $$\\dot{x}(t,\\nu)=A(\\nu)x(t,\\nu)+B(\\nu)u(t)$$
-%   The optimum is computed applying different iterative algorithms based
-%   on gradient descent methods. This function solve a particular optimal control problem using
-%   the classical gradient descent algorithm. The restriction of the optimization 
-%   problem is a parameter-dependent finite dimensional linear system. Then, the 
-%   resulting states depend on a certain parameter. Therefore, the functional is
-%   constructed to control the average of the states with respect to this parameter.
+% description: The Average Classical Gradient solves an optimal control problem 
+%       which is constructed to control the distance between the average of the states in the last time
+%       and a given final target. This function solve a particular optimal control problem using
+%       the classical gradient descent algorithm. The restriction of the optimization 
+%       problem is a parameter-dependent finite dimensional linear system. Then, the 
+%       resulting states depend on a certain parameter. Hence, the functional is
+%       constructed to control the average of the states with respect to this parameter
+%       $$ \\frac{1}{\\vert \\mathcal{K} \\vert} \\sum_{\\nu \\in \\mathcal{K}}x(T,\\nu) = xt  $$.
+% little_description: The Average Classical Gradient solves an optimal control problem 
 % autor: AnaN
 % MandatoryInputs:   
 %   iCPD: 
@@ -17,43 +15,49 @@ function  AverageClassicalGradient(iCPD,xt,varargin)
 %    class: ControlParameterDependent
 %    dimension: [1x1]
 %   xt: 
-%    description: The target vector where you want the system to go
+%    description: The final target. The system will be controlled to starting in x0 ending in xt.
 %    class: double
 %    dimension: [iCPD.Nx1]
 % OptionalInputs:
 %   tol:
-%    description: tolerance of algorithm, this number is compare with $J(k)-J(k-1)$
+%    description: tolerance of algorithm, this number is compare with the
+%                   following error in order to stop the algorithm
+%                   $$\\frac{\\vert \\vert u_{k+1}-u_{k}\\vert \\vert}{\\vert \\vert u_{k+1}\\vert
+%                   \\vert}$$
 %    class: double
 %    dimension: [1x1]
 %    default:   1e-5
 %   beta:
-%    description: This number is the power of the control, is define by follow expresion $$J = \\min_{u \\in L^2(0,T)} \\frac{1}{2} \\left[ \\frac{1}{|\\mathcal{K}|} \\sum_{\\nu \\in \\mathcal{K}} x \\left( T, \\nu \\right) - \\bar{x} \\right]^2  + \\frac{\\beta}{2} \\int_0^T u^2 \\mathrm{d}t, \\quad \\beta \\in \\mathbb{R}^+ $$ 
-%    class: double
-%    dimension: [1x1]
-%    default:   1e-5
-%   gamma:
-%    description: Length Step of the gradient Method. The control is update as follow $$u_{k+1} = u_{k} + \\gamma \\nabla u_{k}$$
+%    description: This value is applied to regularize the control in the optimal control problem
+%                   $$ \\min_{u \\in L^2(0,T)} J(u)=\\frac{1}{2} \\left( \\frac{1}{|\\mathcal{K}|} \\sum_{\\nu \\in \\mathcal{K}} x \\left( T, \\nu \\right) - xt \\right)^2  + \\frac{\\beta}{2} \\int_0^T u^2 \\mathrm{d}t, \\quad \\beta \\in \\mathbb{R}^+ $$ 
 %    class: double
 %    dimension: [1x1]
 %    default:   1e-1
+%   gamma0:
+%    description: Initial step of the method. The control is update as follow
+%                   $$u_{k+1} = u_{k} + \\gamma_{k} \\nabla J(u_{k}),$$
+%                   where $\\gamma_{k} = \\gamma_0 * \\frac{1}/{\\sqrt{k}}$
+%    class: double
+%    dimension: [1x1]
+%    default:   0.5
 %   MaxIter:
 %    description: Maximun of iterations of this method
 %    class: double
 %    dimension: [1x1]
-%    default:   100
+%    default:   1000
     p = inputParser;
     addRequired(p,'iCPD')
     addRequired(p,'xt',@xt_valid)
     addOptional(p,'tol',1e-5)
     addOptional(p,'beta',1e-1)
-    addOptional(p,'gamma',0.5)
-    addOptional(p,'MaxIter',100)
+    addOptional(p,'gamma0',0.5)
+    addOptional(p,'MaxIter',1000)
     
     parse(p,iCPD,xt,varargin{:})
 
     tol     = p.Results.tol;
     beta    = p.Results.beta;
-    gamma   = p.Results.gamma;
+    gamma   = p.Results.gamma0;
     MaxIter = p.Results.MaxIter;
 
     K = iCPD.K;
@@ -63,26 +67,24 @@ function  AverageClassicalGradient(iCPD,xt,varargin)
     
     %% init
     tic;
-    primal_odes = zeros(1,iCPD.K,'LinearODE');
+    dt = span(2) - span(1); T  = span(end);
+    parmsODE = {'dt',dt,'T',T};
+    ParameticODE = LinearODE.empty;
     for index = 1:K
         %
-        primal_odes(index)      = LinearODE(A(:,:,index),'B',B(:,:,index));
+        ParameticODE(index)      = LinearODE(A(:,:,index),B(:,:,index),parmsODE{:});
         % all have the same control
-        primal_odes(index).u    = iCPD.u0;
-        % time intervals
-        primal_odes(index).span = span;
+        ParameticODE(index).U    = iCPD.u0;
         % initial state
-        primal_odes(index).x0   = iCPD.x0;
+        ParameticODE(index).Y0   = iCPD.x0;
     end
 
     %
-    adjoint_odes = zeros(1,K,'LinearODE');
+    AdjointODEs =  LinearODE.empty;
     for index = 1:K
-        adjoint_odes(index)      = LinearODE(A(:,:,index)');
-        % all have the same control
-        adjoint_odes(index).u    = iCPD.u0;
-        % time intervals
-        adjoint_odes(index).span = span;
+        Aadj = ParameticODE(index).A';
+        Badj = ones(size(Aadj));
+        AdjointODEs(index) = LinearODE(Aadj,Badj,parmsODE{:});
     end
 
   
@@ -98,50 +100,50 @@ function  AverageClassicalGradient(iCPD,xt,varargin)
         iter = iter + 1;
         % solve primal problem
         % ====================
-        solve(primal_odes);
+        solve(ParameticODE);
         % calculate mean state final vector of primal problems  
-        xMend = forall({primal_odes.xend},'mean');
+        YMend = forall({ParameticODE.Yend},'mean');
 
         % solve adjoints problems
         % =======================
         % update new initial state of all adjoint problems
-        for iode = adjoint_odes
-            iode.x0 = -(xMend' - xt);
+        for iode = AdjointODEs
+            iode.Y0 = -(YMend' - xt);
         end
         % solve adjoints problems with the new initial state
-        solve(adjoint_odes);
+        solve(AdjointODEs);
 
         % update control
         % ===============
         % calculate mean state vector of adjoints problems 
-        pM = adjoint_odes(1).x*B(:,:,1);
+        pM = AdjointODEs(1).Y*B(:,:,1);
         for index =2:K
-            pM = pM + adjoint_odes(index).x*B(:,:,index);
+            pM = pM + AdjointODEs(index).Y*B(:,:,index);
         end
         pM = pM/K;
         % reverse adjoint variable
         pM = flipud(pM);    
         % Control update
-        u = primal_odes(1).u; % catch control currently
-        Du = beta*u - pM;
-        u = u - gamma*Du;
+        U = ParameticODE(1).U; % catch control currently
+        Du = beta*U - pM;
+        U = U - gamma*Du;
         % update control in primal problems 
         for index = 1:K
-            primal_odes(index).u = u;
+            ParameticODE(index).U = U;
         end
         % Control error
         % =============
-        Au2   =  trapz(span,u.^2);
+        Au2   =  trapz(span,U.^2);
         %
-        Jcurrent =  0.5*(xMend' - xt)'*(xMend' - xt) + 0.5*beta*Au2;
+        Jcurrent =  0.5*(YMend' - xt)'*(YMend' - xt) + 0.5*beta*Au2;
         
         if iter ~= 1
             error_value =  abs(Jhistory(iter-1) - Jcurrent);
         end
         
         % Save evolution
-        xhistory{iter} = [ span',forall({primal_odes.x},'mean')];
-        uhistory{iter} = [ span',u]; 
+        xhistory{iter} = [ span',forall({ParameticODE.Y},'mean')];
+        uhistory{iter} = [ span',U]; 
         error_history(iter) = error_value;
         Jhistory(iter) = Jcurrent;
 

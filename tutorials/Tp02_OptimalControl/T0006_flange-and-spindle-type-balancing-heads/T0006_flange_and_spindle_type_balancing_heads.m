@@ -307,7 +307,7 @@ Y0 = ones(4,1);
 %%%%%%%%%%%%%%%%
 Fsym  = symU;
 %%%%%%%%%%%%%%%%
-odeEqn = ode(Fsym,symY,symU,Y0,'T',T);
+odeEqn = ode(Fsym,symY,symU,'Y0',Y0,'T',T);
 
 %% Creamos Problema de Control
 iCP1 = ControlProblem(odeEqn,Jfun);
@@ -317,6 +317,7 @@ iCP1 = ControlProblem(odeEqn,Jfun);
 DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',1e-8,'MinLengthStep',1e-15};
 Gradient_Parameters = {'maxiter',50,'DescentParameters',DescentParameters,'Graphs',true};
 GradientMethod(iCP1,Gradient_Parameters{:})
+
 
 
 

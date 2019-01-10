@@ -16,11 +16,26 @@ classdef LinearODE < ode
     end
     
     methods
-        function obj = LinearODE(A,B)
+        function obj = LinearODE(A,B,varargin)
             if nargin == 0
                A = 1;
                B = 1;
             end
+            
+            p = inputParser;
+            addRequired(p,'A')
+            addRequired(p,'B')
+            addOptional(p,'Y0',[])
+            addOptional(p,'dt',0.1)
+            addOptional(p,'T',1)
+            addOptional(p,'sym',true)
+
+            parse(p,A,B,varargin{:})
+            
+            dt = p.Results.dt;
+            Y0 = p.Results.Y0;
+            T = p.Results.T;
+            sym = p.Results.sym;
             [nrowA, ncolA] = size(A);
             
             if nrowA ~= ncolA
@@ -32,16 +47,28 @@ classdef LinearODE < ode
                 error(['B must have ',num2str(nrowA),' rows.'])
             end
             
-            syms t
-            symY = SymsVector('y',nrowA);
-            symU = SymsVector('u',ncolB);
+            if isempty(Y0)
+               Y0 = zeros(nrowA,1); 
+            end
 
-%%
-            Fsym  = A*symY + B*symU;
-           
-            obj = obj@ode(Fsym,symY,symU);
+            numF = @(t,Y,U) A*Y + B*U; 
+%%    
+            paramsODE = {'sym',sym,'numF',numF, ...
+                         'dt',dt,'T',T,'Y0',Y0};
+            if sym
+                syms t
+                symY = SymsVector('y',ncolA);
+                symU = SymsVector('u',ncolB);  
+                symF  = A*symY + B*symU;
+            else
+                symY = [];symU = [];symF  = [];                
+            end
+            %%
+            obj = obj@ode(symF,symY,symU,paramsODE{:});
+
             obj.A = A;
             obj.B = B;
+            obj.Udim = ncolB;
         end
              
     end

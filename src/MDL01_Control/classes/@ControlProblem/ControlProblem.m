@@ -4,7 +4,7 @@ classdef ControlProblem < handle & matlab.mixin.SetGet
 %               in both symbolic and numerical versions.
 % visible: true
 
-    properties (SetAccess = immutable)
+    properties 
         % type: "Functional"
         % default: "none"
         % description: "This property represent the cost of optimal control"
@@ -12,7 +12,7 @@ classdef ControlProblem < handle & matlab.mixin.SetGet
         % type: ode
         % default: none
         % description: This property represented ordinary differential equation
-        ode             {isODE}
+        ode            
         
     end
     %%
@@ -68,7 +68,7 @@ classdef ControlProblem < handle & matlab.mixin.SetGet
         iter
         % type: double
         % default: none
-        % description: Tiempo que ha tardado el algoritmo de optimización en ejecutarse.       
+        % description: Time it took the optimization algorithm to execute.
         time
     end
     
@@ -114,32 +114,23 @@ classdef ControlProblem < handle & matlab.mixin.SetGet
             addRequired(p,'iode');
             addRequired(p,'JFunctional');
                     
-            addOptional(p,'T',[])
-            addOptional(p,'dt',[])
             
             parse(p,iode,Jfun,varargin{:})
+            
             
             obj.ode          = copy(iode);
             obj.Jfun         = copy(Jfun);
             
-           if isempty(obj.T) 
-                if Jfun.T ~= iode.T
-                    warning('The parameter T (final time), is different in Jfunction and ODE problem. We use ODE.T for all.')
-                end
-                Jfun.T = iode.T;
-           else
-               Jfun.T = obj.T;
-               iode.T = obj.T;
-           end
-           if isempty(obj.dt) 
-                if Jfun.dt ~= iode.dt
-                    warning('The parameter dt (step time), is different in Jfunction and ODE problem. We use ODE.dt for all.')
-                end
-                Jfun.dt = iode.dt;
-           else
-               Jfun.dt = obj.dt;
-               iode.dt = obj.dt;
-           end
+            if Jfun.T ~= iode.T
+                warning('The parameter T (final time), is different in Jfunction and ODE problem. We use ODE.T for all.')
+            end
+            Jfun.T = iode.T;
+
+            if Jfun.dt ~= iode.dt
+                warning('The parameter dt (step time), is different in Jfunction and ODE problem. We use ODE.dt for all.')
+            end
+            Jfun.dt = iode.dt;
+ 
            
             GetAdjointProblem(obj);
             GetGradient(obj)

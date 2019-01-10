@@ -1,30 +1,32 @@
-function Jvalue = GetFunctional(iControlProblem,Y,U)
-% description: Metodo de Es
-% autor: Xinlung
+function Jvalue = GetFunctional(iCP,Y,U)
+% description: Method capable of calculating the value of the functional defined in the control problem.
+% little_description: Method capable of calculating the value of the functional defined in the control problem.
+% autor: JOroya
 % MandatoryInputs:   
 %  iCP: 
-%    name: Control Problem
+%    description:  Control Problem
+%    class: ControlProblem
+%    dimension: [1x1]
+%  Y: 
+%    name: Solution of ODE
 %    description: 
 %    class: ControlProblem
 %    dimension: [1x1]
-% OptionalInputs:
-%  U0:
-%    name: Initial Control 
-%    description: matrix 
-%    class: double
-%    dimension: [length(iCP.tline)]
-%    default:   empty
+%  U: 
+%    name: matrix of control
+%    description: 
+%    class: ControlProblem
+%    dimension: [1x1]
 % Outputs:
-%  U0:
-%    name: Initial Control 
-%    description: matrix 
+%  JValue:
+%    name: Functional value with this U and Y 
+%    description: double 
 %    class: double
-%    dimension: [length(iCP.tline)]
-%    default:   empty
+%    dimension: [1x1]
 
-    tline   = iControlProblem.ode.tline;
-    L       = iControlProblem.Jfun.numL;
-    Psi     = iControlProblem.Jfun.numPsi;
+    tline   = iCP.ode.tline;
+    L       = iCP.Jfun.numL;
+    Psi     = iCP.Jfun.numPsi;
     
     Yfun = @(t) interp1(tline,Y,t,'nearest');
     Ufun = @(t) interp1(tline,U,t,'nearest');

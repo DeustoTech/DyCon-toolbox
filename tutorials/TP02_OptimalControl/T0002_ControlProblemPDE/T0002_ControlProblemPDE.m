@@ -2,7 +2,7 @@ clear;
 %%              symU = [ u1 u2 ]
 syms t
 %% Discretizacion del espacio
-N = 25;
+N = 4;
 %% Los vectores symY = [ y1 y2 y3 .. yn  ]
 
 xi = 0; xf = 1;
@@ -25,7 +25,7 @@ Jfun = Functional(symPsi,symL,symY,symU);
 Y0 = 2*sin(pi*xline)';
 %%%%%%%%%%%%%%%%
 
-rho = 1000;
+rho = 5;
 A = rho*Laplacian(N);
 %%%%%%%%%%%%%%%%  
 B = zeros(N,2);
@@ -34,7 +34,7 @@ B(N,2) = 1;
 %%%%%%%%%%%%%%%%
 Fsym  = A*symY + B*symU;
 %%%%%%%%%%%%%%%%
-T = 20;
+T = 5;
 odeEqn = ode(Fsym,symY,symU,'Y0',Y0,'T',T);
 
 
