@@ -1,0 +1,4 @@
+title: Optimal control applied ti ODE epidemic system
+subtitle: control optimal of the spread of tuberculosis with VIH coinfection.  
+date: 2018-10-18
+author: Leontine NKAGUE NKAMBA 

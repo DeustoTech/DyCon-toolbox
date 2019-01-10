@@ -1,0 +1,5 @@
+title: Rays propagation of a fractional Schrodinger Equation
+description: Solution of a fractional Schordinger equation starting from a concentrated and highly oscillatory initial datum, and display of its propagation properties along the rays of geometric optics 
+date: 2018-07-21
+author: [UmbertoB ]
+

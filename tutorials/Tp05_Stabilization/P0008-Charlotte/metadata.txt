@@ -1,0 +1,4 @@
+title: Coupled transport equations and LQR control
+subtitle: Numerical computation of a stabilizing control
+date: 2018-10-29
+author: [CharlotteR]

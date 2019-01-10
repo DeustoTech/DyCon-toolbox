@@ -1,0 +1,4 @@
+title: LQR control of a fractional reaction diffusion equation
+subtitle: Design of a LQR controller for the stabilization of a fractional reaction diffusion equation
+date: 2018-10-24
+author: [UmbertoB]

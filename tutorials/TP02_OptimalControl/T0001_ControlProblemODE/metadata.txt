@@ -1,0 +1,4 @@
+title: Simple application of ControlProblem MATLAB Object
+description: In this tutorial we will see how to use the implementation for optimal control in the DyCon Toolbox
+date: 2018-12-12
+author: JesusO

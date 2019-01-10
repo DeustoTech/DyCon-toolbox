@@ -1,0 +1,8 @@
+title: Exploration in the Chebfun Toolbox
+description: Chebfun is a toolbox for MATLAB quite mature, a priori it offers an 
+                improvement of precision in the calculations, however in this tutorial 
+                we will focus on demonstrating how effective is the Chebfun library 
+                within the context of the research the control problems. In a nutshell,
+                let's see how useful this library is for the DyCon project.
+date: 2018-12-20
+author: JOroya 

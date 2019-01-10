@@ -1,0 +1,4 @@
+title: Synchronized Oscillators 
+description: Sincronization of coupled oscillator described by the Kuramoto model, using the Stochastic Conjugate Gradient Method
+author: [AnaN,JesusO,UmbertoB]
+date: 2018-10-19

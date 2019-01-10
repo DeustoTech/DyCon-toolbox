@@ -1,0 +1,4 @@
+title: Optimal control of a  graph evolving in discrete time
+description: Stabilizing the graph by minimizing a discrete LQR and driving it to a reference state.
+date: 2018-10-26
+author: [AlejandroC]

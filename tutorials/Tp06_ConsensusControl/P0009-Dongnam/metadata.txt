@@ -1,0 +1,4 @@
+title: The control on the Kuramoto model by handling one oscillator
+description: We design the LQR controller and solve it with linearized model.
+date: 2018-10-29
+author: [DongnamK]
