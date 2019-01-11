@@ -1,15 +1,16 @@
-function  SimultaneousStochasticGradient(iCPD,xt,varargin)
-% description:  The Simultaneous Stochastic Gradient solves an optimal control problem 
-%           which is constructed to control each statein the last time
-%           and a given final target. This function solve a particular optimal control problem using
-%           the classical gradient descent algorithm. The restriction of the optimization 
-%           problem is a parameter-dependent finite dimensional linear system. Then, the 
-%           resulting states depend on a certain parameter. Hence, the functional is
-%           constructed to control each state with respect to this parameter
-%           $$ x(T,\\nu) = xt \\quad \\forall \\nu \\in \\mathcal{K}  $$.
-% little_description: The Simultaneous Stochastic Gradient solves an optimal control problem 
+function  SimultaneousClassicalGradient(iCPD,xt,varargin)
+% description:  The Simultaneous Classical Gradient solves an optimal control problem 
 %               which is constructed to control each statein the last time
-%                and a given final target.
+%               and a given final target. This function solve a particular optimal control problem using
+%               the classical gradient descent algorithm. The restriction of the optimization 
+%               problem is a parameter-dependent finite dimensional linear system. Then, the 
+%               resulting states depend on a certain parameter. Hence, the functional is
+%               constructed to control each state with respect to this parameter
+%               $$ x(T,\\nu) = xt \\quad \\forall \\nu \\in \\mathcal{K}  $$.
+%               See Also in AverageClassicalGradient
+% little_description: The Simultaneous Classical Gradient solves an optimal control problem 
+%                       which is constructed to control each statein the last time
+%                       and a given final target.
 % autor: AnaN
 % MandatoryInputs:   
 %   iCPD: 
@@ -22,7 +23,7 @@ function  SimultaneousStochasticGradient(iCPD,xt,varargin)
 %    dimension: [iCPD.Nx1]
 % OptionalInputs:
 %   tol:
-%    description: tolerance of algorithm, this number is compare with the
+%    description:  tolerance of algorithm, this number is compare with the
 %                   following error in order to stop the algorithm
 %                   $$\\frac{\\vert \\vert u_{k+1}-u_{k}\\vert \\vert}{\\vert \\vert u_{k+1}\\vert
 %                   \\vert}$$
@@ -38,7 +39,7 @@ function  SimultaneousStochasticGradient(iCPD,xt,varargin)
 %   gamma0:
 %    description: Initial step of the method. The control is update as follow
 %                   $$u_{k+1} = u_{k} + \\gamma_{k} \\nabla J(u_{k}),$$
-%                    where $\\gamma_{k} = \\gamma_0 * \\frac{1}/{\\sqrt{k}}$
+%                   where $\\gamma_{k} = \\gamma_0 * \\frac{1}/{\\sqrt{k}}$
 %    class: double
 %    dimension: [1x1]
 %    default:   0.5
@@ -48,7 +49,7 @@ function  SimultaneousStochasticGradient(iCPD,xt,varargin)
 %    dimension: [1x1]
 %    default:   1000
     p = inputParser;
-    addRequired(p,'ACProblem')
+    addRequired(p,'iCPD')
     addRequired(p,'xt',@xt_valid)
     addOptional(p,'tol',1e-5)
     addOptional(p,'beta',1e-1)
@@ -88,7 +89,6 @@ function  SimultaneousStochasticGradient(iCPD,xt,varargin)
         Badj = ones(size(Aadj));
         AdjointODEs(index) = LinearODE(Aadj,Badj,parmsODE{:});
     end
-
   
     %%
     error = Inf;
@@ -100,56 +100,54 @@ function  SimultaneousStochasticGradient(iCPD,xt,varargin)
 
     while (error > tol && iter < MaxIter)
         iter = iter + 1;
-        
-        % choose randomly a parameter $nu_{i_k}$ 
-        j = randi([1,K]);
-        
         % solve primal problem
         % ====================
-        j = randi([1,K]);
-        solve(ParameticODE(j));
-        
+        solve(ParameticODE);
+
+        % solve adjoints problems
         % =======================
         % update new initial state of all adjoint problems
-        xMend = ParameticODE(j).Yend;
-        AdjointODEs(j).Y0 = -(xMend' - xt);
-        
-         % solve adjoints problems with the new initial state
-        solve(AdjointODEs(j));
-        
-        
+
+        for index = 1:length(AdjointODEs)
+            AdjointODEs(index).Y0 = -(ParameticODE(index).Yend' - xt);
+        end
+       
+        % solve adjoints problems with the new initial state
+        solve(AdjointODEs);
+
         % update control
         % ===============
-        % calculate the state vector of adjoints problems 
-        
-        pM = AdjointODEs(j).Y;
-        
-        pM = pM*B(:,:,j);
+        % calculate mean state vector of adjoints problems 
+        pM = AdjointODEs(1).Y*B(:,:,1);
+        for index =2:K
+            pM = pM + AdjointODEs(index).Y*B(:,:,index);
+        end
+        pM = pM/K;
         
         % reverse adjoint variable
-        pM = flipud(pM);  
+        pM = flipud(pM); 
         
         % Control update
-        u = ParameticODE(1).U; % catch control currently
-        Du = beta*u - pM;
-    
+        U = ParameticODE(1).U; % catch control currently
+        Du = beta*U - pM;
         gamma=gamma0/sqrt(iter);
-        ua=u;
-        u = u - gamma*Du;
+        Ua = U;
+        U = U - gamma*Du;
         
         % update control in primal problems 
         for index = 1:K
-            ParameticODE(index).U = u;
+            ParameticODE(index).U = U;
         end
+        
         % Control error
-        
-        Au2  =  trapz(span,(u).^2);
-        ADu2  =  trapz(span,(u-ua).^2);
-        
+        Au2  =  trapz(span,(U).^2);
+        ADu2  =  trapz(span,(U-Ua).^2);
+       
         error = sqrt(ADu2/Au2);
         
         % Save evolution
-        uhistory{iter} = [ span',u]; 
+        xhistory{iter} = [ span',forall({ParameticODE.Y},'mean')];
+        uhistory{iter} = [ span',U]; 
         error_history(iter) = error;
     end
     %% Warring
@@ -157,10 +155,13 @@ function  SimultaneousStochasticGradient(iCPD,xt,varargin)
         warning('The maximum iteration has been reached. Convergence may not have been achieved')
     end
     %%
-    iCPD.addata.xhistory = {};
+    iCPD.addata.xhistory = xhistory(1:(iter-1));
     iCPD.addata.uhistory = uhistory(1:(iter-1));
+    iCPD.addata.Jhistory = [];
+
     iCPD.addata.error_history = error_history(1:(iter-1));
     iCPD.addata.time_execution = toc;
+
     %%
     function xt_valid(xt)
         [nrow, ncol] = size(xt);

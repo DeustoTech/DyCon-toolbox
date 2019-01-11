@@ -1,12 +1,13 @@
 function [u,aditional_data] = AverageConjugateGradient(iCPD,xt,varargin)
-% description: This function solve a particular optimal control problem using
-%   the stochastic gradient descent algorithm. The restriction of the optimization 
-%   problem is a parameter-dependent finite dimensional linear system. Then, the 
-%   resulting states depend on a certain parameter. Therefore, the functional is
-%   constructed to control the average of the states with respect to this parameter.
-%   See Also in AverageClassicalGradient
+% description: The Average Conjugate Gradient solves an optimal control problem 
+%               which is constructed to control the distance between the average of the states in the last time
+%               and a given final target. This function solve a particular optimal control problem using
+%               the classical gradient descent algorithm. The restriction of the optimization 
+%               problem is a parameter-dependent finite dimensional linear system. Then, the 
+%               resulting states depend on a certain parameter. 
+%               See Also in AverageClassicalGradient
 % little_description: This function solve a particular optimal control problem using
-%                   the stochastic gradient descent algorithm.
+%                   the Conjugate gradient descent algorithm.
 % autor: AnaN
 % MandatoryInputs:   
 %   iCPD: 

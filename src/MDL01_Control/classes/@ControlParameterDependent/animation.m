@@ -97,15 +97,16 @@ function animation(iCPD,varargin)
         ax2.YLim = ULim;
     end
     %% Define axis 3
-    ax3  = subplot(3,1,3,'Parent',fig);
-    ax3.Title.String = 'Functional Convergence';
-    ax3.XLabel.String = 'iter';
-    ax3.YLabel.String = 'J';    
-    ax3.XLim = [0,length(Jhistory)];
-    if ~isempty(JLim)
-        ax3.YLim = JLim;
-    end    
-    
+    if ~isempty(Jhistory)
+        ax3  = subplot(3,1,3,'Parent',fig);
+        ax3.Title.String = 'Functional Convergence';
+        ax3.XLabel.String = 'iter';
+        ax3.YLabel.String = 'J';    
+        ax3.XLim = [0,length(Jhistory)];
+        if ~isempty(JLim)
+            ax3.YLim = JLim;
+        end    
+    end
     %% plot in ax1, vector states 
     mt = solutions{1};
     lin1 = line(mt(:,1),mt(:,2:end),'Parent',ax1);
@@ -113,8 +114,9 @@ function animation(iCPD,varargin)
     u = uhistory{1};
     lin2 = line(u(:,1),u(:,2),'Parent',ax2);
     %% plot in ax3, J functional 
-    lin3 = line(1,Jhistory(1),'Parent',ax3);
-    
+    if ~isempty(Jhistory)
+        lin3 = line(1,Jhistory(1),'Parent',ax3);
+    end
     iter = 0;
     
     if SaveGif
@@ -138,9 +140,10 @@ function animation(iCPD,varargin)
         %cellnames = cellstr(strcat('x_{',num2str((1:N)','%0.1d'),'}(t)'))'
         ax2.Title.String = ['Control  - Iteration: ',num2str(iter)];
         %%
-        delete(lin3)
-        lin3 = line(1:iter,Jhistory(1:iter),'Parent',ax3,'Marker','o','LineStyle','-');
-
+        if ~isempty(Jhistory)
+            delete(lin3)
+            lin3 = line(1:iter,Jhistory(1:iter),'Parent',ax3,'Marker','o','LineStyle','-');
+        end
         pause(dt)
         if ~isvalid(fig)
             return
