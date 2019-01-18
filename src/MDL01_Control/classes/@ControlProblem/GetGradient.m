@@ -1,5 +1,10 @@
 function GetGradient(iControlProblem)
-% description: Metodo de Es
+% description: Creates the iCP.dH_du property that contains a numeric function that 
+%               returns the value of the gradient given the dynamics solution, 
+%               $Y$ and the associated control, $U$.
+% little_description: Creates the iCP.dH_du property that contains a numeric function that 
+%               returns the value of the gradient given the dynamics solution, 
+%               $Y$ and the associated control, $U$. 
 % autor: JOroya
 % MandatoryInputs:   
 %  iCP: 
@@ -7,13 +12,7 @@ function GetGradient(iControlProblem)
 %    description: 
 %    class: ControlProblem
 %    dimension: [1x1]
-% OptionalInputs:
-%  U0:
-%    name: Initial Control 
-%    description: matrix 
-%    class: double
-%    dimension: [length(iCP.tline)]
-%    default:   empty
+
 
     syms Hamil t u 
     %%

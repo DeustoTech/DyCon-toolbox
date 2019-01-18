@@ -9,7 +9,7 @@ symY = SymsVector('y',2);
 symU = SymsVector('u',1);
 %% Creamos Funcional
 
-A = 10;
+A = 1;
 symPsi  = 0;
 symL    = A*(symU.'*symU) + symY(2);
 
@@ -53,7 +53,7 @@ solve(odeEqn)
 iCP1 = ControlProblem(odeEqn,Jfun);
 
 %% Solve Gradient
-DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',1e-5,'MinLengthStep',1e-10};
+DescentParameters = {'MiddleStepControl',true,'InitialLengthStep',1e-13,'MinLengthStep',1e-10};
 Gradient_Parameters = {'maxiter',50,'DescentParameters',DescentParameters,'Graphs',true,'TypeGraphs','ODE'};
 %
 GradientMethod(iCP1,Gradient_Parameters{:})

@@ -19,16 +19,16 @@
 % 	The energy of solution to \eqref{wave} $E(t)$ 
 %%
 % 	$$ \begin{equation}
-% 	E(t)=\frac{1}{2}\int_{0}^{1}| u_x(x,t) |^2+| u_t(x,t)|^2 dx,
+% 	E(t)=\frac{1}{2}\int_{0}^{1} \vert u_x(x,t) \vert^2+ \vert u_t(x,t)\vert^2 dx,
 % 	\end{equation} $$
 %%
 % 	is time conserved .
 %% 
-% With Hilbert Uniqueness Method, the exact controllability of \eqref{control} is  equal to the observability of the adjoint \eqref{wave},
+% With Hilbert Uniqueness Method, the exact controllability of \eqref{wave} is  equal to the observability of the adjoint \eqref{wave},
 % Observability of \eqref{wave} reads as: Given $T\geq 2$, there exist a positive constant $C(T)\geq 0$ such that
 %%
 % $$ \begin{equation}
-%       E(0)\leq C(T) \int_{0}^{T} |u_x(1,t)|^2 dt.
+%       E(0)\leq C(T) \int_{0}^{T} \vert u_x(1,t) \vert ^2 dt.
 % \end{equation} $$
 %%
 % holds for every solution $u(x,t)$ to adjoint system \eqref{wave}

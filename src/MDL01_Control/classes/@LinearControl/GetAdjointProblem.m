@@ -1,28 +1,20 @@
   function GetAdjointProblem(iControlProblem)
-% little_description: Metodo capaz de calcular el problema adjunto de la ecuacion diferencial atravez del hamiltoniano
-%                      asociado (Principi de Pontriagin). Mediante la formula $ \\frac{d\\textbf{P}}{dt} = \\vec{\\nabla}_{Y} H $
-% description: Este metodo agrega el problema adjunto al objecto ControlProblem, dado que tenemos 
+% description: This method adds the problem adjoint to the Control Problem object, since we have
 %               $$ \\dot{\\textbf{Y}} = f(\\textbf{Y},t) $$ 
-%               y el funcional 
+%               and the functional
 %               $$ J = \\Psi(\\textbf{Y}(T)) + \\int_{0}^T L(\\textbf{Y},U,t)dt $$ 
-%               podemos crear el Hamiltoniano 
+%               we can create the Hamiltonian 
 %               $$ H = L + P*F $$
-%               donde $\\textbf{P} = [p_1 p_2 p_3 ... ]^T$ . Entonces 
-%               segun el principio del maximo de pontriagin 
-%               podemos calcular el problemas adjunto mediantes las formulas 
+%               where $\\textbf{P} = [p_1 p_2 p_3 ... ]^T$ . So according to the principle of the maximum of pontriagin,
+%               we can calculate the attached problems through the formulas
 %               $$ \\frac{d\\textbf{P}}{dt} = \\vec{\\nabla}_{Y} H = 
 %               (\\frac{\\partial H}{ \\partial y_1},\\frac{\\partial H}{ \\partial y_2},...)$$
-%               con la condicion final 
+%               with the final time condition
 %               $$ \\textbf{P}(T) = 
 %               (\\frac{\\partial \\Psi}{ \\partial y_1},\\frac{\\partial \\Psi}{ \\partial y_2},...)$$
+% little_description: Method capable of obtaining the attached problem and its final condition.
 % autor: JOroya
 % MandatoryInputs:   
-%    iCP: 
-%        name: Control Problem
-%        description: Control problem object
-%        class: ControlProblem
-%        dimension: [1x1]
-% Outputs:
 %    iCP: 
 %        name: Control Problem
 %        description: Control problem object

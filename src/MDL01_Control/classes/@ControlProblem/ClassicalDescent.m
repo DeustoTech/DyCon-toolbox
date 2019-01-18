@@ -62,8 +62,8 @@ function  [Unew ,Ynew,Jnew] = ClassicalDescent(iCP,Uold,Yold,Jold,varargin)
     addRequired(p,'Yold')
     addRequired(p,'Jold')
 
-    addOptional(p,'InitialLengthStep',10)
-    addOptional(p,'MinLengthStep',0.0001)
+    addOptional(p,'InitialLengthStep',1e-1)
+    addOptional(p,'MinLengthStep',1e-5)
     addOptional(p,'MiddleStepControl',true)
     
     parse(p,iCP,Uold,Yold,Jold,varargin{:})
@@ -141,7 +141,7 @@ function [Unew,Ynew] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthStep)
     
     %% Resolvemos el problem dual
     % Creamos dp/dt (t,p)  a partir de la funcion dp_dt_xuDepen
-    dP_dt  = @(t,P) double(dP_dt_yuDepen(t,P,Y_fun(t),U_fun(t)))';
+    dP_dt  = @(t,P) double(dP_dt_yuDepen(T-t,P,Y_fun(T-t),U_fun(T-t)))';
     % Obtenemos la condicion final del problema adjunto
     P0 = P0_yt_Depen(T,Y_fun(T));
     % Resolvemos el problema dual, colcando un 

@@ -137,7 +137,7 @@ function GradientMethod(iCP,varargin)
         bucle_graphs(axY,axU,axJ,Yold,Uold,Jhistory,iCP.ode.tline,1,TypeGraphs,SaveGif)
     end
         
-    % clean the peersisten variable LengthStepMemory
+    % clean the persiten variable LengthStepMemory
     clear ClassicalDescent
     
     for iter = 1:MaxIter
