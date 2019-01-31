@@ -1,56 +1,55 @@
-function solve(ListOfODEs,varargin)
-% description: Metodo de Es
+function solve(iODE,varargin)
+% description: 
 % autor: JOroya
 % MandatoryInputs:   
-%  ListOfODEs: 
+%  iODE: 
 %    description: List of ODEs
 %    class: ControlProblem
 %    dimension: [1x1]
+% OptimalParmaters:
 
-    for iode = ListOfODEs
-    % each ODE
-        p = inputParser;
+    
+    p = inputParser;
 
-        addRequired(p,'iode')
-        %
-        Udefault = iode.U;
-        %
-        addOptional(p,'U',Udefault)
-        addOptional(p,'TimeInverse',false)
+    addRequired(p,'iODE') 
+    addOptional(p,'Control',iODE.Control.Numeric)
+    addOptional(p,'RungeKuttaMethod',@ode45)
+    
 
-        parse(p,iode,varargin{:})
+    parse(p,iODE,varargin{:})
 
-        U = p.Results.U;
-        TimeInverse = p.Results.TimeInverse;
-        %%
-        if isempty(U)
-           if isa(iode,'LinearODE')
-                [nrow, ncol] = size(iode.B); 
-                 U = zeros(length(iode.tline),ncol);
-           else
-                U = zeros(length(iode.tline),length(iode.symU));
-           end
-        end
-        %% Comprobar que YT esta definido
-        if TimeInverse && isempty(iode.YT)
-            error('To solve in reverse in time, the property YT must be define.')
-        end
-
-        %%
-        U_fun   = @(t)   interp1(iode.tline,U,t)';   
-        % Creamos dY/dt (t,Y)  a partir de la funcion dY_dt_uDepen    
-        dY_dt   = @(t,Y) double(iode.numF(t,Y,U_fun(t)));
-
-        % Obtenemos Y = [y(t1) y(t2) ... ] 
-
-        if ~TimeInverse
-            [~,iode.Y] = ode45(dY_dt,iode.tline,iode.Y0);
-        else
-            [~,iode.Y] = ode45(-dY_dt,iode.tline,iode.YT);
-            iode.Y = flipud(iode.Y);
-        end
-
-        iode.U = U;
+    Control             = p.Results.Control;
+    RungeKuttaMethod    = p.Results.RungeKuttaMethod;
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    if isempty(Control)
+       if iODE.lineal
+            Control = zeros(length(iODE.tline),iODE.Udim);
+       else
+            Control = zeros(length(iODE.tline),length(iODE.Control.symbolic));
+       end
     end
+
+    %%
+    U_fun   = @(t)   interp1(iODE.tline,Control,t)';   
+
+    switch iODE.Type
+        case 'InitialCondition'
+            dY_dt   = @(t,Y) double(iODE.Dynamic.Numeric(t,Y,U_fun(t)));
+            % RungeKuttaMethod can be ode45
+            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tline,iODE.Condition);
+        case 'FinalCondition'
+            T = iODE.FinalTime;
+            dY_dt   = @(t,Y) -double(iODE.Dynamic.Numeric(T-t,Y,U_fun(T-t)));
+            % RungeKuttaMethod can be ode45
+            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tline,iODE.Condition);
+            iODE.VectorState.Numeric = flipud(iODE.VectorState.Numeric);            
+    end
+
+    iODE.Control.Numeric = Control;
 end
+
 

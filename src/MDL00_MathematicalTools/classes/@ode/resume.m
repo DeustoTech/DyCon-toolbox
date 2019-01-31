@@ -3,22 +3,18 @@ function resume(iode)
 %   Detailed explanation goes here
 tab = '     ';
 
-
-if ~isempty(iode.Y)
-    msg_solution = [newline,tab,'This ode the solution of this ode is:',newline,newline, ...
-                    tab,tab,'Y(T) = ',char(join(string(iode.Yend))),newline];
-else
-    msg_solution = '';
+switch iode.Type
+    case 'InitialCondition'
+        condition = 'Y(0) = ';
+    case 'FinalCondition'
+        condition = 'Y(T) = ';
 end
-    
-    
+
 display([newline, ...
          tab,'Dynamics:',newline,newline, ...
-         tab,tab,'Y''(t,Y,U) = ',char(iode.symF), ...
+         tab,tab,'Y''(t,Y,U) = ',char(iode.Dynamic.symbolic), ...
          newline,newline, ...
-         tab,'In interval of time: [0,',num2str(iode.T),']',newline,newline, ...
-         tab,tab,'Y(0) = ',char(join(string(iode.Y0),' ')),newline, ...
-         msg_solution])
+         tab,tab,'t in [0,',num2str(iode.FinalTime),']  with condition: ',condition,char(join(string(iode.Condition),' ')),newline])
          
 end
 

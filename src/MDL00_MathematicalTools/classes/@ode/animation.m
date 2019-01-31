@@ -25,7 +25,7 @@ function animation(iode,varargin)
     YLim = p.Results.YLim;
     xx = p.Results.xx;
 
-    Y = iode.Y;
+    Y = iode.VectorState.numeric;
     
     
     f = figure;

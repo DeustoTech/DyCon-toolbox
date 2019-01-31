@@ -1,4 +1,0 @@
-title: The optimal control on the Kuramoto adaptive coupling model
-description: In this tutorial, we present how to use OptimalControl environment to control a consensus system that models the complex emergent dynamics over a given network.
-date: 2019-01-11
-author: DongnamK

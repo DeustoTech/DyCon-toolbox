@@ -16,7 +16,7 @@ function plot(iode,varargin)
         Parent = axes('Parent',f);        
     end
         
-    plot(iode.tline,iode.Y,'Parent',Parent)
+    plot(iode.tline,iode.VectorState.numeric,'Parent',Parent)
     Parent.YLabel.String = 'states';
     Parent.XLabel.String = 'time(s)';
     Parent.Title.String = 'solution';

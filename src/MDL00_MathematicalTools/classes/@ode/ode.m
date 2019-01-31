@@ -6,68 +6,49 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     %               properties of an ODE.
     % visible: true
     properties
-        % type: "symbolic"
+        % type: "Symbolic"
         % dimension: [1x1]
         % default: "none"
         % description: "Symbolic Vector of State"
-        symY                                                sym                              
-        % type: "symbolic"
+        VectorState                                                                              
+        % type: "Symbolic"
         % dimension: [1x1]
         % default: "none"
         % description: "Symbolic Vector of Control"
-        symU                                                sym                    
-        % type: "function_handle"
-        % dimension: [1x1]
-        % default: "none"
-        % description: "Numerical Expresion of Y'=F(Y,U)"
-        numF                                                function_handle          
-        % type: "symbolic function"
+        Control                                                  
+        % type: "Symbolic function"
         % dimension: [1x1]
         % default: "none"
         % description: "Symbolic Expresion of Y'=F(Y,U)"
-        symF                                                sym                                            
+        Dynamic                                                                                
         % type: "double"
         % dimension: [1xN]
         % default: "[0 0 0 ...]"
         % description: "Initial State"
-        Y0                                                  double     
+        Condition                                                                double     
         % type: "double"
         % dimension: [1xN]
         % default: "[0 0 0 ...]"
         % description: "Final State"
-        YT                                                  double  
+        Type        {mustBeMember(Type,{'FinalCondition','InitialCondition'})} = 'InitialCondition'                                                                    
         % type: "double"
         % dimension: [1x1]
         % default: "1"
         % description: "Time final of simulation"
-        T                     (1,1)                         double                                                            
+        FinalTime                                   (1,1)                           double                                                            
         % type: "double"
         % dimension: [1x1]
         % default: "none"
         % description: "Time interval of plots. ATTENTION - the solution of ode is obtain by ode45, with adatative step"
-        dt                    (1,1)                         double                                                      
-        % type: "double"
-        % dimension: [1x1]
-        % default: "none"
-        % description: "Solution of problem. If the problem hasn't been solved this property is empty"
-        Y                                                   double                                                         
-        % type: "double"
-        % dimension: [1x1]
-        % default: "none"
-        % description: "Control with has been solve the problem. If the problem hasn't been solved this property is empty"
-        U                                                   double  
-        % type: logical
-        % dimesion: [1x1]
-        % default: true
-        % description "If this property is false, the ode is only numerical. The property symF, symY, symU are empty"
-        sym                                                 logical
-        % type: double
-        % dimesion: [1x1]
-        % default: none
-        % description Dimesion of control
-        Udim                                                double
+        dt                                          (1,1)                           double                                                      
     end
 
+    properties (Hidden)
+        lineal      logical  = false
+        A           double
+        B           double
+        symt 
+    end
     %% Fake Properties 
     properties (Dependent = true)
         % type: "double"
@@ -79,29 +60,35 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % dimension: [NxN]
         % default: "none"
         % description: "Time grid to plot the solution, and interpolate the control"
+       
         Yend
+        % type: "double"
+        % dimension: [NxN]
+        % default: "none"
+        % description: "Time grid to plot the solution, and interpolate the control"
+        Udim
     end
     
     
     methods
-        function obj = ode(symF,symY,symU,varargin)
-            % description: Metodo de Es
+        function obj = ode(DynamicEquation,VectorState,Control,varargin)
+            % description: Constructor the ecuacion diferencial
             % autor: JOroya
             % MandatoryInputs:   
-            %   symF: 
+            %   DynamicEquation: 
             %       description: simbolic expresion
-            %       class: symbolic
+            %       class: Symbolic
             %       dimension: [1x1]
-            %   symY: 
+            %   VectorState: 
             %       description: simbolic expresion
-            %       class: symbolic
+            %       class: Symbolic
             %       dimension: [1x1]
-            %   symU: 
+            %   Control: 
             %       description: simbolic expresion
-            %       class: symbolic
+            %       class: Symbolic
             %       dimension: [1x1]
             % OptionalInputs:
-            %   U0:
+            %   InitialControl:
             %       name: Initial Control 
             %       description: matrix 
             %       class: double
@@ -111,61 +98,54 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             %% Control input Parameters 
             p = inputParser;
             
-            addRequired(p,'symF')
-            addRequired(p,'symY')
-            addRequired(p,'symU')
+            addRequired(p,'DynamicEquation')
+            addRequired(p,'VectorState')
+            addRequired(p,'Control')
             addOptional(p,'dt',0.1)
-            addOptional(p,'T',1)
-            addOptional(p,'Y0',zeros(length(symY),1))
+            addOptional(p,'FinalTime',1)
+            addOptional(p,'Condition',zeros(length(VectorState),1))
             addOptional(p,'sym',true)
-            addOptional(p,'numF',[])
 
-
-            parse(p,symF,symY,symU,varargin{:})
+            parse(p,DynamicEquation,VectorState,Control,varargin{:})
             
-            obj.dt = p.Results.dt;
-            obj.Y0 = p.Results.Y0;
-            obj.T  = p.Results.T;
-            obj.dt = p.Results.dt;
-            obj.sym = p.Results.sym;
-            numF    = p.Results.numF;
+            obj.dt              = p.Results.dt;
+            obj.Condition       = p.Results.Condition;
+            obj.FinalTime       = p.Results.FinalTime;
+            obj.dt              = p.Results.dt;
             %% Init Program
-            if obj.sym
-                syms t
+            
+            syms t
+            obj.symt                    = t;
+            obj.VectorState.Symbolic    = VectorState;
+            obj.VectorState.Numeric     = [];
+            obj.Control.Symbolic        = Control;
+            obj.Control.Numeric         = [];
 
-                obj.symY = symY;
-                obj.symU = symU;
-
-                obj.symF = symfun(symF,[t,symY.',symU.']);
-
-                obj.numF = matlabFunction(obj.symF);
-                obj.numF  = VectorialForm(obj.numF,[t,symY.',symU.'],'(t,Y,U)');
-                obj.Udim =  length(symU);
-
-            else
-                if isempty(numF)
-                   error('If sym is false, you must put the parameter numF') 
-                end
-                obj.numF = numF;
-            end
-
-   
+            obj.Dynamic.Symbolic = symfun(DynamicEquation,[t,VectorState.',Control.']);
+            obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,VectorState,Control});
             
         end
-        %%
+        %% ================================================================================
+        %
+        %% ================================================================================
         function tline = get.tline(obj)
-                tline = 0:obj.dt:obj.T;
+                tline = 0:obj.dt:obj.FinalTime;
         end
-        %%
+        %% ================================================================================
+        %
+        %% ================================================================================
         function Yend = get.Yend(obj)
-                Yend = obj.Y(end,:);
+                Yend = obj.VectorState.Numeric(end,:);
         end
-        %% 
-        function obj = set.Y0(obj,Y0) 
-            obj.Y0 = Y0; 
-            obj.Y = [];
+        %% ================================================================================
+        %
+        %% ================================================================================
+        function Udim = get.Udim(obj)
+            Udim =  length(obj.Control.Symbolic);
         end
-        
+        %% ================================================================================
+        %
+        %% ================================================================================
     end
 end
 
