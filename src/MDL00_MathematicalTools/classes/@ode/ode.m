@@ -6,10 +6,15 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     %               properties of an ODE.
     % visible: true
     properties
-        % type: "Symbolic"
+        % type: "Struct"
         % dimension: [1x1]
         % default: "none"
-        % description: "Symbolic Vector of State"
+        % description: MATLAB Structure that contain the two properties,
+        %               Numeric and Symbolic. This represent the symbolic
+        %               version of the control state, and numeric solution
+        %               of the equation. The numeric property only is
+        %               aviable if previus solve the equation.
+        %               
         VectorState                                                                              
         % type: "Symbolic"
         % dimension: [1x1]
@@ -44,9 +49,9 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     end
 
     properties (Hidden)
+        A
+        B
         lineal      logical  = false
-        A           double
-        B           double
         symt 
     end
     %% Fake Properties 
@@ -55,7 +60,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % dimension: [NxN]
         % default: "none"
         % description: "Time grid to plot the solution, and interpolate the control"
-        tline                                               double
+        tspan                                               double
         % type: "double"
         % dimension: [NxN]
         % default: "none"
@@ -71,7 +76,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     
     
     methods
-        function obj = ode(DynamicEquation,VectorState,Control,varargin)
+        function obj = ode(varargin)
             % description: Constructor the ecuacion diferencial
             % autor: JOroya
             % MandatoryInputs:   
@@ -92,44 +97,94 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             %       name: Initial Control 
             %       description: matrix 
             %       class: double
-            %       dimension: [length(iCP.tline)]
+            %       dimension: [length(iCP.tspan)]
             %       default:   empty   
             
             %% Control input Parameters 
             p = inputParser;
             
-            addRequired(p,'DynamicEquation')
-            addRequired(p,'VectorState')
-            addRequired(p,'Control')
+            addOptional(p,'DynamicEquation',[])
+            addOptional(p,'VectorState',[])
+            addOptional(p,'Control',[])
+            
+            addOptional(p,'A',[])
+            addOptional(p,'B',[])
+
+            
             addOptional(p,'dt',0.1)
             addOptional(p,'FinalTime',1)
-            addOptional(p,'Condition',zeros(length(VectorState),1))
+            addOptional(p,'Condition',[])
             addOptional(p,'sym',true)
 
-            parse(p,DynamicEquation,VectorState,Control,varargin{:})
+            parse(p,varargin{:})
             
+            DynamicEquation     = p.Results.DynamicEquation;
+            VectorState         = p.Results.VectorState;
+            Control             = p.Results.Control;
+            
+            obj.A              = p.Results.A;
+            obj.B              = p.Results.B;
+
             obj.dt              = p.Results.dt;
             obj.Condition       = p.Results.Condition;
             obj.FinalTime       = p.Results.FinalTime;
-            obj.dt              = p.Results.dt;
+            obj.Condition       = p.Results.Condition;
             %% Init Program
+            if  (~isempty(DynamicEquation) && ~isempty(VectorState) && ~isempty(Control) ...
+                 && isempty(obj.A) && isempty(obj.B) )
+                    
+                   obj.lineal = false;
+                   
+            elseif (isempty(DynamicEquation) && isempty(VectorState) && isempty(Control) ...
+                 && ~isempty(obj.A) && ~isempty(obj.B) )
+             
+                   obj.lineal = true;
+                    
+            end
             
+            %%
             syms t
             obj.symt                    = t;
-            obj.VectorState.Symbolic    = VectorState;
-            obj.VectorState.Numeric     = [];
-            obj.Control.Symbolic        = Control;
-            obj.Control.Numeric         = [];
 
-            obj.Dynamic.Symbolic = symfun(DynamicEquation,[t,VectorState.',Control.']);
-            obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,VectorState,Control});
-            
+            if ~obj.lineal
+                Y    = VectorState;
+                obj.VectorState.Symbolic    = Y;
+                obj.VectorState.Numeric     = [];
+                
+                U    = Control;
+                obj.Control.Symbolic    = U;
+                obj.Control.Numeric         = [];
+                
+                obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
+                obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,Y,U});
+            else
+                [nrow,ncol] = size(obj.A);
+                
+                obj.VectorState.Symbolic = sym('y',[nrow 1]);
+                Y = obj.VectorState.Symbolic;
+                
+                obj.VectorState.Numeric     = [];
+
+                [nrow,ncol] = size(obj.B);
+                U = sym('u',[ncol 1]) ;
+                obj.Control.Symbolic        = U;
+                obj.Control.Numeric         = [];
+
+                DynamicEquation = obj.A*Y + obj.B*U;
+                
+                obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
+                obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,Y,U});
+            end
+            if isempty(obj.Condition)
+                obj.Condition =  zeros(length(Y),1);
+            end
+
         end
         %% ================================================================================
         %
         %% ================================================================================
-        function tline = get.tline(obj)
-                tline = 0:obj.dt:obj.FinalTime;
+        function tspan = get.tspan(obj)
+                tspan = 0:obj.dt:obj.FinalTime;
         end
         %% ================================================================================
         %

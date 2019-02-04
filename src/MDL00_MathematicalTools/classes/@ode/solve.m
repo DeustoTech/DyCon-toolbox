@@ -27,25 +27,25 @@ function solve(iODE,varargin)
     
     if isempty(Control)
        if iODE.lineal
-            Control = zeros(length(iODE.tline),iODE.Udim);
+            Control = zeros(length(iODE.tspan),iODE.Udim);
        else
-            Control = zeros(length(iODE.tline),length(iODE.Control.symbolic));
+            Control = zeros(length(iODE.tspan),length(iODE.Control.Symbolic));
        end
     end
 
     %%
-    U_fun   = @(t)   interp1(iODE.tline,Control,t)';   
+    U_fun   = @(t)   interp1(iODE.tspan,Control,t)';   
 
     switch iODE.Type
         case 'InitialCondition'
             dY_dt   = @(t,Y) double(iODE.Dynamic.Numeric(t,Y,U_fun(t)));
             % RungeKuttaMethod can be ode45
-            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tline,iODE.Condition);
+            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tspan,iODE.Condition);
         case 'FinalCondition'
             T = iODE.FinalTime;
             dY_dt   = @(t,Y) -double(iODE.Dynamic.Numeric(T-t,Y,U_fun(T-t)));
             % RungeKuttaMethod can be ode45
-            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tline,iODE.Condition);
+            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tspan,iODE.Condition);
             iODE.VectorState.Numeric = flipud(iODE.VectorState.Numeric);            
     end
 

@@ -1,24 +1,19 @@
-% Quiero Resolver 
+Y = sym('y',[2 1]); U = sym('u',[2 1]);
+% define your wierd dynamics
+F = [ sin(Y(1)*Y(2)) + cos(Y(1)*Y(2)) + U(1); ...
+      sin(Y(1)*Y(2)) + cos(Y(1)*Y(2)) + U(2) ] ;
+dynamics = ode(F,Y,U);
+dynamics.Type = 'FinalCondition';
 
-A = [-1 0 ;0 -1]; 
-B = [1 0 ;0 1];
-VectorState = sym('y',[2 1]);
-Control     = sym('u',[2 1]);
+solve(dynamics)
+plot(dynamics)
 
-DynamicEq = A*VectorState + B*Control;
+dynamics.Type = 'InitialCondition';
+solve(dynamics,'RungeKuttaMethod',@ode23)
+plot(dynamics)
 
-%%
-iODE = ode(DynamicEq,VectorState,Control);
-iODE.Type = 'InitialCondition';
-iODE.Condition = [ 1 1]';
 
-solve(iODE)
-plot(iODE)
+A = [ -1 0 ; 0 -1];
+B = [1 ; 1];
 
-%%
-iODE = ode(DynamicEq,VectorState,Control);
-iODE.Type = 'FinalCondition';
-iODE.Condition = [ 1 1]';
-
-solve(iODE)
-plot(iODE)
+ode('A',A,'B',B)

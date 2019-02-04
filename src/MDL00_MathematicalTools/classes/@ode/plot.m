@@ -1,6 +1,26 @@
 function plot(iode,varargin)
-%PLOT Summary of this function goes here
-%   Detailed explanation goes here
+            % description: Constructor the ecuacion diferencial
+            % autor: JOroya
+            % MandatoryInputs:   
+            %   DynamicEquation: 
+            %       description: simbolic expresion
+            %       class: Symbolic
+            %       dimension: [1x1]
+            %   VectorState: 
+            %       description: simbolic expresion
+            %       class: Symbolic
+            %       dimension: [1x1]
+            %   Control: 
+            %       description: simbolic expresion
+            %       class: Symbolic
+            %       dimension: [1x1]
+            % OptionalInputs:
+            %   InitialControl:
+            %       name: Initial Control 
+            %       description: matrix 
+            %       class: double
+            %       dimension: [length(iCP.tspan)]
+            %       default:   empty   
 
     p = inputParser;
     addRequired(p,'iode');
@@ -16,7 +36,7 @@ function plot(iode,varargin)
         Parent = axes('Parent',f);        
     end
         
-    plot(iode.tline,iode.VectorState.numeric,'Parent',Parent)
+    plot(iode.tspan,iode.VectorState.Numeric,'Parent',Parent)
     Parent.YLabel.String = 'states';
     Parent.XLabel.String = 'time(s)';
     Parent.Title.String = 'solution';

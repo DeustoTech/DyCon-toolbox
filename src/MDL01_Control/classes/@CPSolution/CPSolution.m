@@ -1,4 +1,4 @@
-classdef CPSolution
+classdef CPSolution < handle
     %CPSOLUTION Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -27,8 +27,10 @@ classdef CPSolution
         % default: none
         % description: number of iterations that the algorithm has made
         Jhistory
-        
+        dJhistory
+
         timeline
+        du
 
     end
     properties (Dependent)
@@ -39,16 +41,13 @@ classdef CPSolution
         JOptimal
     end
     methods
-        function obj = CPSolution(Uhistory,iter,time,precision,varargin)
 
-            
-            obj.Uhistory    = Uhistory;
-            obj.iter        = iter;
-            obj.time        = time;
-            obj.precision   = precision;
-        end
         function UOptimal = get.UOptimal(obj)
-            UOptimal = obj.Uhistory{end};
+            if ~isempty(obj.Uhistory{end})
+                UOptimal = obj.Uhistory{end};
+            else
+                UOptimal = [];
+            end
         end
         function JOptimal = get.JOptimal(obj)
             JOptimal = obj.Jhistory(end);

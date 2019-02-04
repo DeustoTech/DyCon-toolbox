@@ -1,4 +1,0 @@
-title: Average Control by classical gradient step method
-date: 2018-07-21
-author: [AnaN, JesusO]
-description: In this work, we address the concept of optimal control of parameter-dependent systems.
