@@ -7,10 +7,8 @@
 % The Kuramoto model describes the phases $\theta_i$ of active oscillators,
 % which is described by the following dynamics:
 %%
-%
 % $$\dot \theta_i = \omega_i + \frac{1}{N}\sum_{j=1}^N K_{i,j}
 % \sin(\theta_j-\theta_i),\quad i =1,\cdots,N.$$
-%
 %%
 % Here the first constant terms $\omega_i$ denote the natural oscillatory
 % behaviors, and the interactions are nonlinearly affected by the relative
@@ -18,19 +16,21 @@
 % strength, $\kappa$.
 %% Control strategy
 % The control interface is on the coupling strength as follows:
-%
+%%
 % $$\dot \theta_i(t) = \omega_i + \frac{u(t)}{N}\sum_{j=1}^N K_{i,j}
 % \sin(\theta_j(t)-\theta_i(t)),\quad i =1,\cdots,N.$$
-%
+%%
 % This is a nonlinear version of bi-linear control problem for the Kuramoto
 % interactions. The idea is as follows;
-%
+%%
 % 1. There are $N$ number of oscillators, oscillating with
 % their own natural frequencies.
+%
 % 2. We want to make a collective behavior using their own decision
 % process. The interaction is given by the Kuramoto model, or may follow
 % other interaction rules. The network can be given or flexible with
 % control.
+%
 % 3. The cost of control will be related to the collective dynamics we
 % want, such as the variance of frequencies or phases.
 %
@@ -38,7 +38,6 @@
 % Here, we consider a simple problem: we control the all-to-all network
 % system to get gathered phases at final time $T$.
 % We first need to define the system of ODEs in terms of symbolic variables.
-clear all
 clc
 %%
 m = 5;  % [m]: number of oscillators.
@@ -55,11 +54,11 @@ Vsys = symOm + (symU./m)*sum(symK.*sin(symThth.' - symThth),2);   % Kuramoto int
 
 %%
 % The parameter $\omega_i$ and $\kappa$ should be specified for the
-% calculations. Practically, $K > |\max\Omega - \min\Omega|$ leads to the
+% calculations. Practically, $K > \vert \max\Omega - \min\Omega \vert$ leads to the
 % synchronization of frequencies. We normalize the coupling strength to 1,
 % and give random values for the natural frequencies from the normal
 % distribution $N(0,0.1)$. We also choose initial data from $N(0,pi/4)$.
-%
+%%
 %   % Om_init = normrnd(0,0.1,m,1);
 %   % Om_init = Om_init - mean(Om_init);  % Mean zero frequencies
 %   % Th_init = normrnd(0,pi()/4,m,1);    

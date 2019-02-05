@@ -1,9 +1,9 @@
  function matlabclass2blog(ClassName,FolderDocumentation)
     
     data_class = what(ClassName);
-    path_class = data_class.path;
+    path_class = data_class(end).path;
 
-    mfiles = data_class.m;
+    mfiles = data_class(end).m;
 
     mkdir([FolderDocumentation,'/',ClassName])
     
@@ -55,7 +55,7 @@
 %            
 %            text_default = replace(text_default,'href=','HREF');
 %            text_default = replace(text_default,'<a HREF"matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a>','function_handle');
-%            text_default = replace(text_default,'×','x');
+%            text_default = replace(text_default,'ï¿½','x');
 %            listofproperties = [listofproperties,newline,sp,sp,sp,'default: ',text_default,newline];
 %         end
     end    

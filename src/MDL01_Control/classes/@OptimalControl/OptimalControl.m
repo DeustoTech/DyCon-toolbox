@@ -73,6 +73,7 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             p = inputParser;
             
             addRequired(p,'iode');
+            
             addRequired(p,'symPsi');
             addRequired(p,'symL');
                     

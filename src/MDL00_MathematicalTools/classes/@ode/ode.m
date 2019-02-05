@@ -9,32 +9,45 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % type: "Struct"
         % dimension: [1x1]
         % default: "none"
-        % description: MATLAB Structure that contain the two properties,
-        %               Numeric and Symbolic. This represent the symbolic
-        %               version of the control state, and numeric solution
-        %               of the equation. The numeric property only is
-        %               aviable if previus solve the equation.
-        %               
+        % description:  "MATLAB Structure that contain the two properties
+        %               <ul>
+        %                   <li> Symbolic - Symbolic Vector State [y1 y2 ...] </li>
+        %                   <li> Numeric  - Numeric solution of the equation. 
+        %                                   The numeric property only is
+        %                                   aviable if previus solve the equation. 
+        %                   </li>
+        %               </ul>"
         VectorState                                                                              
-        % type: "Symbolic"
+        % type: "Struct"
         % dimension: [1x1]
         % default: "none"
-        % description: "Symbolic Vector of Control"
+        % description:  MATLAB Structure that contain the two properties
+        %               <ul>
+        %                   <li> Symbolic - Symbolic Vector State [u1 u2 ...] </li>
+        %                   <li> Numeric  - matrix Numeric control to solve the equation. 
+        %                                   $$\\dot{Y} = f(t,\\dot{Y},U)$$ 
+        %                   </li>
+        %               </ul>
         Control                                                  
-        % type: "Symbolic function"
+        % type: "Struct"
         % dimension: [1x1]
         % default: "none"
-        % description: "Symbolic Expresion of Y'=F(Y,U)"
+        % description:  MATLAB Structure that contain the two properties
+        %               <ul>
+        %                   <li> Symbolic - symbolic function of dynamics equation </li>
+        %                   <li> Numeric  - function_handle of dynamics equation. 
+        %                   </li>
+        %               </ul>
         Dynamic                                                                                
         % type: "double"
         % dimension: [1xN]
         % default: "[0 0 0 ...]"
-        % description: "Initial State"
+        % description: "Initial State or Final State dependent of property Type"
         Condition                                                                double     
         % type: "double"
-        % dimension: [1xN]
-        % default: "[0 0 0 ...]"
-        % description: "Final State"
+        % dimension: [1x1]
+        % default: "InitialCondition"
+        % description: "The equation can be InitialCondition  or FinalCondition problems."
         Type        {mustBeMember(Type,{'FinalCondition','InitialCondition'})} = 'InitialCondition'                                                                    
         % type: "double"
         % dimension: [1x1]
@@ -45,13 +58,34 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % dimension: [1x1]
         % default: "none"
         % description: "Time interval of plots. ATTENTION - the solution of ode is obtain by ode45, with adatative step"
-        dt                                          (1,1)                           double                                                      
+        dt                                          (1,1)                           double  
+        label = ''
+        RungeKuttaMethod = @ode45
+        RungeKuttaParams = {}
     end
 
     properties (Hidden)
+        % type: "double"
+        % dimension: [NxN]
+        % default: "none"
+        % description:  A matrix of lineal problems. If this property is empty, so the ode is not lineal. 
+        %                 $$ \\dot{Y} = \\textbf{A}Y + BU $$
         A
+        % type: "double"
+        % dimension: [NxN]
+        % default: "none"
+        % description: B matrix of lineal problems. If this property is empty, so the ode is not lineal. 
+        %                 $$ \\dot{Y} = AY + \\textbf{B}U $$
         B
+        % type: "logical"
+        % dimension: [MxN]
+        % default: "false"
+        % description: This indicator represent the lineal or non-lineal.      
         lineal      logical  = false
+        % type: "Symbolic"
+        % dimension: [1x1]
+        % default: "t"
+        % description: Represent the symbolic time 
         symt 
     end
     %% Fake Properties 
@@ -64,35 +98,42 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % type: "double"
         % dimension: [NxN]
         % default: "none"
-        % description: "Time grid to plot the solution, and interpolate the control"
-       
+        % description: "the vector state in final time."
         Yend
         % type: "double"
         % dimension: [NxN]
         % default: "none"
-        % description: "Time grid to plot the solution, and interpolate the control"
+        % description: "Dimension of Control Vector"
         Udim
     end
     
     
     methods
         function obj = ode(varargin)
-            % description: Constructor the ecuacion diferencial
+            % description: The ode class, if only de organization of ode.
+            %               The solve of this class is the RK family.
             % autor: JOroya
-            % MandatoryInputs:   
+            % OptionalInputs:
             %   DynamicEquation: 
             %       description: simbolic expresion
             %       class: Symbolic
             %       dimension: [1x1]
             %   VectorState: 
-            %       description: simbolic expresion
+            %       description: VectorState
             %       class: Symbolic
             %       dimension: [1x1]
             %   Control: 
             %       description: simbolic expresion
             %       class: Symbolic
             %       dimension: [1x1]
-            % OptionalInputs:
+            %   A: 
+            %       description: simbolic expresion
+            %       class: matrix
+            %       dimension: [1x1]
+            %   B: 
+            %       description: simbolic expresion
+            %       class: matrix
+            %       dimension: [1x1]            
             %   InitialControl:
             %       name: Initial Control 
             %       description: matrix 

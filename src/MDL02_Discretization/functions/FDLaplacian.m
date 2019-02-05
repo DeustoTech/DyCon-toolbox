@@ -1,4 +1,4 @@
-function matrix= FELaplacian(N)
+function matrix= FDLaplacian(N)
 %LAPLACIAN1D Summary of this function goes here
 %   Detailed explanation goes here
 

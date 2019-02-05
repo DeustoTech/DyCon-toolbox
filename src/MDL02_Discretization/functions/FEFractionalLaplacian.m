@@ -1,4 +1,4 @@
-function A = FractionalLaplacian(s,L,N)
+function A = FEFractionalLaplacian(s,L,N)
 % description: Compute the rigidity matrix for solving the Poisson problem
 %                   $$(-\Delta)^s u = F  \ \in (-L,L)$$
 %                   where $u=0, \in R(-L,L)$ using linear finite elements on a mesh of N points

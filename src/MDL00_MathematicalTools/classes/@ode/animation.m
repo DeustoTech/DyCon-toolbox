@@ -12,7 +12,7 @@ function animation(iode,varargin)
 %    name: Initial Control 
 %    description: matrix 
 %    class: double
-%    dimension: [length(iCP.tline)]
+%    dimension: [length(iCP.tspan)]
 %    default:   empty
     p = inputParser;
     
@@ -25,9 +25,9 @@ function animation(iode,varargin)
     YLim = p.Results.YLim;
     xx = p.Results.xx;
 
-    Y = iode.VectorState.numeric;
-    
-    
+    structure = [iode.VectorState];
+    Y = {structure.Numeric};
+        
     f = figure;
     ax = axes('Parent',f);
     if ~isempty(YLim)
@@ -35,12 +35,14 @@ function animation(iode,varargin)
     end
     
     %
-    tline = iode.tline;
+    tspan = iode.tspan;
         
     tic;
-    tmax = tline(end);
+    tmax = tspan(end);
     
-    [nrow ncol] = size(Y);
+    [nrow ncol] = size(Y{1});
+    
+    
     while true 
         t = xx*toc;
         if t > tmax
@@ -50,7 +52,19 @@ function animation(iode,varargin)
             delete(l)
         end
         ax.Title.String = ['t = ',num2str(t,'%.2f')];
-        l = line(1:ncol,interp1(tline,Y,t),'Parent',ax,'Marker','*','LineStyle','-');
+        
+        index = 0;
+        colors = {'r','g','b'};
+        LinS = {'-','--'};
+        pt = {'*','s'};
+        for iY = Y
+            ic = mod(index,3) + 1;
+            il = mod(index,2) + 1;
+            ip = mod(index,2) + 1;
+            index = index + 1;
+            l(index) = line(1:ncol,interp1(tspan,iY{:},t),'Parent',ax,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic});
+        end
+        legend({iode.label})
         pause(0.1)
     end
 

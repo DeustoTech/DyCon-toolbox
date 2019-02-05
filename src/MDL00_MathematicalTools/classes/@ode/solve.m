@@ -13,7 +13,7 @@ function solve(iODE,varargin)
 
     addRequired(p,'iODE') 
     addOptional(p,'Control',iODE.Control.Numeric)
-    addOptional(p,'RungeKuttaMethod',@ode45)
+    addOptional(p,'RungeKuttaMethod',iODE.RungeKuttaMethod)
     
 
     parse(p,iODE,varargin{:})
@@ -21,6 +21,7 @@ function solve(iODE,varargin)
     Control             = p.Results.Control;
     RungeKuttaMethod    = p.Results.RungeKuttaMethod;
     
+    iODE.RungeKuttaMethod = RungeKuttaMethod;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

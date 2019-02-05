@@ -69,7 +69,7 @@ function GradientMethod(iCP,varargin)
     Udefault = zeros(length(iCP.ode.tspan),iCP.ode.Udim);
     addOptional(pinp,'U0',Udefault)
     %% Method Parameter
-    addOptional(pinp,'MaxIter',25)
+    addOptional(pinp,'MaxIter',200)
     addOptional(pinp,'tol',1e-2)
     addOptional(pinp,'DescentAlgorithm',@AdaptativeDescent)
     addOptional(pinp,'DescentParameters',{})
