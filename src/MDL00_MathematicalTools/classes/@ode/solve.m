@@ -13,15 +13,16 @@ function solve(iODE,varargin)
 
     addRequired(p,'iODE') 
     addOptional(p,'Control',iODE.Control.Numeric)
-    addOptional(p,'RungeKuttaMethod',iODE.RungeKuttaMethod)
-    
+    addOptional(p,'RKMethod',iODE.RKMethod)
+    addOptional(p,'RKParameters',iODE.RKParameters)
 
     parse(p,iODE,varargin{:})
 
     Control             = p.Results.Control;
-    RungeKuttaMethod    = p.Results.RungeKuttaMethod;
+    RKMethod            = p.Results.RKMethod;
+    RKParameters        = p.Results.RKParameters;
     
-    iODE.RungeKuttaMethod = RungeKuttaMethod;
+    iODE.RKMethod = RKMethod;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,12 +42,12 @@ function solve(iODE,varargin)
         case 'InitialCondition'
             dY_dt   = @(t,Y) double(iODE.Dynamic.Numeric(t,Y,U_fun(t)));
             % RungeKuttaMethod can be ode45
-            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tspan,iODE.Condition);
+            [~,iODE.VectorState.Numeric] = RKMethod(dY_dt,iODE.tspan,iODE.Condition,RKParameters{:});
         case 'FinalCondition'
             T = iODE.FinalTime;
             dY_dt   = @(t,Y) -double(iODE.Dynamic.Numeric(T-t,Y,U_fun(T-t)));
             % RungeKuttaMethod can be ode45
-            [~,iODE.VectorState.Numeric] = RungeKuttaMethod(dY_dt,iODE.tspan,iODE.Condition);
+            [~,iODE.VectorState.Numeric] = RKMethod(dY_dt,iODE.tspan,iODE.Condition,RKParameters{:});
             iODE.VectorState.Numeric = flipud(iODE.VectorState.Numeric);            
     end
 

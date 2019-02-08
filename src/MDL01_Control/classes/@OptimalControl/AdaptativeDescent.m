@@ -1,4 +1,4 @@
-function  [Unew ,Ynew,Jnew,dJnew,error] = AdaptativeDescent(iCP,varargin)
+function  [Unew ,Ynew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,varargin)
 %  description: This method is able to update the value of the control by decreasing 
 %               the value of the functional. By calculating the gradient, $ \\frac{dH}{du}$. Also, it is decremented 
 %               in that direction, assuring the decrease by the adaptive step size. 
@@ -69,6 +69,8 @@ function  [Unew ,Ynew,Jnew,dJnew,error] = AdaptativeDescent(iCP,varargin)
         Iter = 1;
         error = 0;
         dJnew = Unew;
+        stop = false;
+
     else
         Iter = Iter + 1;
         
@@ -79,7 +81,15 @@ function  [Unew ,Ynew,Jnew,dJnew,error] = AdaptativeDescent(iCP,varargin)
         [Unew,Ynew,Jnew,dJnew] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin{:});
         
         tspan = iCP.ode.tspan;
-        error = mean(abs(trapz(tspan,dJnew)));
+        AdJnew = mean(abs(trapz(tspan,dJnew)));
+        AUnew = mean(abs(trapz(tspan,Unew)));
+        error = AdJnew/AUnew;
+        
+        if error < tol || OptimalLenght == 0
+            stop = true;
+        else 
+            stop = false;
+        end
         
     end
    
@@ -110,12 +120,18 @@ function [Unew,Ynew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin)
     end
     
     %% Empezamos con un LengthStep
-    LengthStep =2*InitialLengthStep;
+    LengthStep =2*InitialLengthStep
+    
+    dJold = GetNumericalGradient(iCP,Uold,Yold);
+
     while true 
         % en cada iteracion dividimos el LengthStep
         LengthStep = LengthStep/2;
-        %
-        [UTry, YTry,dJold] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthStep);
+        %% Actualizamos  Control
+        UTry = Uold - LengthStep*dJold; 
+        %% Resolvemos el problem primal
+        solve(iCP.ode,'Control',UTry);
+        YTry = iCP.ode.VectorState.Numeric;
         % Calculate functional value
         JTry = GetFunctional(iCP,YTry,UTry);
      
@@ -131,7 +147,6 @@ function [Unew,Ynew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin)
             Unew = Uold;
             Ynew = Yold;
             Jnew = Jold;
-
             return
         end
     end

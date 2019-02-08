@@ -28,7 +28,7 @@ classdef CPSolution < handle
         % description: number of iterations that the algorithm has made
         Jhistory
         dJhistory
-
+        Ehistory
         timeline
         du
 

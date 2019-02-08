@@ -1,4 +1,4 @@
-function [Unew,Ynew,dJnew] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthStep)
+function dJnew = GetNumericalGradient(iCP,Uold,Yold)
 %  description: This method is able to update the value of the control by decreasing 
 %               the value of the functional. By calculating the gradient, $ \\frac{dH}{du}$. Also, it is decremented 
 %               in that direction, assuring the decrease by the adaptive step size. 
@@ -101,13 +101,6 @@ function [Unew,Ynew,dJnew] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthS
         index = index + 1;
         dJnew(index,:) = du_tDepend(t);
     end
-    %% Actualizamos  Control
-            
-    Unew = Uold - LengthStep*dJnew; 
-   
-    %% Resolvemos el problem primal
-    solve(iCP.ode,'Control',Unew);
-    Ynew = iCP.ode.VectorState.Numeric;
     
     % Obtenemos x(t)
 end

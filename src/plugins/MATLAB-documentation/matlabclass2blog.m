@@ -17,6 +17,8 @@
 
     mfile_path = [path_class,'/',ClassName,'.m'];
     help_data = ObtainHelp(mfile_path);
+        help_data = replace(help_data,'\','\\');
+
     %help_data = replace(help_data,newline,' ');
     metadata = metaclass(eval([ClassName,'.empty']));    
     

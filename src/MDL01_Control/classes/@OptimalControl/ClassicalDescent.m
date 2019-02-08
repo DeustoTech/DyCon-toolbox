@@ -1,4 +1,4 @@
-function  [Unew ,Ynew,Jnew,dJnew,error] = ClassicalDescent(iCP,varargin)
+function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin)
 %  description: This method is able to update the value of the control by decreasing 
 %               the value of the functional. By calculating the gradient, $ \\frac{dH}{du}$. Also, it is decremented 
 %               in that direction, assuring the decrease by the adaptive step size. 
@@ -64,6 +64,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error] = ClassicalDescent(iCP,varargin)
     parse(p,iCP,varargin{:})
 
     LengthStep = p.Results.LengthStep;
+    stop = false;
     
     persistent Iter
     
@@ -77,19 +78,32 @@ function  [Unew ,Ynew,Jnew,dJnew,error] = ClassicalDescent(iCP,varargin)
         Iter = 1;
         error = 0;
         dJnew = Unew;
+        stop = false;
     else
         Iter = Iter + 1;
         
         Uold  = iCP.solution.Uhistory{Iter-1};
         Yold  = iCP.solution.Yhistory{Iter-1};
         
-        [Unew,Ynew,dJnew] = ClassicalDescentUpdateControl(iCP,Uold,Yold,LengthStep);
+        dJnew = GetNumericalGradient(iCP,Uold,Yold);
         
+        
+        %% Actualizamos  Control
+        Unew = Uold - LengthStep*dJnew; 
+        %% Resolvemos el problem primal
+        solve(iCP.ode,'Control',Unew);
+        Ynew = iCP.ode.VectorState.Numeric;
         Jnew = GetFunctional(iCP,Ynew,Unew);
         
         tspan = iCP.ode.tspan;
-        error = mean(abs(trapz(tspan,dJnew)));
-        
+        AdJnew = mean(abs(trapz(tspan,dJnew)));
+        AUnew = mean(abs(trapz(tspan,Unew)));
+        error = AdJnew/AUnew;
+        if error < tol
+            stop = true;
+        else 
+            stop = false;
+        end
     end
    
 end

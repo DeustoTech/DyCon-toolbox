@@ -70,8 +70,8 @@ function GradientMethod(iCP,varargin)
     addOptional(pinp,'U0',Udefault)
     %% Method Parameter
     addOptional(pinp,'MaxIter',200)
-    addOptional(pinp,'tol',1e-2)
-    addOptional(pinp,'DescentAlgorithm',@AdaptativeDescent)
+    addOptional(pinp,'tol',1e-5)
+    addOptional(pinp,'DescentAlgorithm',@ClassicalDescent)
     addOptional(pinp,'DescentParameters',{})
     %% Graphs Parameters
     addOptional(pinp,'Graphs',false)
@@ -132,19 +132,19 @@ function GradientMethod(iCP,varargin)
     clear(char(DescentAlgorithm))
     % ClassicalDescent
     % ConjugateGradientDescent
-    
+    % ConjugateGradienDescent
     
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
-        [Unew, Ynew,Jnew,dJnew,error] = DescentAlgorithm(iCP,DescentParameters{:});
+        [Unew, Ynew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
 
         % Save history of optimization
         iCP.solution.Uhistory{iter}  = Unew;
         iCP.solution.Yhistory{iter}  = Ynew;
         iCP.solution.Jhistory(iter)  = Jnew;
         iCP.solution.dJhistory{iter} = dJnew;
-
+        iCP.solution.Ehistory(iter)     = error;
         %%
 
         % Stopping Criteria
@@ -153,7 +153,7 @@ function GradientMethod(iCP,varargin)
                 % plot the graphical convergence 
                 bucle_graphs(axY,axU,axJ,Ynew,Unew,iCP.solution.Jhistory,iCP.ode.tspan,iter,TypeGraphs,SaveGif)
             end
-            if error < tol
+            if stop
                   break 
             end
         end 

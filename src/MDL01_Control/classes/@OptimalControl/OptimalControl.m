@@ -1,9 +1,14 @@
 classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
-% description: This class is able to solve optimization problems of a function restricted to an ordinary equation. This scheme is used to solve optimal control problems in which the functional derivative is calculated. <strong>ControlProblem</strong> class has methods that
-%               help us find optimal control as well as obtaining the attached problem and it's derivative form, 
+% description: This class is able to solve optimization problems of a function restricted to an ordinary equation.
+%               This scheme is used to solve optimal control problems in which the functional derivative is calculated. 
+%               <strong>OptimalControl</strong> class has methods that help us find optimal control as well as obtaining 
+%               the attached problem and it's derivative form, 
 %               in both Symbolic and numerical versions.
-% visible: true
-
+% long: This class is able to solve optimization problems of a function restricted to an ordinary equation.
+%               This scheme is used to solve optimal control problems in which the functional derivative is calculated. 
+%               <strong>OptimalControl</strong> class has methods that help us find optimal control as well as obtaining 
+%               the attached problem and it's derivative form, 
+%               in both Symbolic and numerical versions.
     properties 
         % type: "Functional"
         % default: "none"

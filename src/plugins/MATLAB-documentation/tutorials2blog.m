@@ -1,4 +1,4 @@
-function examples2blog(name,varargin)
+function tutorials2blog(name,varargin)
      p = inputParser;
      
      addRequired(p,'name')
@@ -44,8 +44,8 @@ function examples2blog(name,varargin)
     module = strsplit(modulecell,'_');
     module = module{1};
     % Create name of .md
-    path_md = [path_documentation,'/_posts/examples/',module];
-    file_md = [path_documentation,'/_posts/examples/',module,'/0001-01-01-',number,'.md'];
+    path_md = [path_documentation,'/_posts/tutorials/',module];
+    file_md = [path_documentation,'/_posts/tutorials/',module,'/0001-01-01-',number,'.md'];
     delete(file_md);
     %% load copiaRM.md
     INcopiaRM = fopen([path_folder,'/copiaRM.md'],'r');
@@ -79,10 +79,10 @@ function examples2blog(name,varargin)
     OUTMD = fopen(file_md,'a');
     fprintf(OUTMD,'---\n');
     fprintf(OUTMD,INMetadata_content);
-    fprintf(OUTMD,'layout: example\n');
+    fprintf(OUTMD,'layout: tutorial\n');
     fprintf(OUTMD,['matlab: ',name,'\n']);
 
-    fprintf(OUTMD,['categories: [example,',module,']\n']);
+    fprintf(OUTMD,['categories: [tutorial,',module,']\n']);
     fprintf(OUTMD,'---\n');
     fwrite(OUTMD,INcopiaRM_content);
     fclose(OUTMD);

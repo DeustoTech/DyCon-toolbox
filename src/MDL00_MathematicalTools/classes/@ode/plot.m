@@ -37,6 +37,8 @@ function plot(iode,varargin)
     end
         
     plot(iode.tspan,iode.VectorState.Numeric,'Parent',Parent)
+    
+    legend(string(iode.VectorState.Symbolic))
     Parent.YLabel.String = 'states';
     Parent.XLabel.String = 'time(s)';
     Parent.Title.String = 'solution';

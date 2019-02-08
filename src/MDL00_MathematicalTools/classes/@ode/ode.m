@@ -1,11 +1,20 @@
 classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
-    % description: The class ode structure the idea of an ordinary differential equation, 
-    %               so that in this way you can create different methods on the same matlab
-    %               structure. Given that matlab leaves a freedom to define the representation
-    %               of an equation, we chose to create a matlab class with the most important 
-    %               properties of an ODE.
-    % visible: true
+    % description:  The ode class is an object that will contain all the information 
+    %              to solve a differential equation. This can be the equation of the dynamics,
+    %              initial condition, or the solution method itself. This class is necessary in
+    %              order to generalize the optimal control methods used in other packages.
+    % long: This class is the representation of an ode
+    %               $$ \dot{Y} = f(t,Y,U) \ \  Y(0) = Y_0$$
+    %       where 
+    %           $$ Y = \begin{pmatrix} y_1 \\ y_2 \\..  \\ y_n  \end{pmatrix} \text{   ,   }
+    %             U  = \begin{pmatrix} u_1 \\ u_2 \\..  \\u_m   \end{pmatrix} $$
+    %       This class is necessary in the toolbox since within the toolbox to be able to systematize
+    %       some algorithms. You can create ode objects, which are capable of parameterizing so that 
+    %       with a solve statement it is solved. In this way, we can write the "solve" command within
+    %       our algorithms, without losing versatility in the solution of the equation. Let's see some
+    %       examples to make that clearer.
     properties
+        %%
         % type: "Struct"
         % dimension: [1x1]
         % default: "none"
@@ -17,7 +26,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %                                   aviable if previus solve the equation. 
         %                   </li>
         %               </ul>"
-        VectorState                                                                              
+        VectorState       
+        %%
         % type: "Struct"
         % dimension: [1x1]
         % default: "none"
@@ -60,8 +70,9 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % description: "Time interval of plots. ATTENTION - the solution of ode is obtain by ode45, with adatative step"
         dt                                          (1,1)                           double  
         label = ''
-        RungeKuttaMethod = @ode45
-        RungeKuttaParams = {}
+        RKMethod = @ode45
+        RKParameters = {}
+        
     end
 
     properties (Hidden)
@@ -95,11 +106,6 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % default: "none"
         % description: "Time grid to plot the solution, and interpolate the control"
         tspan                                               double
-        % type: "double"
-        % dimension: [NxN]
-        % default: "none"
-        % description: "the vector state in final time."
-        Yend
         % type: "double"
         % dimension: [NxN]
         % default: "none"
@@ -155,7 +161,6 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             addOptional(p,'dt',0.1)
             addOptional(p,'FinalTime',1)
             addOptional(p,'Condition',[])
-            addOptional(p,'sym',true)
 
             parse(p,varargin{:})
             
@@ -199,14 +204,14 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
                 obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,Y,U});
             else
-                [nrow,ncol] = size(obj.A);
+                [nrow,~ ] = size(obj.A);
                 
                 obj.VectorState.Symbolic = sym('y',[nrow 1]);
                 Y = obj.VectorState.Symbolic;
                 
                 obj.VectorState.Numeric     = [];
 
-                [nrow,ncol] = size(obj.B);
+                [~ ,ncol] = size(obj.B);
                 U = sym('u',[ncol 1]) ;
                 obj.Control.Symbolic        = U;
                 obj.Control.Numeric         = [];
@@ -229,10 +234,6 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         end
         %% ================================================================================
         %
-        %% ================================================================================
-        function Yend = get.Yend(obj)
-                Yend = obj.VectorState.Numeric(end,:);
-        end
         %% ================================================================================
         %
         %% ================================================================================
