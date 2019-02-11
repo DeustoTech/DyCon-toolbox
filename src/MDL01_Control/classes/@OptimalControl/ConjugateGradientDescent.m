@@ -69,6 +69,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
     persistent s
     
     if isempty(Iter)
+        %% First 
         Unew = iCP.solution.Uhistory{1};
         %
         solve(iCP.ode,'Control',Unew);
@@ -82,6 +83,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
         s = -dJnew;
         stop = false;
     else
+        %%
         Iter = Iter + 1;
         
         Uold  = iCP.solution.Uhistory{Iter-1};

@@ -1,5 +1,5 @@
-title: First Example
+title: Gradient Method 
 author: JOroya
 description: First Example
 date: 2019-01-01
-number: 1
+number: 2

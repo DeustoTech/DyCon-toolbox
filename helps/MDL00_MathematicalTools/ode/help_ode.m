@@ -23,20 +23,6 @@ dynamics
 %% 
 % You can solve the equations with a single sentence 
 solve(dynamics)
-plot(dynamics)
+resume(dynamics)
 %%
-% Create final condition problems, choosing the solver
-dynamics.Type = 'FinalCondition';
-solve(dynamics,'RKMethod',@ode23)
 plot(dynamics)
-%% 
-% other than a simpler interface for linear problems
-A = [ -1 0 ; 0 -1];
-B = [1 ; 1];
-%%
-dynamics = ode('A',A,'B',B);
-dynamics.Condition = [1,-1];
-solve(dynamics)
-plot(dynamics)
-%% 
-% You can see mode in own tutorials

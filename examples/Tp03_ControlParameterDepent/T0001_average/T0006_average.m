@@ -1,6 +1,4 @@
-
-
-
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % System matrices A, B
 % zdiff = A*z + B*u
@@ -47,42 +45,31 @@ iode.dt = 0.01;
 solve(iode)
 plot(iode)
 
-
 %% 
-
 ys = iode.VectorState.Symbolic;
 u  = iode.Control.Symbolic;
+%%
 ysm = arrayfun(@(index) mean(ys(index:M:N*M)),1:M).';
 yt = 0*ones(N, 1); 
 Psi = (ysm - yt).'*(ysm - yt);
 beta = 1e-3;
-
 L   = 0.5*beta*u.'*u;
 
 iCP1 = OptimalControl(iode,Psi,L);
-Nmax = 100;
-tol = 1e-8;
-
-GradientMethod(iCP1,'Graphs',true,'DescentAlgorithm',@AdaptativeDescent,'MaxIter',100,'tol',tol)
-
-
-
+%% 
+% Solve 
+GradientMethod(iCP1)
+%%
+% Solution 
 plot(iCP1.ode)
-% Parameter beta for the cost function
-beta = 1e-3;
-% Maximum number of iterations
 
-% Target at t = T
-
+%%
+% See average free
 cellstate = arrayfun(@(index) mean(iode.VectorState.Numeric(:,index:M:N*M),2),1:M,'UniformOutput',0);
-meanvector = [cellstate{:}]
+meanvector = [cellstate{:}];
 plot(meanvector);
-
+%%
+% Average Control
 cellstate = arrayfun(@(index) mean(iCP1.ode.VectorState.Numeric(:,index:M:N*M),2),1:M,'UniformOutput',0);
-meanvector = [cellstate{:}]
+meanvector = [cellstate{:}];
 plot(meanvector);
-
-
-
-
-% Tolerance

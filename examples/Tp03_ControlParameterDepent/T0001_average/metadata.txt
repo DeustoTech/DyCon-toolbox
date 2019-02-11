@@ -1,5 +1,4 @@
-title: First Example
+title: average
 author: JOroya
 description: First Example
 date: 2019-01-01
-number: 1

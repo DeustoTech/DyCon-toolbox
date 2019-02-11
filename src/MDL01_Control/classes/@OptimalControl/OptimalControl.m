@@ -1,14 +1,22 @@
 classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
-% description: This class is able to solve optimization problems of a function restricted to an ordinary equation.
+% description: "This class is able to solve optimization problems of a function restricted to an ordinary equation.
 %               This scheme is used to solve optimal control problems in which the functional derivative is calculated. 
 %               <strong>OptimalControl</strong> class has methods that help us find optimal control as well as obtaining 
 %               the attached problem and it's derivative form, 
-%               in both Symbolic and numerical versions.
-% long: This class is able to solve optimization problems of a function restricted to an ordinary equation.
+%               in both Symbolic and numerical versions."
+% long: "This class is able to solve optimization problems of a function restricted to an ordinary equation.
 %               This scheme is used to solve optimal control problems in which the functional derivative is calculated. 
 %               <strong>OptimalControl</strong> class has methods that help us find optimal control as well as obtaining 
 %               the attached problem and it's derivative form, 
-%               in both Symbolic and numerical versions.
+%               in both Symbolic and numerical versions. Este problema se
+%               aborda con el metodo del gradiente. Dado que la informacion
+%               del problema esta en simbolico, podemos calcular el
+%               gradiente y el problema adjunto mediante el principio de
+%               pontryagin. Se ha implementado el metodo del gradiente,
+%               de forma que el calculo de descenso sea un parametro. Por
+%               defecto, este descenso se calcula con el metodo del
+%               gradiente conjugado.
+%               http://web.mit.edu/mitter/www/publications/2_conjugate_grad_IEEEAC.pdf"
     properties 
         % type: "Functional"
         % default: "none"

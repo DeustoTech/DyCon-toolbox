@@ -36,11 +36,16 @@ function plot(iode,varargin)
         Parent = axes('Parent',f);        
     end
         
+    
+    if iode.PDE
+        surf(iode.VectorState.Numeric)
+    else
     plot(iode.tspan,iode.VectorState.Numeric,'Parent',Parent)
     
     legend(string(iode.VectorState.Symbolic))
     Parent.YLabel.String = 'states';
     Parent.XLabel.String = 'time(s)';
     Parent.Title.String = 'solution';
+    end
 end
 

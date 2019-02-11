@@ -14,7 +14,7 @@ B = construction_matrix_B(xline,a,b);
 FinalTime = 2;
 Y0 =sin(pi*xline)';
 
-dynamics = ode('A',A,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.05);
+dynamics = ode('A',A,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.1);
 
 %% Creamos Problema de Control
 Y = dynamics.VectorState.Symbolic;
@@ -29,17 +29,16 @@ symL    = 0.001*(U.'*U);
 iCP1 = OptimalControl(dynamics,symPsi,symL);
 
 %% Solve Gradient
-tol = 0.000001;
-DescentParameters = {'InitialLengthStep',5.0};
+tol = 0.01;
 
 %
-GradientMethod(iCP1,'graphs',true,'TypeGraphs','PDE','MaxIter',2000,'DescentAlgorithm',@ConjugateGradientDescent)
-
+GradientMethod(iCP1,'graphs',true,'TypeGraphs','PDE','MaxIter',20,'DescentAlgorithm',@ConjugateGradientDescent)
+%%
 solve(dynamics)
 
 iCP1.ode.label = 'Control';
 dynamics.label = 'Dynamics';
-animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
+% animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
 % Several ways to run
 % GradientMethod(iCP1)
 % GradientMethod(iCP1,'DescentParameters',DescentParameters)

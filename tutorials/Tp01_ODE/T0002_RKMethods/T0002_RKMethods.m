@@ -44,7 +44,14 @@ dynamics.Condition = [1,-1];
 solve(dynamics)
 plot(dynamics)
 %%
-dynamics.Type = 'FinalCondition';
-solve(dynamics,'RKMethod',@ode23,'RKParameter')
+dynamics.Type = 'InitialCondition';
+solve(dynamics,'RKMethod',@ode23,'RKMethod')
 plot(dynamics)
 %% 
+% Lineal
+A = [ -1 0 ; 0 -1];
+B = [1 ; 1];
+
+lode = ode('A',A,'B',B)
+solve(lode)
+plot(lode)

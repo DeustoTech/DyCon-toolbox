@@ -30,5 +30,6 @@ iCP1 = OptimalControl(dynamics,symPsi,symL);
 %% Solve Gradient
 %GradientMethod(iCP1,'Graphs',true,'DescentAlgorithm',@ClassicalDescent,'DescentParameters',{'LengthStep',1e-1})
 
-GradientMethod(iCP1,'Graphs',true,'DescentAlgorithm',@ConjugateGradientDescent,'MaxIter',40000,'tol',1e-8)
+GradientMethod(iCP1,'DescentAlgorithm',@ConjugateGradientDescent,'MaxIter',40000,'tol',1e-8)
 %%
+plot(iCP1)

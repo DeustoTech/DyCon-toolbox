@@ -72,6 +72,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         label = ''
         RKMethod = @ode45
         RKParameters = {}
+        PDE = false
         
     end
 

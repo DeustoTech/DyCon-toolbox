@@ -1,4 +1,4 @@
-title: First Example
+title: Laplacian
 author: JOroya
 description: First Example
 date: 2019-01-01
