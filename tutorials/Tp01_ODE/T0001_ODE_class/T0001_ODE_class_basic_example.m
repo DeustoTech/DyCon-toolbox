@@ -1,6 +1,6 @@
 %%
-% Veamos un ejemplo de utilizacion de la clase ode. Para ello resolveremos
-% un ejemplo sencillo. Sea la ode:
+% In this example, we present the use of class 'ode'. Here we solve the
+% following simple system of ordinary differential equations:
 %%
 % $$ \begin{bmatrix}
 % \dot{y}_1 \\
@@ -10,41 +10,68 @@
 %%
 % $$ y_1(1) = 1 / / y_2(1) = -1 $$
 %%
-% En Dycon Toolbox se opta por el uso de variables simbólicas para
-% representación de las ecuaciones de la dinamica. Es por ello que es
-% necesario definir un vector simbolico que representara el estado 
+% In DyCon toolbox, the use of symbolic variables is chosen to represent
+% the dynamic equations. We first define a symbolic vector representing the
+% solution states.
 
 Y = sym('y',[2 1])
 %%
-% Además deberemos definir un vector simbolico para el control de la
-% ecuacion
+% In addition, we define a symbolic vector for the control functions of
+% the equation.
+
 U = sym('u',[2 1])
 %%
-% Gracias a estas dos variables, podemos definir la ecuación de la dinamica
-% de la siguietne forma
+% Using these two variables, we can state the system by a symbolic
+% expression of the vector field. 
 F = [ sin(Y(1)*Y(2)) +    (Y(1)*Y(2)) + U(1)   ; ...
          Y(2)        + cos(Y(1)*Y(2)) + U(2) ] ;
 dynamics = ode(F,Y,U);
 %%
-% Debemos notar que el la creacion del problema es muy parecido a la
-% expresion matematica
-%% 
-% Veamos que es lo que hemos creado 
+% In this way, we defined 'dynamics' of the class 'ode' which represents
+% the following equation of a matrix form:
+%%
+% $$ \dot Y = F(Y,U). $$
+%%
+% Let's see what we have created
 dynamics
 %%
-% Debido a que existe mucha infomacion para resolver una ecuacion
-% diferencial DyCon toolbox toma muchos valores por defecto. Otra forma de
-% ver la información dentro de este objecto es:
+% DyCon toolbox creates a lot of default variables to represent the
+% conditions of differential equations. We may see the information more
+% heuristic way through the resume function:
 resume(dynamics)
 %%
-% Por otro lado, que existan muchos parametros por defecto, esto no quiere
-% decir que
+% We also can directly modify its variables, for example, we may change the
+% initial data:
+
 dynamics.Condition = [1,-1];
+resume(dynamics)
 %%
+% 'solve' function solves the differential equation of 'ode'. The values of
+% 'Y' are calculated according to the timeline and initial data. The MATLAB
+% built-in function 'ode45' works as a default to solve the 'ode'.
+solve(dynamics)
+%%
+% 'plot' function plots the states of 'Y', the vector of states. Note that
+% this produces errors if 'solve' function is not operated.
+plot(dynamics)
+%%
+% We may modify the conditions of 'ode' and solve it again. Here we change
+% the initial condition to be a final condition.
+dynamics.Type = 'FinalCondition';
+
 solve(dynamics)
 plot(dynamics)
 %%
-dynamics.Type = 'FinalCondition';
-solve(dynamics,'RKMethod',@ode23,'RKParameter')
-plot(dynamics)
-%% 
+% If the system is linear, then we can create the 'ode' class using the
+% matrix. Along with the notion of linear control problem, the following
+% code represents the system:
+%%
+% $$ \dot Y = AY + BU. $$
+
+A = [ 0 -2 ; 2 0];
+B = [1 ; 1];
+
+dynamics_linear = ode('A',A,'B',B);
+dynamics_linear.Condition = [1,0];
+solve(dynamics_linear)
+plot(dynamics_linear)
