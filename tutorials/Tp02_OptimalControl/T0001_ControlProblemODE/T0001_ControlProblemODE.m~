@@ -28,15 +28,7 @@ iP = OptimalControl(dynamics,Psi,L);
 GradientMethod(iP)
 plot(iP)
 %%
-% alpha = constant
-% u + alpha*du
+% D
 GradientMethod(iP,'DescentAlgorithm',@ClassicalDescent)
 
-% Solve by Conjugate Gradient
-% http://web.mit.edu/mitter/www/publications/2_conjugate_grad_IEEEAC.pdf 
-
-% 
-GradientMethod(iP)
 plot(iP)
-plot(iP)
-% Is more fast
