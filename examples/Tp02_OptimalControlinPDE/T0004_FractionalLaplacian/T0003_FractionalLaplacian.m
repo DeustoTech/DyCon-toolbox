@@ -1,5 +1,5 @@
 %% Parametros de discretizacion
-N = 50;
+N = 20;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N);
 
