@@ -2,14 +2,18 @@
 % In this example, we solve the class 'ode' using various numerical
 % methods. Here, we solve an oscillating system of differential equations:
 %%
-% $$ \begin{bmatrix}
-% \dot{y}_1 \\
-% \dot{y}_2
-% \end{bmatrix} = \left(\begin{array}{c} -5 \,-10\\ 10\,0\right)
-% \end{array}\right) \begin{bmatrix}
-% \dot{y}_1 \\
-% \dot{y}_2
-% \end{bmatrix}.
+% $$ 
+% \begin{bmatrix} 
+%     \dot{y}_1 \\
+%     \dot{y}_2 
+%    \end{bmatrix} =
+%     \left( \begin{array}{cc}
+%             -5 & -10 \\
+%             10 & 0      
+%            \end{array} \right)
+%     \begin{bmatrix}
+%          \dot{y}_1 \\ \dot{y}_2
+%     \end{bmatrix} 
 % $$
 %%
 % $$ y_1(1) = 1, / / y_2(2) = 2 $$
@@ -106,7 +110,7 @@ dynamics_linear_Euler.Condition = [1,2];
 dynamics_linear_Euler.RKMethod = @Euler;
 solve(dynamics_linear_Euler)
 plot(dynamics_linear_Euler)
-
+%%
 function [tline,yline] = Euler(odefun,tspan,y0,options)
     tline = tspan;
     yline = zeros(length(tspan),length(y0));

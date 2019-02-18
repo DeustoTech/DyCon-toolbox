@@ -1,5 +1,5 @@
 %% Parametros de discretizacion
-N = 100;
+N = 50;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N);
 
@@ -11,11 +11,11 @@ A = -10*FEFractionalLaplacian(s,1,N);
 a = -0.3; b = 0.5;
 B = construction_matrix_B(xline,a,b);
 %%%%%%%%%%%%%%%%
-FinalTime = 2;
+FinalTime = 0.5;
 Y0 =sin(pi*xline)';
 
-dynamics = ode('A',A,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.1);
-
+dynamics = ode('A',A,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.01);
+dynamics.RKMethod=  @ode23tb;
 %% Creamos Problema de Control
 Y = dynamics.VectorState.Symbolic;
 U = dynamics.Control.Symbolic;

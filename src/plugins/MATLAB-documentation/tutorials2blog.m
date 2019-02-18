@@ -67,8 +67,8 @@ function tutorials2blog(name,varargin)
     INcopiaRM_content = replace(INcopiaRM_content,'&lt;','<');
     INcopiaRM_content = replace(INcopiaRM_content,'&gt;','>');
     INcopiaRM_content = replace(INcopiaRM_content,'&nbsp;',' ');
-    INcopiaRM_content = replace(INcopiaRM_content,'](extra-data',[']({{site.url}}/{{site.baseurl}}/assets/imgs/',module,'/',number]);
-    INcopiaRM_content = replace(INcopiaRM_content,'](./imgs-matlab',[']({{site.url}}/{{site.baseurl}}/assets/imgs/',module,'/',number]);
+    INcopiaRM_content = replace(INcopiaRM_content,'](extra-data',[']({{site.url}}/{{site.baseurl}}/assets/imgs/tutorials/',module,'/',number]);
+    INcopiaRM_content = replace(INcopiaRM_content,'](./imgs-matlab',[']({{site.url}}/{{site.baseurl}}/assets/imgs/tutorials/',module,'/',number]);
     INcopiaRM_content = replace(INcopiaRM_content,'%','%%');
 
     %%
@@ -87,7 +87,7 @@ function tutorials2blog(name,varargin)
     fwrite(OUTMD,INcopiaRM_content);
     fclose(OUTMD);
     %% imagenes 
-    img_path = [path_documentation,'/assets/imgs/',module,'/',number];
+    img_path = [path_documentation,'/assets/imgs/tutorials/',module,'/',number];
     if ~exist(img_path)
         mkdir(img_path);
     end

@@ -74,7 +74,7 @@ function GradientMethod(iCP,varargin)
     addOptional(pinp,'U0',Udefault)
     %% Method Parameter
     addOptional(pinp,'MaxIter',200)
-    addOptional(pinp,'tol',1e-3)
+    addOptional(pinp,'tol',1e-4)
     addOptional(pinp,'DescentAlgorithm',@ConjugateGradientDescent)
     addOptional(pinp,'DescentParameters',{})
     %% Graphs Parameters

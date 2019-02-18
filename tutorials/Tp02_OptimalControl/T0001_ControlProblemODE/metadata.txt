@@ -1,5 +1,5 @@
-title: First Example
+title: First Example of Optimal Control Problems 
 author: JOroya
-description: First Example
+description: In this tutorial, we define a solve a optimal control problems.
 date: 2019-01-01
 number: 1

@@ -1,4 +1,4 @@
-function  [Unew ,Ynew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,varargin)
+function  [Unew ,Ynew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,varargin)
 %  description: This method is able to update the value of the control by decreasing 
 %               the value of the functional. By calculating the gradient, $ \\frac{dH}{du}$. Also, it is decremented 
 %               in that direction, assuring the decrease by the adaptive step size. 
@@ -85,7 +85,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,varargin)
         AUnew = mean(abs(trapz(tspan,Unew)));
         error = AdJnew/AUnew;
         
-        if error < tol || OptimalLenght == 0
+        if error < tol
             stop = true;
         else 
             stop = false;
@@ -120,7 +120,7 @@ function [Unew,Ynew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin)
     end
     
     %% Empezamos con un LengthStep
-    LengthStep =2*InitialLengthStep
+    LengthStep =2*InitialLengthStep;
     
     dJold = GetNumericalGradient(iCP,Uold,Yold);
 

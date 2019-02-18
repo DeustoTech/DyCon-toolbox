@@ -1,4 +1,4 @@
-title: Gradient Method 
+title: Gradient Method and several descents
 author: JOroya
 description: First Example
 date: 2019-01-01
