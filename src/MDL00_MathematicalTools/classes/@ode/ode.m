@@ -221,6 +221,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 
                 obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
                 obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,Y,U});
+                obj.RKMethod          = @eulere; 
+                
             end
             if isempty(obj.Condition)
                 obj.Condition =  zeros(length(Y),1);

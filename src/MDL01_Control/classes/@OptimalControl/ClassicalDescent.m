@@ -89,11 +89,12 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
         
         
         %% Actualizamos  Control
-        Unew = Uold - LengthStep*dJnew; 
+        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,0);
+        Unew = Uold - OptimalLenght*dJnew; 
         %% Resolvemos el problem primal
         solve(iCP.ode,'Control',Unew);
         Ynew = iCP.ode.VectorState.Numeric;
-        Jnew = GetFunctional(iCP,Ynew,Unew);
+        %Jnew = GetFunctional(iCP,Ynew,Unew);
         
         tspan = iCP.ode.tspan;
         AdJnew = mean(abs(trapz(tspan,dJnew)));
@@ -105,5 +106,12 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
             stop = false;
         end
     end
-   
+    function Jsl = SearchLenght(LengthStep)
+        
+        Usl = Uold - LengthStep*dJnew; 
+        %% Resolvemos el problem primal
+        solve(iCP.ode,'Control',Usl);
+        Ysl = iCP.ode.VectorState.Numeric;
+        Jsl = GetFunctional(iCP,Ysl,Usl);
+    end
 end
