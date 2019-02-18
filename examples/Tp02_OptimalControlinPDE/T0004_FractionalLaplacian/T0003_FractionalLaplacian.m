@@ -32,7 +32,9 @@ iCP1 = OptimalControl(dynamics,symPsi,symL);
 tol = 0.01;
 
 %
-GradientMethod(iCP1,'graphs',true,'TypeGraphs','PDE','MaxIter',20,'DescentAlgorithm',@ConjugateGradientDescent)
+GradientMethod(iCP1,'graphs',true,'TypeGraphs','PDE','MaxIter',200,'DescentAlgorithm',@ConjugateGradientDescent)
+GradientMethod(iCP1,'graphs',true,'TypeGraphs','PDE','MaxIter',200,'DescentAlgorithm',@ClassicalDescent)
+
 %%
 solve(dynamics)
 

@@ -27,6 +27,7 @@ Y = sym('y',[2 1]); U = sym('u',[1 1]);
       -Y(2)      + U(1) ] ;
 % 
 dynamics = ode(F,Y,U);
+dynamics.RKMethod = @eulere;
 dynamics.Condition = [0;-1];
 dynamics.dt = 0.01;
 %%
