@@ -88,7 +88,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
         
         Uold  = iCP.solution.Uhistory{Iter-1};
         
-        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,0);
+        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,1);
         %
         Unew = Uold + OptimalLenght*s; 
         solve(iCP.ode,'Control',Unew);

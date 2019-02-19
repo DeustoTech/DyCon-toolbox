@@ -21,7 +21,8 @@ symY = SymsVector('y',N);
 symU = SymsVector('u',count);
 % We create the functional that we want to minimize
 YT = 0*xline';
-symPsi  = (YT - symY).'*(YT - symY);
+kappa = 30000;
+symPsi  = kappa*(YT - symY).'*(YT - symY)/N;
 symL    = beta*(symU.'*symU)*(abs(w1-w2))/count;
 % Jfun = Functional(symPsi,symL,symY,symU);
 % We create the ODE object
@@ -64,11 +65,22 @@ T = T;
 % certain time steps that will hide part of the dynamics.
 %%
 odeEqn2 = ode(Fsym,symY,symU,'Condition',Y0,'FinalTime',T);
-odeEqn2.RKMethod = @ode23tb;
+
 %odeEqn2 = ode(Fsym,symY,symU,'Y0',Y0,'T',T);
 %odeEqn2.dt=0.01;
 iCP2 = OptimalControl(odeEqn2,symPsi,symL);%Jfun,'T',T);
-GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',400,'tol',1e-6,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute','norm','L2'});
+
+iCP2.ode.RKMethod = @ode23tb;
+GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',100,'tol',1e-1,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute','norm','L2'});
+
+
+iCP2.ode.RKMethod = @ode45;
+U00 = iCP2.ode.Control.Numeric;
+
+GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',1900,'tol',1e-1,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute','norm','L2'},'U0',U00);
+
+%GradientMethod(iCP2,'DescentAlgorithm',@ConjugateGradientDescent,'Maxiter',400,'tol',1e-9,'Graphs',true,'TypeGraphs','PDE');
+
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
