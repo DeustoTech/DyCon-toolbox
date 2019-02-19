@@ -68,7 +68,7 @@ odeEqn2.RKMethod = @ode23tb;
 %odeEqn2 = ode(Fsym,symY,symU,'Y0',Y0,'T',T);
 %odeEqn2.dt=0.01;
 iCP2 = OptimalControl(odeEqn2,symPsi,symL);%Jfun,'T',T);
-GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',300,'tol',0.01,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute'});
+GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',400,'tol',0.005,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute'});
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
