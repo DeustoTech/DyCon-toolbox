@@ -1,4 +1,4 @@
-function [freedynamics,controlleddynamics,ucontrol,targetplusdynamicspluscontrol]=SLSD1doptimalnullcontrol(N,D,G,T,beta,w,y0)
+function [freedynamics,controlleddynamics,ucontrol,targetplusdynamicspluscontrol]=SLSD1doptimalnullcontrol_T007_semilinear(N,D,G,T,beta,w,y0)
 % visible: true
 % author: Domenec
 % date: 2018-12-19

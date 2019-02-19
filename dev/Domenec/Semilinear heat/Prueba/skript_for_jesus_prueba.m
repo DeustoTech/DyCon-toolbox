@@ -13,7 +13,7 @@ G2 = @(x) -c*x*(x-a)*(x+a);
 G1 = @(y) 10*y*exp(-y*y);
 
 % Simulations for SLSD1d model B
-N=5;
+N=15;
 beta=10^(-11);
 
 
