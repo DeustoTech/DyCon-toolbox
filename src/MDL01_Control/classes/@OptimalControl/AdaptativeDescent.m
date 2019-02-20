@@ -98,7 +98,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,varargi
             case 'L1'
                 AdJnew = mean(trapz(tspan,abs(dJnew)));
             case 'L2'
-                AdJnew = mean(trapz(tspan,dJnew.^2));
+                AdJnew = sqrt(mean(trapz(tspan,dJnew.^2)));
         end
         %% 
         switch StopCriteria

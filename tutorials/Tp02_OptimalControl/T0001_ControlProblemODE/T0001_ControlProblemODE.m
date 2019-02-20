@@ -1,26 +1,26 @@
 %% 
-% En DyCon toolbox se ha definido el problema de control optimo a traves de
-% la minimizacion de un funcional. De esta forma podemos resolver problemas
-% del tipo
+% DyCon toolbox adopts Pontryagin's maximum principle to optimize the
+% control function for each control problem. In this way we can solve
+% problems of the form:  
 %%
-% $$ \min_{U \in \Omega } \Psi(t,Y(T)) + \int_0^T L(t,Y,U) dt $$
+% $$ \min_{U \in \Omega } \Psi(t,Y(T)) + \int_0^T L(t,Y,U) dt, $$
 %%
-% sujecto a 
+% subject to
 %%
-% $$ \dot{Y} = f(t,Y,U) $$
+% $$ \dot{Y} = f(t,Y,U). $$
 %% 
-% Se ha creado una interfaz simbolica para la definición de la dinamica.
-% Por ello que deberemos definir un vector simbolico $Y$, que representara
-% el estado de la dinamica, ademas de una vector simbolico $U$ que
-% representara el vector de control.
+% 'OptimalControl' class uses symbolic interface to define a control
+% problem as in 'ode' class. 'OptimalControl' class contains 'ode' class,
+% the final cost, and running cost. As 'ode' class contains $ f $, the
+% final cost $ \Psi $ and running cost $ L $ should be given by symbolic
+% functions. 
 %% 
-% Continuarémos con un ejemplo para simplificar.
+% Here we explain 'OptimalControl' class with a simple example: we want to
+% minimize the objective function
 %%
-% Supongamos que queremos encontrar el control que minimiza el funcional:
-%%
-% $$ y_1^2 + y_2^2 + \int_0^2 u_1^2 + u_2^2 dt
+% $$ J (Y,U) := \int_0^2 (y_1^2 + y_2^2) + 0.005(u_1^2 + u_2^2) dt, $$
 %% 
-% sujeto a 
+% subject to
 %% 
 % $$ \left( \begin{matrix}   
 %       \dot{y_1} \\
@@ -28,61 +28,65 @@
 %     \end{matrix} \right)    =  
 %     \left( \begin{matrix}   
 %               y_2     \\ 
-%               y_2                
+%               -y_2+u_1                
 %      \end{matrix} \right) $$
 %% 
-% Deberemos inicializar los vectores de control y de estado.
+% %%
+% The dynamics and cost functions are based on symbolic vectors $ Y $ and $
+% U $, which represent the state of the dynamics and control vector.
 Y = sym('y',[2 1])
 %%
 U = sym('u',[1 1])
 %%
-% Una vez definidos podemos crear un vector simbolico con las misma
-% dimensiones que el vector de estado. Este vector representara la dinamica
-% del problema. Sigiendo la notacion utilizada al principio este vector
-% será $f(t,Y,U)$
+% The dynamics of $ Y $ should be given by a symbolic vector with the same
+% dimensions as the state vector. Following the notation at the beginning,
+% this vector represents $ f (t, Y, U) $:
  F = [ Y(2)          ; ...
       -Y(2) + U(1) ] ;
 %% 
-% Utilizando el contructor de 'ode'
+% Using this dynamics vector, we construct an 'ode' class.
 dynamics = ode(F,Y,U)
 %%
-% Esta es una objecto que representa la ecuacion diferencial
-%% 
-% mochos de los parámetros que definen la ecuacion han sido tomados por
-% defecto. Espro ello que deberemos personalizarlo. Para que representa la
-% dinamica que queramos. En este caso cambiaremos la condicion inicial y el
-% intervalo en el tiempo
+% The printed information above shows the default setting of this 'ode'
+% class. In order to construct the dynamics we want, we need to customize
+% its parameters. In this case we change the initial condition for the
+% dynamics and the sampling timestep.
+%%
+% The time discretization is generated as a uniform mesh from the timestep
+% $ dt $. It will be used not only for the sampling of the state vector $ Y
+% $ but also to represent the control vector $ U $ and cost $ J $ in
+% 'OptimalControl' class. 
 dynamics.Condition = [0;-1];
 dynamics.dt = 0.01;
 %%
-% Un vez definido la dinamica podemos definir el funcional que minizaremos.
-% Este funciona tendra que ser representado con las mismas variables con la
-% que se ha definido la dinamica. Siguiendo la forma presentada en [1]
-% deberemos definir las expresiones de $\Psi$ y $L$
+% Next we need to define the functional $ J $ we want to minimize.
+% Following the form presented in [1], we define the expressions of $ \ Psi $
+% and $ L $ in symbolic form:
 Psi = sym(0);
-L   = 0.005*(U.'*U) +  Y.'*Y ;
+L   = 0.005*(U.'*U)+Y.'*Y ;
 %%
-% Ya habiendo creado la ecuacion diferencial y las expresiones para $\Psi$
-% y $L$, podemos definir el problemas de control optimo de la siguiente
-% manera:
+% We finally define the optimal control problem as a 'OptimalControl' class:
 iP = OptimalControl(dynamics,Psi,L);
 %%
-% Este contiene informacion que puede ser de ayuda para la resolucion del
-% problema. Es importante notar que no estamos resolviendo el problema.
-% Simplemente lo estamos definiendo. Los solvers seran metodos que
-% actuan sobre este objeto.
+% This class contains information we need to find the optimal control
+% vector $ U $. It is worth mentioning that until now we defined the
+% problem but not solved it yet.
 iP
-%% 
-% Uno de estos solver es el Gradient method. Este simplemnte
-% calcula un gradiente con ayuda de la condiciones de optimalidad de primer
-% orden extraida del principio del minimo de pontryagin. Para resolver el
-% problema con este método, simplemnte escribimos:
+%%
+% DyCon toolbox uses the gradient methods to optimize the cost functional. 
+% This calculates the gradient of $ J $ along $ U $ from the first order
+% approximation of the Hamiltonian and adjoint state vector in the
+% Pontryagin principle.
+%%
+% To solve the problem using the default gradient method, we simply write:
 GradientMethod(iP)
 %% 
-% Gradient Method crea un solución para el problema. 
+% This command generates 'solution' in the 'OptimalControl' class, which
+% contains the optimal control vector 'UOptimal' and its information, such as the
+% cost, precision and time of computations.
 iP.solution
 %%
-% Gracias a que la estructura es unica independiente del solver, podemos
-% implentar funciones de visualización para todos tipo de solver. Un
-% ejemplo de esto es la funcion plot aplicado a los objetos OptimalControl
+% This structure is independent of the solver, and we can see the results
+% through visualization functions we want. One of the examples is 'plot'
+% function which can be applied to 'OptimalControl' class.
 plot(iP)
