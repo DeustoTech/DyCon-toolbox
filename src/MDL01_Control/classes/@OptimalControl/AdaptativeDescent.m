@@ -56,6 +56,18 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,varargi
 %        class: double
 %        dimension: [1x1]
 
+    p = inputParser;
+    addRequired(p,'iCP')
+    addRequired(p,'tol')
+    addOptional(p,'StopCriteria','relative')
+    addOptional(p,'norm','L1')
+    addOptional(p,'InitialLengthStep',0.1)
+    addOptional(p,'MinLengthStep',1e-8)
+    
+    parse(p,iCP,tol,varargin{:})
+    
+    StopCriteria = p.Results.StopCriteria;
+    norm = p.Results.norm;
 
     persistent Iter
     
@@ -81,10 +93,22 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,varargi
         [Unew,Ynew,Jnew,dJnew] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin{:});
         
         tspan = iCP.ode.tspan;
-        AdJnew = mean(abs(trapz(tspan,dJnew)));
-        AUnew = mean(abs(trapz(tspan,Unew)));
-        error = AdJnew/AUnew;
         
+        switch norm
+            case 'L1'
+                AdJnew = mean(trapz(tspan,abs(dJnew)));
+            case 'L2'
+                AdJnew = mean(trapz(tspan,dJnew.^2));
+        end
+        %% 
+        switch StopCriteria
+            case 'absolute'
+                error = AdJnew;
+            case 'relative'
+                AUnew = mean(trapz(tspan,abs(Unew)));
+                error = AdJnew/AUnew;
+        end
+        %%
         if error < tol
             stop = true;
         else 
@@ -102,14 +126,17 @@ function [Unew,Ynew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin)
     addRequired(p,'Uold')
     addRequired(p,'Yold')
     addRequired(p,'Jold')
-
-    addOptional(p,'InitialLengthStep',0.1)
+    addOptional(p,'StopCriteria','relative')
+    addOptional(p,'InitialLengthStep',0.5)
     addOptional(p,'MinLengthStep',1e-8)
+    addOptional(p,'norm','L1')
+
     
     parse(p,iCP,Uold,Yold,Jold,varargin{:})
     
     InitialLengthStep   = p.Results.InitialLengthStep;
     MinLengthStep       = p.Results.MinLengthStep;
+    norm                = p.Results.norm;
     %%
     persistent LengthMemory
      
@@ -128,7 +155,14 @@ function [Unew,Ynew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin)
         % en cada iteracion dividimos el LengthStep
         LengthStep = LengthStep/2;
         %% Actualizamos  Control
-        UTry = Uold - LengthStep*dJold; 
+        tspan = iCP.ode.tspan;
+        switch norm
+            case 'L1'
+                normdJold = mean(trapz(tspan,abs(dJold)));
+            case 'L2'
+                normdJold = sqrt(mean(trapz(tspan,dJold.^2)));
+        end
+        UTry = Uold - LengthStep*dJold/normdJold; 
         %% Resolvemos el problem primal
         solve(iCP.ode,'Control',UTry);
         YTry = iCP.ode.VectorState.Numeric;
