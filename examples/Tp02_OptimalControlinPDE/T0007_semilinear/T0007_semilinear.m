@@ -189,7 +189,7 @@ N=11;
 % For the simulation of the model in collective behavior we will employ a
 % diffusivity $D=\frac{1}{N^3}$.
 %%
-[a,b,c,d]=SLSD1doptimalnullcontrol(N,1/(N^3),G,T,beta,[0.5,0.8],y0);
+[a,b,c,d]=SLSD1doptimalnullcontrol_T007_semilinear(N,1/(N^3),G,T,beta,[0.5,0.8],y0);
 %%
 figure;
 surf(a.time,a.space,a.value,'EdgeColor','none');
@@ -219,7 +219,7 @@ legend('Target','Free Dynamics','controlled dynamics')
 % non-homogeneous non-linearity, we will just divide the non-linearity $G$
 % by $N^3$
 %%
-[a,b,c,d]=SLSD1doptimalnullcontrol(N,1/(N^2),G/(N^2),N^2*T,beta,[0.5,0.8],y0);
+[a,b,c,d]=SLSD1doptimalnullcontrol_T007_semilinear(N,1/(N^2),G/(N^2),N^2*T,beta,[0.5,0.8],y0);
 %%
 figure;
 surf(a.time,a.space,a.value,'EdgeColor','none');
