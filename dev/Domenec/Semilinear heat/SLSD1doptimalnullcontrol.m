@@ -71,13 +71,13 @@ odeEqn2 = ode(Fsym,symY,symU,'Condition',Y0,'FinalTime',T);
 iCP2 = OptimalControl(odeEqn2,symPsi,symL);%Jfun,'T',T);
 
 iCP2.ode.RKMethod = @ode23tb;
-GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',100,'tol',1e-1,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute','norm','L2'});
+GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',300,'tol',1e-1,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute','norm','L2','MinLengthStep',1e-40});
 
 
 iCP2.ode.RKMethod = @ode45;
 U00 = iCP2.ode.Control.Numeric;
 
-GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',1900,'tol',1e-1,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute','norm','L2'},'U0',U00);
+GradientMethod(iCP2,'DescentAlgorithm',@AdaptativeDescent,'Maxiter',1700,'tol',1e-1,'Graphs',true,'TypeGraphs','PDE','DescentParameters',{'StopCriteria','absolute','norm','L2','MinLengthStep',1e-40},'U0',U00);
 
 %GradientMethod(iCP2,'DescentAlgorithm',@ConjugateGradientDescent,'Maxiter',400,'tol',1e-9,'Graphs',true,'TypeGraphs','PDE');
 
