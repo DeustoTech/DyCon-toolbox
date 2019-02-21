@@ -220,7 +220,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 DynamicEquation = obj.A*Y + obj.B*U;
                 
                 obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
-                obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,Y,U});
+                obj.Dynamic.Numeric   = @(t,Y,U) obj.A*Y + obj.B*U;
                 obj.RKMethod          = @eulere; 
                 
             end

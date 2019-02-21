@@ -1,7 +1,19 @@
 function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin)
-%  description: This method is able to update the value of the control by decreasing 
-%               the value of the functional. By calculating the gradient, $ \\frac{dH}{du}$. Also, it is decremented 
-%               in that direction, assuring the decrease by the adaptive step size. 
+%  description: This method is used within the GradientMethod method. GradientMethod executes 
+%               iteratively the algorithms that we give it. In the case of choosing ClassicalDescent 
+%               this function updates the control of the following way 
+%                   $$ u_{old} = u_{new} + \\alpha dJ $$
+%               where dJ has obtain with the optimality condition of
+%               pontryagin principle. The optimal control problem is define
+%               by
+%               $$ \\min J = \\min \\Psi(t,Y(T)) + \\int_0^T L(t,Y,U) dt $$
+%               subject to
+%               $$ Y = f(t,Y,U) $$ 
+%               following the Pontryagin principle 
+%               $$ dJ = \\partial_u H = \\partial_u L + p \\partial_u f $$
+%               Since we have the expression of the gradient, we can start with an initial control,
+%               solve the adjoint problem and evaluate the gradient. Then we will update the initial 
+%               control with the gradient.
 %  little_description: This method is able to update the value of the control by decreasing the value of the functional. 
 %  autor: JOroya
 %  MandatoryInputs:   
@@ -9,39 +21,16 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
 %        description: Control Problem Object
 %        class: ControlProblem
 %        dimension: [1x1]
-%    UOld: 
+%    tol: 
 %        description: Control Vector in time  
 %        class: double
 %        dimension: [M,iCP.tspan]
-%    YOld: 
-%        description: State Vector in time 
-%        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
-%    JOld: 
-%        description: Value of functional J(Uold,Yold)
-%        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
 %  OptionalInputs:
-%    InitialLengthStep: 
-%        description: This parameter is the step size if the MiddleStepControl option is false. 
-%                       If the option MiddleStepControl is activated then this parameter is the initial step
-%                       of the methodo but then the step is doubled in the case where the functional iteration 
-%                       decreases and is divided by two its the functional one grows.
-%        class: double
+%    LengthStep: 
+%        description: This paramter is the length step of the gradient
+%                       method. By default, this is 0.1
+%        class: double 
 %        dimension: [1x1]
-%    MinLengthStep: 
-%        description: It may happen that although we divide the step of the descenco many times,
-%                       we continue to obtain an update that increases the value of the functional. In this case,
-%                       it is necessary to have a minimum step size to avoid infinite loops. This parameter is
-%                       responsible for this.
-%        class: double
-%        dimension: [1x1]
-%    MiddleStepControl: 
-%        description: If this parameter is enabled, it allows the algorithm to search for different 
-%                       step-logitudes, provided that the control update decrements the functional value. If it is
-%                       deactivated, the descent of the gradient will be constant.
-%        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
 %  Outputs:
 %    Unew:
 %        description: Update of Control Vector  
@@ -55,7 +44,18 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
 %        description: New Value of functional 
 %        class: double
 %        dimension: [1x1]
-
+%    dJnew:
+%        description: New Value of gradient 
+%        class: double
+%        dimension: [1x1]
+%    error:
+%        description: the error $\\vert dJ \\vert / \\vert U \\vert $  
+%        class: double
+%        dimension: [1x1]
+%    stop:
+%        description: New Value of functional 
+%        class: logical
+%        dimension: [1x1]
     p = inputParser;
     
     addRequired(p,'iCP')
@@ -89,12 +89,13 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
         
         
         %% Actualizamos  Control
-        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,0);
+        %[OptimalLenght,Jnew] = fminsearch(@SearchLenght,1);
+        OptimalLenght = 0.2;
         Unew = Uold - OptimalLenght*dJnew; 
         %% Resolvemos el problem primal
         solve(iCP.ode,'Control',Unew);
         Ynew = iCP.ode.VectorState.Numeric;
-        %Jnew = GetFunctional(iCP,Ynew,Unew);
+        Jnew = GetFunctional(iCP,Ynew,Unew);
         
         tspan = iCP.ode.tspan;
         AdJnew = mean(abs(trapz(tspan,dJnew)));

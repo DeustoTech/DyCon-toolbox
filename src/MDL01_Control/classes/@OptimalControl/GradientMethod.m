@@ -73,9 +73,9 @@ function GradientMethod(iCP,varargin)
     Udefault = zeros(length(iCP.ode.tspan),iCP.ode.Udim);
     addOptional(pinp,'U0',Udefault)
     %% Method Parameter
-    addOptional(pinp,'MaxIter',200)
-    addOptional(pinp,'tol',1e-4)
-    addOptional(pinp,'DescentAlgorithm',@ConjugateGradientDescent)
+    addOptional(pinp,'MaxIter',100)
+    addOptional(pinp,'tol',1e-2)
+    addOptional(pinp,'DescentAlgorithm',@AdaptativeDescent)
     addOptional(pinp,'DescentParameters',{})
     %% Graphs Parameters
     addOptional(pinp,'Graphs',false)
@@ -97,7 +97,7 @@ function GradientMethod(iCP,varargin)
     restart             = pinp.Results.restart;
     TypeGraphs          = pinp.Results.TypeGraphs;
     SaveGif             = pinp.Results.SaveGif;
-    DescentAlgorithm     = pinp.Results.DescentAlgorithm;
+    DescentAlgorithm    = pinp.Results.DescentAlgorithm;
     DescentParameters   = pinp.Results.DescentParameters;
     % ======================================================
     % ======================================================
@@ -105,8 +105,8 @@ function GradientMethod(iCP,varargin)
     % ======================================================
     % ======================================================
     if restart
-        if ~isempty(iCP.UOptimal)
-            U0 = iCP.UOptimal;
+        if ~isempty(iCP.solution.UOptimal)
+            U0 = iCP.solution.UOptimal;
         else
             warning('The parameter restart need a previus execution.')
         end

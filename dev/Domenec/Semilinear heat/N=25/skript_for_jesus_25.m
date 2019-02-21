@@ -18,18 +18,18 @@ beta=10^(-15);
 
 
 %First
-[a1,b1,c1,O1]=SLSD1doptimalnullcontrol(N,1/3,G1,2,beta,[0.33,0.66],y1);
+[a1,b1,c1,O1]=SLSD1doptimalnullcontrol(N,1,G1,2,beta,[0.33,0.66],y1);
 %Second
-[a2,b2,c2,O2]=SLSD1doptimalnullcontrol(N,1/3,G2,2,beta,[0.33,0.66],y2);
+[a2,b2,c2,O2]=SLSD1doptimalnullcontrol(N,1,G2,2,beta,[0.33,0.66],y2);
 file='skript_for_jesus_25.m';
 location=which(file);
 location=replace(location,file,'');
 save([location,'DomenecSimulations_0.mat']);
 
 %First
-[a1A,b1A,c1A,O1A]=SLSD1doptimalnullcontrol(N,1/3,@(x)(N^2)*G1(x),2,beta,[0.33,0.66],y1);
+[a1A,b1A,c1A,O1A]=SLSD1doptimalnullcontrol(N,1,@(x)(N^2)*G1(x),2,beta,[0.33,0.66],y1);
 %Second
-[a2A,b2A,c2A,O2A]=SLSD1doptimalnullcontrol(N,1/3,@(x)(N^2)*G2(x),2,beta,[0.33,0.66],y2);
+[a2A,b2A,c2A,O2A]=SLSD1doptimalnullcontrol(N,1,@(x)(N^2)*G2(x),2,beta,[0.33,0.66],y2);
 %Third
 
 

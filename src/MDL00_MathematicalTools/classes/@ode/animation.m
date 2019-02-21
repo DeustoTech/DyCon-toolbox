@@ -19,12 +19,14 @@ function animation(iode,varargin)
     addRequired(p,'iode')
     addOptional(p,'YLim',[])
     addOptional(p,'xx',1.0)
+    addOptional(p,'SaveGif',false)
     
     parse(p,iode,varargin{:})
     
     YLim = p.Results.YLim;
     xx = p.Results.xx;
-
+    SaveGif = p.Results.SaveGif;
+    
     structure = [iode.VectorState];
     Y = {structure.Numeric};
         
@@ -42,8 +44,16 @@ function animation(iode,varargin)
     
     [nrow ncol] = size(Y{1});
     
-    
-    while true 
+   
+   if SaveGif
+      numbernd =  num2str(floor(100000*rand),'%.6d');
+      gif([numbernd,'.gif'],'frame',ax.Parent,'DelayTime',1/8)  
+   end
+   
+   ax.XLabel.String = 'Space';
+   ax.YLabel.String = 'State';
+   
+   while true
         t = xx*toc;
         if t > tmax
             break
@@ -66,6 +76,9 @@ function animation(iode,varargin)
         end
         legend({iode.label})
         pause(0.1)
+        if SaveGif
+            gif('frame',ax.Parent)
+        end
     end
 
 end

@@ -26,9 +26,9 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
 %               u(t)\in\mathcal {U},\quad t\in [0,T]. \end{equation*}$$
 %               Moreover, the class permits to choose among different methods for solving the minimization problem. At the present stage, the methods available are
 %                 <ul>
-%                   <li>  gradient method;</li>
-%                   <li>  gradient method with adaptive descend step;</li>
-%                   <li>  conjugate gradient method.</li>
+%                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/ClassicalDescent'>Classical gradient method</a></li>
+%                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/AdaptativeDescent'>Gradient method with adaptive descend step</a></li>
+%                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/ConjugateGradientDescent'>Conjugate gradient method</a></li>
 %                 </ul>
     properties 
         % type: "Functional"

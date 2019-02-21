@@ -51,8 +51,8 @@ symL    = A*(symU.'*symU) + I;
 %
 iCP1 = OptimalControl(Dynamics,symPsi,symL);
 %%
-% and solve by Classical Gradient Method
-GradientMethod(iCP1)
+% and solve by Classical Gradient Methodcla
+GradientMethod(iCP1,'DescentAlgorithm',@ClassicalDescent)
 %%
 plot(iCP1)
 

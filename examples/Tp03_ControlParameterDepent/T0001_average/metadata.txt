@@ -1,4 +1,4 @@
-title: average
+title: Average Control 
 author: JOroya
-description: First Example
+description:  We introduce the notion of averaged control in which the quantity of interest is the average of the states with respect to the parameter family
 date: 2019-01-01

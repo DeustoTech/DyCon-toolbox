@@ -59,36 +59,40 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
     p = inputParser;
     
     addRequired(p,'iCP')
-    addOptional(p,'LengthStep',0.1)
    
     parse(p,iCP,varargin{:})
 
-    LengthStep = p.Results.LengthStep;
     
     persistent Iter
     persistent s
-    
+    persistent SeedLengthStep
     if isempty(Iter)
-        %% First 
-        Unew = iCP.solution.Uhistory{1};
-        %
-        solve(iCP.ode,'Control',Unew);
-        %
-        Ynew = iCP.ode.VectorState.Numeric;
-        Jnew = GetFunctional(iCP,Ynew,Unew);
+        %% First Iteration
         Iter = 1;
-        error = 0;
+        % Get First Control
+        Unew = iCP.solution.Uhistory{1};
+        % Solve Dynamics with this control
+        solve(iCP.ode,'Control',Unew);
+        % Get the solution of dynamics 
+        Ynew = iCP.ode.VectorState.Numeric;
+        % Calculate de Functional numerical Value
+        Jnew = GetFunctional(iCP,Ynew,Unew);
+        % Calculate de Gradient numerical Value
         dJnew = GetNumericalGradient(iCP,Unew,Ynew);
-        
+        % Then set s variable equal minus gradient
         s = -dJnew;
+        SeedLengthStep = 1; 
+        %
+        error = 0;       
         stop = false;
     else
-        %%
+        %% Others Iterations
         Iter = Iter + 1;
-        
+        %
         Uold  = iCP.solution.Uhistory{Iter-1};
         
-        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,1);
+        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,SeedLengthStep);
+        SeedLengthStep = OptimalLenght;
         %
         Unew = Uold + OptimalLenght*s; 
         solve(iCP.ode,'Control',Unew);

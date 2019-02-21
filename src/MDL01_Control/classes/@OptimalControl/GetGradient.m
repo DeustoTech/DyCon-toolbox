@@ -23,7 +23,11 @@ function GetGradient(iP)
     % Creamos el vector Symbolico   P = [p1 p2 p3 ...]
     
     symP  =  sym('p', [length(symY),1]);
-    iP.hamiltonian = symL + symP.'*formula(iP.ode.Dynamic.Symbolic);
+    %if ~iP.ode.lineal    
+        iP.hamiltonian = symL + symP.'*formula(iP.ode.Dynamic.Symbolic);
+    %else
+        %iP.hamiltonian = symL + symP.'*(iP.ode.A* iP.ode.VectorState.Symbolic + iP.ode.B*iP.ode.Control.Symbolic);
+    %end
     % Para cada cordenada de U, calculamos la derivada de dH/du_i
     dH_du = arrayfun(@(u) diff(formula(iP.hamiltonian),u), symU.');
     %

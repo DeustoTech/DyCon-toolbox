@@ -31,7 +31,6 @@
 %               -y_2+u_1                
 %      \end{matrix} \right) $$
 %% 
-% %%
 % The dynamics and cost functions are based on symbolic vectors $ Y $ and $
 % U $, which represent the state of the dynamics and control vector.
 Y = sym('y',[2 1])

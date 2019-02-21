@@ -84,7 +84,8 @@ function dJnew = GetNumericalGradient(iCP,Uold,Yold)
     P0 = PT_yt_Depen(T,Y_fun(T)');
     % Resolvemos el problema dual, colcando un 
     % signo negativo y luego inviertiendo en el tiempo la solucion
-    [~,P] = ode45(@(t,P) -dP_dt(t,P),tspan,P0);
+    solver = iCP.ode.RKMethod;
+    [~,P] = solver(@(t,P) -dP_dt(t,P),tspan,P0);
     P = flipud(P);
     % Obtenemos la funcion p(t) a partir p = [p(t1) p(t2) ... ]
     P_fun  = @(t) interp1(tspan,P,t);

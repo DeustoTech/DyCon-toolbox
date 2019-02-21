@@ -1,28 +1,31 @@
 %% 
 % We use DyCon Toolbox for solving numerically the following control 
-% problem: given any $T>0$, find a control function $g\in L^2((−1,1)\times (0,T))$ 
+% problem: given any $T>0$, find a control function $g\in L^2( ( -1 , 1) \times (0,T))$ 
 % such that the corresponding solution to the parabolic problem
 %%
+% $$
 % \begin{equation}\label{frac_heat}
 %   \begin{cases}
-%       z_t+(d_x^2)^s z = g\chi_\omega, & (x,t)\in(-1,1)\times(0,T)
-%       z = 0, & (x,t)\in[\mathbb{R}\setminus(-1,1)]\times(0,T)
+%       z_t+(d_x^2)^s z = g\chi_\omega, & (x,t)\in(-1,1)\times(0,T) \\
+%       z = 0, & (x,t)\in[\mathbb{R}\setminus(-1,1)]\times(0,T) \\
 %       z(x,0) = z_0(x), & x\in(-1,1)
 %   \end{cases}
-% \end{equation}
+% \end{equation} $$
+%%
 % satisfies $z(x,T)=0$.
 %%
 % Here, for all $s\in(0,1)$, $(-d_x^2)^s$ denotes the one-dimensional 
 % fractional Laplace operator, defined as the following singular integral
 %%
+% $$
 % \begin{equation*}
 %   (-d_x^2)^s z(x) = c_s P.V. \int_{\mathbb{R}}
 %   \frac{z(x)-z(y)}{|x-y|^{1+2s}}\,dy.
-% \end{equation*}
+% \end{equation*} $$
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-N = 20;
+N = 25;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N);
 dx = xline(2) -xline(1);
@@ -44,34 +47,39 @@ Y0 =sin(pi*xline)';
 %%
 % and construct the system
 %%
+% $$
 % \begin{equation}\label{abstract_syst}
 %   \begin{cases}
 %       Y'(t) = AY(t)+BU(t), & t\in(0,T)
 %       Y(0) = Y0.
 %   \end{cases}
 % \end{equation}
+% $$
 dynamics = ode('A',A,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.01);
-dynamics.RKMethod=  @ode23tb;
 Y = dynamics.VectorState.Symbolic;
 U = dynamics.Control.Symbolic;
 %% Construction of the control problem
 % Secondly, we construct the control problem, which consists in minimizing
 % the functional 
 %%
+% $$
 % \begin{equation*}
 %   J=\Psi (Y(T))+\int_0^T L(Y(t),U(t))\,dt.
 % \end{equation*}
+% $$
 %%
 % In this case, we choose the classical HUM functional in which 
 %%
+% $$
 % \begin{equation*}
 %   \Psi (Y(T)) = \|Y-Y(T)\|^2
-% \end{equation*}
+% \end{equation*} $$
+%%
 % and 
 %%
-% \begin{equation*}
+% $$ \begin{equation*}
 %   L(Y(t),U(t)) = \|U(t)\|^2.
-% \end{equation*}
+% \end{equation*} $$
 %%
 % Moreover, we set the final target to $y(T)=0$.
 YT = 0.0*xline';
@@ -82,8 +90,8 @@ iCP1 = OptimalControl(dynamics,symPsi,symL);
 %% Solution of the minimization problem
 % As a final step, we use the gradient method we developed for solving the
 % minimization problem and computing the control. In this case, we choose
-% to use the \textbf{Adaptive Gradient Descent} algorithm.
-tol = 0.00001;
+% to use the **Adaptive Gradient Descent** algorithm.
+tol = 1e-6;
 %%
 GradientMethod(iCP1,'DescentAlgorithm',@AdaptativeDescent,'tol',tol)
 %%
@@ -101,13 +109,18 @@ plot(iCP1,'TypeGraphs','PDE')
 % compute it numerically. 
 %%
 % Hence, it is convenient to deal with a penalized version of our 
-% optimization problem, applying the well-known \textit{Penalized Hilbert 
-% uniqueness method}. This will be the scope of a future post.
-
-% iCP1.ode.label = 'Control';
-% dynamics.label = 'Dynamics';
+% optimization problem, applying the well-known *Penalized Hilbert 
+% uniqueness method*. This will be the scope of a future post.
+solve(dynamics)
+dynamics.label = 'Free';
+iCP1.ode.label = 'Control';
+%%
+%  ```
 % animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
-
+% ```
+%%
+% ![](extra-data/063235.gif)
+%%
 function [B] = construction_matrix_B(mesh,a,b)
 
 N = length(mesh);
