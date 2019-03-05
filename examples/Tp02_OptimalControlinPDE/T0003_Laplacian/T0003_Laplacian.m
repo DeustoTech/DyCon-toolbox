@@ -4,21 +4,19 @@ xi = -1; xf = 1;
 xline = linspace(xi,xf,N);
 
 %% Creamos el ODE 
-s = 0.8;
 A = FDLaplacian(N);
 %%%%%%%%%%%%%%%%  
 a = -0.3; b = 0.5;
 B = construction_matrix_B(xline,a,b);
 %%%%%%%%%%%%%%%%
-FinalTime = 0.5;
+FinalTime = 0.25;
 dt = 0.001;
-Y0 =cos(pi*xline)'.^2;
+Y0 =5*cos(pi*xline)'.^2;
 
-dynamics = ode('A',A,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',dt);
-dynamics.PDE = true;
-dynamics.RKMethod = @ode23;
+dynamics = ode('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
+dynamics.Solver = @euleri;
 %% Creamos Problema de Control
-Y = dynamics.VectorState.Symbolic;
+Y = dynamics.StateVector.Symbolic;
 U = dynamics.Control.Symbolic;
 
 YT = 0.0*xline';
@@ -28,9 +26,9 @@ symL    = 0.0001*(U.'*U);
 iCP1 = OptimalControl(dynamics,symPsi,symL);
 
 %% Solve Gradient
-tol = 1e-3;
+tol = 1e-6;
 %
-GradientMethod(iCP1,'tol',tol)
+GradientMethod(iCP1,'tol',tol,'Graphs',true,'TypeGraphs','PDE','DescentAlgorithm',@ConjugateGradientDescent)
 %%
 dynamics.label = 'Free';
 iCP1.ode.label = 'with Control';

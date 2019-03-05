@@ -70,12 +70,12 @@ function GradientMethod(iCP,varargin)
     pinp = inputParser;
     addRequired(pinp,'iControlProblem')
     %%
-    Udefault = zeros(length(iCP.ode.tspan),iCP.ode.Udim);
-    addOptional(pinp,'U0',Udefault)
+    Udefault = zeros(1,iCP.ode.Udim);
+    addOptional(pinp,'f0',Udefault)
     %% Method Parameter
     addOptional(pinp,'MaxIter',100)
     addOptional(pinp,'tol',1e-2)
-    addOptional(pinp,'DescentAlgorithm',@AdaptativeDescent)
+    addOptional(pinp,'DescentAlgorithm',@CoConjugateGradientDescent)
     addOptional(pinp,'DescentParameters',{})
     %% Graphs Parameters
     addOptional(pinp,'Graphs',false)
@@ -90,7 +90,7 @@ function GradientMethod(iCP,varargin)
 
     parse(pinp,iCP,varargin{:})
 
-    U0                  = pinp.Results.U0;
+    f0                  = pinp.Results.f0;
     MaxIter             = pinp.Results.MaxIter;    
     tol                 = pinp.Results.tol;
     Graphs              = pinp.Results.Graphs;
@@ -105,8 +105,8 @@ function GradientMethod(iCP,varargin)
     % ======================================================
     % ======================================================
     if restart
-        if ~isempty(iCP.solution.UOptimal)
-            U0 = iCP.solution.UOptimal;
+        if ~isempty(iCP.solution.fOptimal)
+            f0 = iCP.solution.fOptimal;
         else
             warning('The parameter restart need a previus execution.')
         end
@@ -115,8 +115,8 @@ function GradientMethod(iCP,varargin)
     
     if Graphs 
         % initial axes 
-        nY = length(iCP.ode.InitialCondition);
-        nU = length(U0(1,:));
+        nY = length(iCP.ode.Condition);
+        nU = length(f0(1,:));
         [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif);
     end
     
@@ -128,8 +128,10 @@ function GradientMethod(iCP,varargin)
     iCP.solution.dJhistory = cell(1,MaxIter);
 
     iCP.solution.Jhistory = zeros(1,MaxIter);
-    %
-    iCP.solution.Uhistory{1} = U0;
+    iCP.solution.fhistory = cell(1,MaxIter);
+    iCP.solution.dfhistory = cell(1,MaxIter);
+    
+    iCP.solution.fhistory{1} = f0;
 
         
     %% Clean the persiten variable LengthStepMemory
@@ -141,10 +143,12 @@ function GradientMethod(iCP,varargin)
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
-        [Unew, Ynew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
+        [fnew,dfnew,Unew, Ynew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
 
         % Save history of optimization
         iCP.solution.Uhistory{iter}  = Unew;
+        iCP.solution.fhistory{iter}  = fnew;
+        iCP.solution.dfhistory{iter}  = dfnew;
         iCP.solution.Yhistory{iter}  = Ynew;
         iCP.solution.Jhistory(iter)  = Jnew;
         iCP.solution.dJhistory{iter} = dJnew;

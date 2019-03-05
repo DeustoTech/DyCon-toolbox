@@ -17,7 +17,7 @@ function plotT(iode)
 
 ax = axes;
 
-struct = [iode.VectorState];
+struct = [iode.StateVector];
 Y = {struct.Numeric};
 [nrow ncol] = size(Y{1});
 

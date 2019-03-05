@@ -95,14 +95,20 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [soly]=solution_forward(y0,adjoint,donnees,discr,matrices)
-        
+dt=donnees.T/discr.Mtemps;          
+%C = speye(100,100)+dt*(matrices.M\matrices.A);
         soly=zeros(size(y0,1),discr.Mtemps+1);
-        dt=donnees.T/discr.Mtemps;  
+        
         soly(:,1)=y0;
         for i=1:discr.Mtemps
             soly(:,i+1)=matrices.C\(soly(:,i) ...
 				  + dt*matrices.B*matrices.Bstar*adjoint(:,i));
         end
+% 
+%             figure
+%          surf(matrices.Bstar*adjoint)
+%          title('Umberto Control')  
+        display("P ="+norm(adjoint))
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,13 +200,16 @@ end
 function [w] = grammian(phi0,maillage,discr,donnees,matrices)
 
     solphi=solution_adjoint(phi0,maillage,discr,donnees,matrices);
+
+    
+    
     soly= solution_forward(0*phi0,solphi,donnees,discr,matrices);
     
     w=soly(:,discr.Mtemps+1);
 
 end
 
-function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,verbose,f_init)
+function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,verbose,f_init,y0,soly_libre)
     
     maillages_control;
         calcul_norme_Eh=maill_funcs{2}; 
@@ -232,13 +241,23 @@ function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,ver
         it=it+1;
 
         Lambdaw=grammian(w,maillage,discr,donnees,matrices);
-	
-	    newg = Lambdaw + epsilon*w;
+        %display(norm(Lambdaw))
+%         figure 
+%         subplot(1,2,1)
+%         plot(Lambdaw)
+%         title('YZeroInitial Umberto')
+%         subplot(1,2,2)
+%         plot(w)
+%         title('w Umberto')
+%         
+       % display(norm(Lambdaw))
+
+	    newgbar = Lambdaw + epsilon*w;
 
         rho = produitscalaire_Eh(maillage,g,g,0)/ ...
-        produitscalaire_Eh(maillage,newg,w,0);
+        produitscalaire_Eh(maillage,newgbar,w,0);
         f=f-rho*w;
-        newg = g - rho*newg;
+        newg = g - rho*newgbar;
 
         erreur_gradconj=calcul_norme_Eh(maillage,newg,0)/erreurinit;
 
@@ -257,15 +276,58 @@ function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,ver
 
         if verbose=='oui' 
             if (mod(it,500)==0) 
-                fprintf('Iteration %g - Error %4.3e - Time: %d seconds\n',it,erreur_gradconj,round(toc()));
+                %fprintf('Iteration %g - Error %4.3e - Time: %d seconds\n',it,erreur_gradconj,round(toc()));
             end
         end
+%         display("gamma = "+norm(gam))
+%         display("rho =" +norm(rho))
 
-    end
+    
 
+    %%
+                
+            solphi_1=solution_adjoint(f,maillage,discr,donnees,matrices);
+            controle_1=matrices.Bstar*solphi_1;
+
+            soly_1=solution_forward(y0,solphi_1,donnees,discr,matrices);
+            
+            cout_controle_temps=zeros(discr.Mtemps,1);
+
+            for j=1:discr.Mtemps
+                cout_controle_temps(j)=calcul_norme_Eh(maillage,controle_1(:,j),0);
+            end
+            
+            %fprintf("Size of the controlled solution at time T: %4.2e\n",...
+            %         calcul_norme_Eh(maillage,soly_1(:,discr.Mtemps+1),0));
+            %fprintf("Size of the uncontrolled solution at time T: %4.2e\n",...
+            %         calcul_norme_Eh(maillage,soly_libre(:,discr.Mtemps+1),0));
+            
+            F_eps=1/2*sum(cout_controle_temps.^2)*donnees.T/discr.Mtemps...
+                +1/(2*epsilon)*calcul_norme_Eh(maillage,soly_1(:,discr.Mtemps+1),0).^2;
+            %fprintf('F_eps(v_eps)= %g \n',F_eps)
+            hold on
+            plot(it,F_eps,'*')
+            J_eps=1/2*sum(cout_controle_temps.^2)*donnees.T/discr.Mtemps+...
+            epsilon/2*calcul_norme_Eh(maillage,f,0)^2+...
+            produitscalaire_Eh(maillage,solphi_1(:,1),y0,0);
+            fprintf('F_eps(v_eps)= %g \n',F_eps)
+%             hold on
+%             plot(it,J_eps,'*')
+            %fprintf('-J_eps(q_eps)= %g \n',J_eps);
+            
+            %fprintf('F_(v_opt)~J(mu_opt)= %g \n',abs(F_eps+J_eps)/(abs(F_eps)+abs(J_eps)));   
+    %%
+
+
+end
+            
     Lambdaf=grammian(f,maillage,discr,donnees,matrices);
     w = Lambdaf - secmem;
     w = w + epsilon * f;
+%     
+%     figure
+%     plot(f)
+%     title('F optimal Umberto')
     
     fprintf('Gap = %s \n',string(calcul_norme_Eh(maillage,w,0)));
 

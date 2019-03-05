@@ -19,7 +19,7 @@ function GetGradient(iP)
     %% Creamos las variables simbolica 
     symU   = iode.Control.Symbolic;
     % Obtenemos el vector Symbolico Y = [y1 y2 y3 ...]^T
-    symY   = iode.VectorState.Symbolic;
+    symY   = iode.StateVector.Symbolic;
     % Creamos el vector Symbolico   P = [p1 p2 p3 ...]
     
     symP  =  sym('p', [length(symY),1]);

@@ -71,6 +71,7 @@
        if strcmp(imtd.DefiningClass.Name,ClassName) && ~strcmp(imtd.Name,'empty')
            listofmethods = [listofmethods,sp,imtd.Name,':',newline];
            help_mtd = help([ClassName,'/',imtd.Name]);
+            help_mtd = replace(help_mtd,'\','\\');
            %% Create a file for method
 
            outfile_path = [FolderDocumentation,'/methods/0001-01-01-',imtd.Name,'.md'];

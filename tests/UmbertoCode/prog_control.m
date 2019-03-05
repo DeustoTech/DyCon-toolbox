@@ -64,6 +64,7 @@ for Nmaillage=choixN
    
     y0=evaluation_simple(maillage.xi,donnees.y0);
     
+
     target=0*y0;
     
     for Mtemps=choixMtemps
@@ -73,6 +74,7 @@ for Nmaillage=choixN
         
         soly_libre=solution_forward(y0,zeros(size(y0,1),discr.Mtemps+1),...
             donnees,discr,matrices);
+        
         sec_membre=-soly_libre(:,discr.Mtemps+1);
         
         for epsilon=choix_epsilon
@@ -84,7 +86,7 @@ for Nmaillage=choixN
             end
         
             [phi0opt,it]=grad_conj(maillage,discr,donnees,matrices,...
-                sec_membre,epsilon,donnees.tolerance,'oui',0*sec_membre);
+                sec_membre,epsilon,donnees.tolerance,'oui',0*sec_membre,y0,soly_libre);
        
             solphi=solution_adjoint(phi0opt,maillage,discr,donnees,matrices);
             controle=matrices.Bstar*solphi;
@@ -105,7 +107,7 @@ for Nmaillage=choixN
             
             F_eps=1/2*sum(cout_controle_temps.^2)*donnees.T/discr.Mtemps...
                 +1/(2*epsilon)*calcul_norme_Eh(maillage,soly(:,discr.Mtemps+1),0).^2;
-            fprintf('F_eps(v_eps)= %g \n',F_eps);
+            fprintf('F_eps(v_eps)= %g \n',F_eps)
             
             J_eps=1/2*sum(cout_controle_temps.^2)*donnees.T/discr.Mtemps+...
             epsilon/2*calcul_norme_Eh(maillage,phi0opt,0)^2+...

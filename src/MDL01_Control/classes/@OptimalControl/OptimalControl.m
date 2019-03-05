@@ -56,7 +56,7 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
         % description: It is an array that contains the different functional values during the execution of the optimization algorithm that has been used.
         solution
         %
-        YT
+       
     end
     
      
@@ -107,7 +107,7 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             
             t    = iode.symt;
             symU = iode.Control.Symbolic;
-            symY = iode.VectorState.Symbolic;
+            symY = iode.StateVector.Symbolic;
             %% Functiona Definition
             obj.J.Psi.Symbolic  = symfun(symPsi,[t,symY.']);
             obj.J.Psi.Numeric  = matlabFunction(symPsi,'Vars',{t,symY});

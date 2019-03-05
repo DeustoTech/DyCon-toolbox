@@ -1,4 +1,4 @@
-function solve(iODE,varargin)
+function [tspan,Y] = solve(iODE,varargin)
 % description: 
 % autor: JOroya
 % MandatoryInputs:   
@@ -13,45 +13,23 @@ function solve(iODE,varargin)
 
     addRequired(p,'iODE') 
     addOptional(p,'Control',iODE.Control.Numeric)
-    addOptional(p,'RKMethod',iODE.RKMethod)
-    addOptional(p,'RKParameters',iODE.RKParameters)
+    addOptional(p,'Solver',iODE.Solver)
+    addOptional(p,'SolverParameters',iODE.SolverParameters)
 
     parse(p,iODE,varargin{:})
 
-    Control             = p.Results.Control;
-    RKMethod            = p.Results.RKMethod;
-    RKParameters        = p.Results.RKParameters;
+    Control           = p.Results.Control;
+    Solver            = p.Results.Solver;
+    SolverParameters  = p.Results.SolverParameters;
+    % Update ode properties
+    iODE.Solver           = Solver;
+    iODE.SolverParameters = SolverParameters;
+    iODE.Control.Numeric  = Control;
     
-    iODE.RKMethod = RKMethod;
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    if isempty(Control)
-       if iODE.lineal
-            Control = zeros(length(iODE.tspan),iODE.Udim);
-       else
-            Control = zeros(length(iODE.tspan),length(iODE.Control.Symbolic));
-       end
-    end
+    % Execute with Solver of ode
+    [~,iODE.StateVector.Numeric] = Solver(iODE,SolverParameters{:});
 
-    %%
-    U_fun   = @(t)   interp1(iODE.tspan,Control,t)';   
-
-    switch iODE.Type
-        case 'InitialCondition'
-            dY_dt   = @(t,Y) double(iODE.Dynamic.Numeric(t,Y,U_fun(t)));
-            % RungeKuttaMethod can be ode45
-            [~,iODE.VectorState.Numeric] = RKMethod(dY_dt,iODE.tspan,iODE.Condition,RKParameters{:});
-        case 'FinalCondition'
-            T = iODE.FinalTime;
-            dY_dt   = @(t,Y) -double(iODE.Dynamic.Numeric(T-t,Y,U_fun(T-t)));
-            % RungeKuttaMethod can be ode45
-            [~,iODE.VectorState.Numeric] = RKMethod(dY_dt,iODE.tspan,iODE.Condition,RKParameters{:});
-            iODE.VectorState.Numeric = flipud(iODE.VectorState.Numeric);            
-    end
-
-    iODE.Control.Numeric = Control;
+    % return tspan and vector sate
+    tspan = iODE.tspan;
+    Y     = iODE.StateVector.Numeric;
 end
-
-

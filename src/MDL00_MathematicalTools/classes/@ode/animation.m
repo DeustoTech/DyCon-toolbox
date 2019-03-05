@@ -27,7 +27,7 @@ function animation(iode,varargin)
     xx = p.Results.xx;
     SaveGif = p.Results.SaveGif;
     
-    structure = [iode.VectorState];
+    structure = [iode.StateVector];
     Y = {structure.Numeric};
         
     f = figure;
