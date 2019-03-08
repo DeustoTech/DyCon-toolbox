@@ -39,7 +39,7 @@ function plot(iCP,varargin)
     SaveGif     = p.Results.SaveGif;
     TypeGraphs  = p.Results.TypeGraphs;
     
-    nY = length(iCP.ode.Condition);
+    nY = length(iCP.ode.InitialCondition);
     nU = length(iCP.solution.UOptimal(1,:));
     
     [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif);

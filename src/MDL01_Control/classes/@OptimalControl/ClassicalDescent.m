@@ -1,4 +1,4 @@
-function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin)
+function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine in 
 %                 order to get one update of the control in each iteration. In the case of choosing ClassicalDescent this function 
 %                 updates the control of the following way
@@ -71,12 +71,11 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
     addRequired(p,'iCP')
     addRequired(p,'tol')
 
-    addOptional(p,'LengthStep',0.1)
+    addOptional(p,'LengthStep',0.001)
    
     parse(p,iCP,tol,varargin{:})
 
     LengthStep = p.Results.LengthStep;
-    stop = false;
     
     persistent Iter
     
@@ -84,6 +83,9 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
         Unew = iCP.solution.Uhistory{1};
         %
         [~,Ynew] = solve(iCP.ode,'Control',Unew);
+        T = iCP.ode.FinalTime;
+        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
         %
         Jnew = GetFunctional(iCP,Ynew,Unew);
         Iter = 1;
@@ -95,19 +97,23 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin
         
         Uold  = iCP.solution.Uhistory{Iter-1};
         Yold  = iCP.solution.Yhistory{Iter-1};
-        
-        T = iCP.ode.FinalTime;
-        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Yold(end,:)');
-        Pold  = GetNumericalAdjoint(iCP);
+        Pold  = iCP.solution.Phistory{Iter-1};
+
         dJnew = GetNumericalGradient(iCP,Uold,Yold,Pold);
         
         %% Actualizamos  Control
-        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,10);
-        %OptimalLenght = 0.01;
-        Unew = Uold - OptimalLenght*dJnew; 
+        %[OptimalLenght,Jnew] = fminsearch(@SearchLenght,1);
+        %OptimalLenght = 5;
+        Unew = Uold - LengthStep*dJnew; 
         %% Resolvemos el problem primal
         [~ ,Ynew] = solve(iCP.ode,'Control',Unew);
-        %Jnew = GetFunctional(iCP,Ynew,Unew);
+        Jnew = GetFunctional(iCP,Ynew,Unew);
+        
+        %%
+        
+        T = iCP.ode.FinalTime;
+        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
         
         tspan = iCP.ode.tspan;
         AdJnew = mean(abs(trapz(tspan,dJnew)));

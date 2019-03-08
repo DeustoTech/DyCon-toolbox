@@ -86,8 +86,8 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
         
                     %%
         T = iCP.ode.FinalTime;
-        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
-        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
+        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,YTry(end,:)');
+        Pnew  = GetNumericalAdjoint(iCP,Utry,Ytry);
             
         Iter = 1;
         error = 0;
@@ -131,7 +131,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
    
 end
 %%
-function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,varargin)
+function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Jold,varargin)
 
     p = inputParser;
     addRequired(p,'iCP')
@@ -174,7 +174,6 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
             case 'L2'
                 normdJold = sqrt(mean(trapz(tspan,dJold.^2)));
         end
-        normdJold = 1;
         UTry = Uold - LengthStep*dJold/normdJold; 
         %% Resolvemos el problem primal
         [~ , YTry] = solve(iCP.ode,'Control',UTry);
@@ -185,7 +184,7 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
             %%
             T = iCP.ode.FinalTime;
             iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,YTry(end,:)');
-            Pnew  = GetNumericalAdjoint(iCP,UTry,YTry);
+            Pnew  = GetNumericalAdjoint(iCP,Utry,Ytry);
     %%
             Unew = UTry;
             Ynew = YTry;
@@ -198,7 +197,7 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
             %%
             T = iCP.ode.FinalTime;
             iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,YTry(end,:)');
-            Pnew  = GetNumericalAdjoint(iCP,UTry,YTry);
+            Pnew  = GetNumericalAdjoint(iCP,Utry,Ytry);
             Unew = Uold;
             Ynew = Yold;
             Jnew = Jold;

@@ -232,10 +232,11 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                     obj.Dynamic.Numeric   = @(t,Y,U) obj.A*Y;
                 end
                 % Por defecto 
-                obj.Solver          = @euleri; 
-                obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
-                obj.MassMatrix      = eye(length(obj.StateVector.Symbolic));
+                obj.Solver          = @euleri;
             end
+             
+            obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
+            obj.MassMatrix      = eye(length(obj.StateVector.Symbolic));
             if isempty(obj.InitialCondition)
                 obj.InitialCondition =  zeros(length(Y),1);
             end

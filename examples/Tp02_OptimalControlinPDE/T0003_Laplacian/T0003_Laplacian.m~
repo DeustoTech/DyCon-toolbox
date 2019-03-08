@@ -1,5 +1,5 @@
 %% Parametros de discretizacion
-N = 25;
+N = 200;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N);
 dx = xline(2) - xline(1);
@@ -21,8 +21,8 @@ U = dynamics.Control.Symbolic;
 YT = 0.0*xline';
 epsilon = dx^4;
 symPsi  = dx*(1/(2*epsilon))*(YT - Y).'*(YT - Y);
-symL    = 0.5*dx*(U.'*U);
-%symL     dx* 1/2*sum(abs(U));
+%symL    = 1/2*(U.'*U);
+symL    = dx* 1/2*sum(abs(U));
 
 
 iCP1 = OptimalControl(dynamics,symPsi,symL);
@@ -30,7 +30,7 @@ iCP1 = OptimalControl(dynamics,symPsi,symL);
 %% Solve Gradient
 tol = 1e-6;
 %
-GradientMethod(iCP1,'tol',tol,'Graphs',true,'TypeGraphs','PDE','DescentAlgorithm',@ConjugateGradientDescent,'MaxIter',8000)
+GradientMethod(iCP1,'tol',tol,'Graphs',true,'TypeGraphs','PDE','DescentAlgorithm',@Ada,'MaxIter',8000)
 %%
 dynamics.label = 'Free';
 iCP1.ode.label = 'with Control';

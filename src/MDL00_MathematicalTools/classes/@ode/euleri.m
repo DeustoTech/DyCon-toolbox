@@ -1,5 +1,8 @@
 function [tspan, sol] = euleri(iode,varargin)
-
+    
+    if ~iode.lineal
+       error('This ode can not solve by euleri because it is not lineal') 
+    end
     %%
     A                = iode.A;
     B                = iode.B;

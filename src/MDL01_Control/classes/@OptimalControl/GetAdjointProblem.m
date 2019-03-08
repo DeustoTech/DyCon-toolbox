@@ -40,15 +40,15 @@
     t      = iode.symt;
     symP  =  sym('p', [1 length(symY)]);
     
-    %% Hamiltoniano
     if  double(sum(gradient(obj.J.L.Symbolic,obj.ode.StateVector.Symbolic.'))) == 0
         % dL/dy = 0, el problema adjunto es independiente del control y del
         % estado
         obj.adjoint.ode = ode('A',obj.ode.A.');
             
     else
-        L = obj.J.L.Symbolic;
-        dP_dt = arrayfun( @(xs) -diff(formula(L),xs), symY.');
+        %% Hamiltoniano
+        H = obj.hamiltonian;
+        dP_dt = arrayfun( @(xs) -diff(formula(H),xs), symY.');
         % Convertimos la expresion a una funcion simbolica
         % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
         Control = [symY.' symU.'].';
@@ -80,14 +80,14 @@
     symP  =  sym('p', [1 length(symY)]);
     
     %% Hamiltoniano
-    L = obj.J.L.Symbolic;
+    H = obj.hamiltonian;
     %% Obtenemos el Adjunto
     % Creamos el problema adjunto  en simbolico
-    dP_dt = arrayfun( @(xs) -diff(formula(L),xs), symY.');
+    dP_dt = gradient(formula(H),symY.');
     % Convertimos la expresion a una funcion simbolica
     % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
     Control = [symY.' symU.'].';
-    State   = [symP].';
+    State   = symP.';
     obj.adjoint.ode = ode(dP_dt,State,Control);
     % Pasamos esta funcion a una function_handle
 

@@ -27,6 +27,7 @@ classdef CPSolution < handle
         % default: none
         % description: number of iterations that the algorithm has made
         Jhistory
+        Phistory
         dJhistory
         fhistory
         dfhistory

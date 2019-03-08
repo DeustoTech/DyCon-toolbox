@@ -1,4 +1,4 @@
-
+clear
 
 %% Parametros de discretizacion
 N = 50;
@@ -35,29 +35,49 @@ Y0 =sin(pi*xline)';
 C =  -A;
 B =  B;
 %%%%%%%%%%%%%%%%
-iode = ode('A',C,'B',B);
+iode = pde('A',C,'B',B);
 iode.MassMatrix = M;
-
-iode.dt = 0.005;
+iode.mesh = xline;
+iode.dt = 0.01;
 
 iode.FinalTime = FinalTime;
 
 iode.InitialCondition = Y0;
-
+%iode.Solver = @ode23tb;
 %%
 Y = iode.StateVector.Symbolic;
 U = iode.Control.Symbolic;
 
 symPsi  = 1/(2*epsilon)*(Y).'*(Y);
-symL    = 1/2*(U.'*U);
-
+symL    = sum(abs(U));
+%symL    = 1/2*(U.'*U);
 
 ICP = OptimalControl(iode,symPsi,symL);
 
-GradientMethod(ICP,'Graphs',true,'TypeGraphs','PDE','tol',1e-10,'DescentAlgorithm',@AdaptativeDescent)
+P0 = 0.25*ones(length(ICP.ode.tspan),ICP.ode.Udim);
+U0 = P0*B;
+
+%load('U0normL1.mat')
+%U0 = interp1(U0_normL1_struct.tspan,U0_normL1_struct.U0,ICP.ode.tspan);
+
+GradientMethod(ICP,'Graphs',false,'TypeGraphs','PDE','tol',1e-7,'DescentAlgorithm',@ConjugateGradientDescent,'MaxIter',2000,'U0',U0)
 
 
+U0_normL1_struct.U0    = ICP.solution.UOptimal;
+U0_normL1_struct.tspan = ICP.ode.tspan;
 
+
+surf(U0_normL1_struct.U0)
+colorbar
+caxis([-5 5])
+title('Optimal Control')
+ylabel('time')
+xlabel('space')
+zlim([-20 20])
+view(0,90)
+shading interp
+
+save('U0normL1')
 function [B] = construction_matrix_B(mesh,a,b)
 
 N = length(mesh);

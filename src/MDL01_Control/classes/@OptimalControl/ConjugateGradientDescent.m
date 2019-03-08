@@ -1,4 +1,4 @@
-function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,varargin)
+function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine in order to get 
 %               one update of the control in each iteration. In the case of choosing ConjugateGradientDescent this function updates the
 %               control of the following way
@@ -68,7 +68,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
    
     parse(p,iCP,varargin{:})
 
-    
+    T = iCP.ode.FinalTime;
     persistent Iter
     persistent s
     persistent SeedLengthStep
@@ -82,7 +82,9 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
         % Calculate de Functional numerical Value
         Jnew = GetFunctional(iCP,Ynew,Unew);
         % Calculate de Gradient numerical Value
-        dJnew = GetNumericalGradient(iCP,Unew,Ynew);
+        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
+        dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);
         % Then set s variable equal minus gradient
         s = -dJnew;
         SeedLengthStep = 1; 
@@ -94,39 +96,66 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
         Iter = Iter + 1;
         %
         Uold  = iCP.solution.Uhistory{Iter-1};
+        Yold  = iCP.solution.Yhistory{Iter-1};
+        dJold = iCP.solution.dJhistory{Iter-1};
         
-        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,SeedLengthStep);
+        %HessNew = GetNumericalHessian(iCP,Uold,Yold,Yold);
+        %numerador   = arrayfun(@(indextime) dJold(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        %denominador = arrayfun(@(indextime) s(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        
+        %OptimalLenght = +1* (numerador./denominador);
+        options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off');
+
+        [OptimalLenght,Jnew] = fminunc(@SearchLenght,4*SeedLengthStep,options);
         SeedLengthStep = OptimalLenght;
         %
-        Unew = Uold + OptimalLenght*s; 
+        Unew = Uold + (OptimalLenght.').*s; 
         [~ , Ynew] = solve(iCP.ode,'Control',Unew);
+        %Jnew = GetFunctional(iCP,Ynew,Unew);
+
         % 
-        dJnew = GetNumericalGradient(iCP,Unew,Ynew);
+        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        
+
+        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);   
+        dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);
         % 
-        dJold = iCP.solution.dJhistory{Iter-1};
         tspan = iCP.ode.tspan;
         
         beta  = (trapz(tspan,sum(dJnew.^2,2)))/(trapz(tspan,sum(dJold.^2,2)));
-       
-        s = - dJnew + beta*s;
+        %numerador   = arrayfun(@(indextime) dJnew(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        %denominador = arrayfun(@(indextime) s(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        %beta = numerador./denominador;
+        
+        s = - dJnew + (beta.').*s;
 
         AdJnew = mean(abs(trapz(tspan,dJnew)));
         AUnew = mean(abs(trapz(tspan,Unew)));
         error = AdJnew/AUnew;
         
-        if error < tol || OptimalLenght == 0
+        if error < tol || norm(OptimalLenght) == 0
             stop = true;
         else 
             stop = false;
         end
     end
    
+
     function Jsl = SearchLenght(LengthStep)
         
         Usl = Uold + LengthStep*s; 
         %% Resolvemos el problem primal
         [~ , Ysl] = solve(iCP.ode,'Control',Usl);
         Jsl = GetFunctional(iCP,Ysl,Usl);
+        
+%         iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ysl(end,:)');
+%         
+%         Psl  = GetNumericalAdjoint(iCP,Usl,Ysl);
+%         dJsl = GetNumericalGradient(iCP,Usl,Ysl,Psl);
+%         
+%         dJsl_s = arrayfun(@(indextime) s(indextime,:)*dJsl(indextime,:)',1:length(iCP.ode.tspan));
+%         dJsl_s = trapz(iCP.ode.tspan,dJsl_s);
+        
     end
 end
 

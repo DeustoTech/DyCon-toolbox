@@ -38,7 +38,6 @@
 % Here, we consider a simple problem: we control the all-to-all network
 % system to get gathered phases at final time $T$.
 % We first need to define the system of ODEs in terms of symbolic variables.
-clc
 %%
 m = 5;  % [m]: number of oscillators.
 
@@ -72,22 +71,22 @@ load([path_data,'functions/random_init.mat'],'Om_init','Th_init'); % reference d
 %%
 symF = subs(Vsys,[symOm,symK],[Om_init,K_init]);
 dt = 0.1;      % Here, we can give the time step manually.
-odeEqn = ode(symF,symTh,symU,'Condition',Th_init,'FinalTime',T,'dt',dt);
+odeEqn = ode(symF,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'dt',dt);
 %%
 % We next construct cost functional for the control problem.
 symPsi = norm(sin(symThth.' - symThth),'fro');      % Sine distance for the periodic interval $[0,2pi]$.
-symL_1 = 0.01*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
+symL_1 = 0.0001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
 %
 iCP_1 = OptimalControl(odeEqn,symPsi,symL_1);
 %% Solve Gradient descent
 tic
-GradientMethod(iCP_1)
+GradientMethod(iCP_1,'Graphs',true)
 toc
 %% Visualization
 % First, we present the dynamics without control,
-solve(odeEqn)
+[tspan, ThetaVector] = solve(odeEqn);
 figure
-plot(odeEqn.tspan',odeEqn.VectorState.Numeric(:,:))
+plot(tspan',ThetaVector)
 legend("\theta_"+[1:m])
 ylabel('Phases [rad]')
 xlabel('Time [sec]')
@@ -95,8 +94,8 @@ title('The dynamics without control (incoherence)')
 %%
 % and see the controled dynamics.
 odec_1 = iCP_1.ode;
-clf
-plot(odec_1.tspan',odec_1.VectorState.Numeric(:,:))
+figure
+plot(odec_1.tspan',odec_1.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])
 ylabel('Phases [rad]')
 xlabel('Time [sec]')
@@ -104,7 +103,7 @@ title('The dynamics under control')
 
 %%
 % We also can plot the control function along time.
-clf
+figure
 Ufinal_1 = iCP_1.solution.UOptimal;
 plot(odec_1.tspan',Ufinal_1)
 legend("norm(u(t)) = "+norm(Ufinal_1))
@@ -115,16 +114,16 @@ title('The control function')
 % In this part, we change the regularization into L^1-norm and see the
 % difference.
 
-symL_2 = 0.01*abs(symU);
+symL_2 = 0.0001*abs(symU);
 iCP_2 = OptimalControl(odeEqn,symPsi,symL_2);
 % 
 tic
-GradientMethod(iCP_2)
+GradientMethod(iCP_2,'Graphs',true)
 toc
 %%
 odec_2 = iCP_2.ode;
-clf
-plot(odec_2.tspan',odec_2.VectorState.Numeric(:,:))
+figure
+plot(odec_2.tspan',odec_2.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])
 ylabel('Phases [rad]')
 xlabel('Time [sec]')
@@ -132,12 +131,12 @@ title('The dynamics under control with different regularization')
 
 %% 
 Ufinal_2 = iCP_2.solution.UOptimal;
-clf
+figure
 plot(odec_1.tspan',Ufinal_1)
 line(odec_2.tspan',Ufinal_2,'Color','red')
 
-Thfinal_1 = odec_1.VectorState.Numeric(end,:);
-Thfinal_2 = odec_2.VectorState.Numeric(end,:);
+Thfinal_1 = odec_1.StateVector.Numeric(end,:);
+Thfinal_2 = odec_2.StateVector.Numeric(end,:);
 Psi_1 = norm(sin(Thfinal_1.' - Thfinal_1),'fro');
 Psi_2 = norm(sin(Thfinal_2.' - Thfinal_2),'fro');
 

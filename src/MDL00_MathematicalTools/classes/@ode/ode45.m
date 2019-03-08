@@ -7,12 +7,12 @@ InitialCondition = iode.InitialCondition;
 U = iode.Control.Numeric;
 
 
-iLQR.ode.SolverParameters = {odeset('Mass',iode.MassMatrix)};
+iode.SolverParameters = {odeset('Mass',iode.MassMatrix)};
 
 Ufun = @(t) interp1(tspan,U,t)';
 dynamics = @(t,Y) iode.Dynamic.Numeric(t,Y,Ufun(t));
 
-[tspan,StateVector] = ode45(dynamics,tspan,InitialCondition,varargin{:});
+[tspan,StateVector] = ode45(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
 
 iode.StateVector.Numeric = StateVector;
 
