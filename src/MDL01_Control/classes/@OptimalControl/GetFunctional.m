@@ -24,6 +24,10 @@ function Jvalue = GetFunctional(iCP,Y,U)
 %    class: double
 %    dimension: [1x1]
 
+    %p = parse()
+    %addRequired(p,'iCP')
+    
+    
     tspan   = iCP.ode.tspan;
     L       = iCP.J.L.Numeric;
     Psi     = iCP.J.Psi.Numeric;

@@ -19,7 +19,7 @@ function GetGradient(iP)
     %% Creamos las variables simbolica 
     symU   = iode.Control.Symbolic;
     % Obtenemos el vector Symbolico Y = [y1 y2 y3 ...]^T
-    symY   = iode.VectorState.Symbolic;
+    symY   = iode.StateVector.Symbolic;
     % Creamos el vector Symbolico   P = [p1 p2 p3 ...]
     
     symP  =  sym('p', [length(symY),1]);
@@ -29,7 +29,7 @@ function GetGradient(iP)
         %iP.hamiltonian = symL + symP.'*(iP.ode.A* iP.ode.VectorState.Symbolic + iP.ode.B*iP.ode.Control.Symbolic);
     %end
     % Para cada cordenada de U, calculamos la derivada de dH/du_i
-    dH_du = arrayfun(@(u) diff(formula(iP.hamiltonian),u), symU.');
+    dH_du = gradient(formula(iP.hamiltonian),symU).';
     %
     iP.gradient.sym = symfun(dH_du,[t symY.' symP.' symU.']);
     % Pasamos esta funcion a una function_handle

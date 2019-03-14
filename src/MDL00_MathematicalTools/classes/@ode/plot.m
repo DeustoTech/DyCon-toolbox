@@ -39,13 +39,16 @@ function plot(iode,varargin)
     
     if iode.PDE
         surf(iode.VectorState.Numeric)
+        Parent.XLabel.String = 'space';
+        Parent.YLabel.String = 'time';
+        Parent.Title.String = 'Y(x,t)';
     else
-    plot(iode.tspan,iode.VectorState.Numeric,'Parent',Parent)
-    
-    legend(string(iode.VectorState.Symbolic))
-    Parent.YLabel.String = 'states';
-    Parent.XLabel.String = 'time(s)';
-    Parent.Title.String = 'solution';
+        plot(iode.tspan,iode.VectorState.Numeric,'Parent',Parent)
+
+        legend(string(iode.VectorState.Symbolic))
+        Parent.YLabel.String = 'states';
+        Parent.XLabel.String = 'time(s)';
+        Parent.Title.String = 'solution';
     end
 end
 

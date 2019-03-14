@@ -51,12 +51,13 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
         % default: none
         % description: The adjoint propertir contain the numerical function that represents the adjoint problem this struct have a two properties. The first is dP_dt and the second is P0.   
         gradient
+        hessian
         % type: double
         % default: none
         % description: It is an array that contains the different functional values during the execution of the optimization algorithm that has been used.
         solution
         %
-        YT
+       
     end
     
      
@@ -107,7 +108,7 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             
             t    = iode.symt;
             symU = iode.Control.Symbolic;
-            symY = iode.VectorState.Symbolic;
+            symY = iode.StateVector.Symbolic;
             %% Functiona Definition
             obj.J.Psi.Symbolic  = symfun(symPsi,[t,symY.']);
             obj.J.Psi.Numeric  = matlabFunction(symPsi,'Vars',{t,symY});
@@ -118,6 +119,8 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             obj.ode          = copy(iode);
             %% Direccion del Gradiente
             GetGradient(obj);
+            GetHessian(obj);
+
             %% Calculate Adjoint of Dynamics
             GetAdjointProblem(obj);
             

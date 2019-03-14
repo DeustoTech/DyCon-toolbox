@@ -25,16 +25,17 @@
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-N = 25;
+N = 20;
 xi = -1; xf = 1;
-xline = linspace(xi,xf,N);
-dx = xline(2) -xline(1);
+xline = linspace(xi,xf,N+2);
+xline = xline(2:end-1);
 %%
 % Out of that, we can construct the FE approxiamtion of the fractional
 % Lapalcian, using the program FEFractionalLaplacian developped by our
 % team, which implements the methodology described in [1].
-s = 0.8;
-A = -10*FEFractionalLaplacian(s,1,N);
+s = 0.3;
+A = FEFractionalLaplacian(s,1,N);
+M = massmatrix(xline);
 %%
 % Moreover, we build the matrix $B$ defining the action of the control, by
 % using the program "construction_matrix_B" (see below).
@@ -55,7 +56,11 @@ Y0 =sin(pi*xline)';
 %   \end{cases}
 % \end{equation}
 % $$
-dynamics = ode('A',A,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.01);
+C = -(M\A);
+dynamics = ode('A',C,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.005);
+dynamics.RKMethod = @ode23tb;
+solve(dynamics)
+%%
 Y = dynamics.VectorState.Symbolic;
 U = dynamics.Control.Symbolic;
 %% Construction of the control problem
@@ -82,18 +87,19 @@ U = dynamics.Control.Symbolic;
 % \end{equation*} $$
 %%
 % Moreover, we set the final target to $y(T)=0$.
+dx = xline(2)-xline(1);
 YT = 0.0*xline';
 symPsi  = dx*(YT - Y).'*(YT - Y);
-symL    = dx*0.001*(U.'*U);
+symL    = dx*U.'*U;
 iCP1 = OptimalControl(dynamics,symPsi,symL);
 
 %% Solution of the minimization problem
 % As a final step, we use the gradient method we developed for solving the
 % minimization problem and computing the control. In this case, we choose
 % to use the **Adaptive Gradient Descent** algorithm.
-tol = 1e-6;
+tol = 1e-9;
 %%
-GradientMethod(iCP1,'DescentAlgorithm',@AdaptativeDescent,'tol',tol)
+CoGradientMethod(iCP1,'DescentAlgorithm',@CoConjugateGradientDescent,'tol',tol,'Graphs',true,'TypeGraphs','PDE','MaxIter',1000)
 %%
 % As we see, the algorithm has stopped since it has reached the maximum
 % number of iterations allowed, and not because it has encountered a 
@@ -129,6 +135,19 @@ B = zeros(N,N);
 control = (mesh>=a).*(mesh<=b);
 B = diag(control);
 
+end
+function M = massmatrix(mesh)
+    N = length(mesh);
+    dx = mesh(2)-mesh(1);
+    M = 2/3*eye(N);
+    for i=2:N-1
+        M(i,i+1)=1/6;
+        M(i,i-1)=1/6;
+    end
+    M(1,2)=1/6;
+    M(N,N-1)=1/6;
+            
+    M=dx*sparse(M);
 end
 %% References
 % 

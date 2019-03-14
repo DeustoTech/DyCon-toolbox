@@ -36,20 +36,25 @@
     symPsi = Jfun.Psi.Symbolic;
     %% Creamos las variables simbolica 
     symU   = iode.Control.Symbolic;
-    symY   = iode.VectorState.Symbolic;
+    symY   = iode.StateVector.Symbolic;
     t      = iode.symt;
     symP  =  sym('p', [1 length(symY)]);
     
-    %% Hamiltoniano
-    H = obj.hamiltonian;
-    %% Obtenemos el Adjunto
-    % Creamos el problema adjunto  en simbolico
-    dP_dt = arrayfun( @(xs) -diff(formula(H),xs), symY.');
-    % Convertimos la expresion a una funcion simbolica
-    % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
-    obj.adjoint.Dynamic.Symbolic = symfun(dP_dt,[t symP symY.' symU.']);
-    % Pasamos esta funcion a una function_handle
-    obj.adjoint.Dynamic.Numeric = matlabFunction(dP_dt,'Vars',{t,symP,symY,symU});
+    if  double(sum(gradient(obj.J.L.Symbolic,obj.ode.StateVector.Symbolic.'))) == 0
+        % dL/dy = 0, el problema adjunto es independiente del control y del
+        % estado
+        obj.adjoint.ode = ode('A',obj.ode.A.');
+            
+    else
+        %% Hamiltoniano
+        H = obj.hamiltonian;
+        dP_dt = arrayfun( @(xs) -diff(formula(H),xs), symY.');
+        % Convertimos la expresion a una funcion simbolica
+        % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
+        Control = [symY.' symU.'].';
+        State   = [symP].';
+        obj.adjoint.ode = ode(dP_dt,State,Control); 
+    end
 
     %% Condicion inicial del problema adjunto
     % Para cada cordenada de X, calculamos la derivada de dPsi/dx_i
@@ -60,6 +65,7 @@
     % Pasamos esta funcion a una function_handle
     obj.adjoint.FinalCondition.Numeric = matlabFunction(PT,'Vars',{t,symY});
   
+    obj.adjoint.P = symP;
   end
   
   function NonLinealAdjoint(obj)
@@ -69,7 +75,7 @@
     symPsi = Jfun.Psi.Symbolic;
     %% Creamos las variables simbolica 
     symU   = iode.Control.Symbolic;
-    symY   = iode.VectorState.Symbolic;
+    symY   = iode.StateVector.Symbolic;
     t      = iode.symt;
     symP  =  sym('p', [1 length(symY)]);
     
@@ -77,12 +83,13 @@
     H = obj.hamiltonian;
     %% Obtenemos el Adjunto
     % Creamos el problema adjunto  en simbolico
-    dP_dt = arrayfun( @(xs) -diff(formula(H),xs), symY.');
+    dP_dt = gradient(formula(H),symY.');
     % Convertimos la expresion a una funcion simbolica
     % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
-    obj.adjoint.Dynamic.Symbolic = symfun(dP_dt,[t symP symY.' symU.']);
+    Control = [symY.' symU.'].';
+    State   = symP.';
+    obj.adjoint.ode = ode(dP_dt,State,Control);
     % Pasamos esta funcion a una function_handle
-    obj.adjoint.Dynamic.Numeric = matlabFunction(dP_dt,'Vars',{t,symP,symY,symU});
 
     %% Condicion inicial del problema adjunto
     % Para cada cordenada de X, calculamos la derivada de dPsi/dx_i
@@ -93,4 +100,6 @@
     % Pasamos esta funcion a una function_handle
     obj.adjoint.FinalCondition.Numeric = matlabFunction(PT,'Vars',{t,symY});
   
+    obj.adjoint.P = symP;
+
   end

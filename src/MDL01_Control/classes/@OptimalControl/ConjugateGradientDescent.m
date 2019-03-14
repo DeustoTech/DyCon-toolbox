@@ -1,47 +1,41 @@
-function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,varargin)
-%  description: This method is able to update the value of the control by decreasing 
-%               the value of the functional. By calculating the gradient, $ \\frac{dH}{du}$. Also, it is decremented 
-%               in that direction, assuring the decrease by the adaptive step size. 
-%  little_description: This method is able to update the value of the control by decreasing the value of the functional. 
+function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,varargin)
+%  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine in order to get 
+%               one update of the control in each iteration. In the case of choosing ConjugateGradientDescent this function updates the
+%               control of the following way
+%                 $$u_{old}=u_{new}-\alpha_k s_k$$
+%                 where $s_k$ is the descent direction.
+%                 The optimal control problem is defined by
+%                 $$\min J=\min (\Psi (t,Y(T))+\int^T_0 L(t,Y,U)dt)$$
+%                 subject to
+%                 $$\frac{d}{dt}Y=f(t,Y,U).$$
+%                 The gradient of $J$ is
+%                 $$dJ=\partial_u H=\partial_uL+p\partial_uf$$
+%                 An $p$ is computed using
+%                 $$-\frac{d}{dt}p = f_Y (t,Y,U)p+L_Y(Y,U)$$
+%                 $$ p(T)=\psi_Y(Y(T))$$
+%                 Since one the expression of the gradient, we can start with an initial control, solve the adjoint problem and evaluate 
+%                 the gradient. Then one updates the initial control in the direction of the approximate gradient with a step size
+%                 $\alpha_k$. $\alpha_k$ is determined by trying to solve numerically the following
+%                 $$\min_{\alpha_k}J(y_k,u_k-\alpha_k s_k)$$
+%                 where $s_k$ is choosen using the gradient of $J$.
+%                 Then, the follow $s_{k+1}$ is compute by
+%                 $$ s_{k+1} = -dJ_{k+1} + \beta_{k} s_{k}$$
+%                 where
+%                 $$ \beta_{k} = || dJ_{k+1} || / || dJ_{k} ||$$
+%                 This routine will tell to GradientMethod to stop when the minimum tolerance of the derivative
+%                (or the relative error, user's choice) is reached. Moreover there is a maximum of iterations allowed.
+%  little_description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine in order to get 
+%               one update of the control in each iteration.
 %  autor: JOroya
 %  MandatoryInputs:   
 %    iCP: 
 %        description: Control Problem Object
 %        class: ControlProblem
 %        dimension: [1x1]
-%    UOld: 
+%    tol: 
 %        description: Control Vector in time  
 %        class: double
 %        dimension: [M,iCP.tspan]
-%    YOld: 
-%        description: State Vector in time 
-%        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
-%    JOld: 
-%        description: Value of functional J(Uold,Yold)
-%        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
-%  OptionalInputs:
-%    InitialLengthStep: 
-%        description: This parameter is the step size if the MiddleStepControl option is false. 
-%                       If the option MiddleStepControl is activated then this parameter is the initial step
-%                       of the methodo but then the step is doubled in the case where the functional iteration 
-%                       decreases and is divided by two its the functional one grows.
-%        class: double
-%        dimension: [1x1]
-%    MinLengthStep: 
-%        description: It may happen that although we divide the step of the descenco many times,
-%                       we continue to obtain an update that increases the value of the functional. In this case,
-%                       it is necessary to have a minimum step size to avoid infinite loops. This parameter is
-%                       responsible for this.
-%        class: double
-%        dimension: [1x1]
-%    MiddleStepControl: 
-%        description: If this parameter is enabled, it allows the algorithm to search for different 
-%                       step-logitudes, provided that the control update decrements the functional value. If it is
-%                       deactivated, the descent of the gradient will be constant.
-%        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
 %  Outputs:
 %    Unew:
 %        description: Update of Control Vector  
@@ -55,6 +49,18 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
 %        description: New Value of functional 
 %        class: double
 %        dimension: [1x1]
+%    dJnew:
+%        description: New Value of gradient 
+%        class: double
+%        dimension: [1x1]
+%    error:
+%        description: the error $\vert dJ \vert / \vert U \vert $  
+%        class: double
+%        dimension: [1x1]
+%    stop:
+%        description: New Value of functional 
+%        class: logical
+%        dimension: [1x1]
 
     p = inputParser;
     
@@ -62,7 +68,7 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
    
     parse(p,iCP,varargin{:})
 
-    
+    T = iCP.ode.FinalTime;
     persistent Iter
     persistent s
     persistent SeedLengthStep
@@ -72,13 +78,13 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
         % Get First Control
         Unew = iCP.solution.Uhistory{1};
         % Solve Dynamics with this control
-        solve(iCP.ode,'Control',Unew);
-        % Get the solution of dynamics 
-        Ynew = iCP.ode.VectorState.Numeric;
+        [~, Ynew] = solve(iCP.ode,'Control',Unew);
         % Calculate de Functional numerical Value
         Jnew = GetFunctional(iCP,Ynew,Unew);
         % Calculate de Gradient numerical Value
-        dJnew = GetNumericalGradient(iCP,Unew,Ynew);
+        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
+        dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);
         % Then set s variable equal minus gradient
         s = -dJnew;
         SeedLengthStep = 1; 
@@ -90,41 +96,66 @@ function  [Unew ,Ynew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,
         Iter = Iter + 1;
         %
         Uold  = iCP.solution.Uhistory{Iter-1};
+        Yold  = iCP.solution.Yhistory{Iter-1};
+        dJold = iCP.solution.dJhistory{Iter-1};
         
-        [OptimalLenght,Jnew] = fminsearch(@SearchLenght,SeedLengthStep);
+        %HessNew = GetNumericalHessian(iCP,Uold,Yold,Yold);
+        %numerador   = arrayfun(@(indextime) dJold(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        %denominador = arrayfun(@(indextime) s(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        
+        %OptimalLenght = +1* (numerador./denominador);
+        options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off');
+
+        [OptimalLenght,Jnew] = fminunc(@SearchLenght,4*SeedLengthStep,options);
         SeedLengthStep = OptimalLenght;
         %
-        Unew = Uold + OptimalLenght*s; 
-        solve(iCP.ode,'Control',Unew);
-        Ynew = iCP.ode.VectorState.Numeric;
+        Unew = Uold + (OptimalLenght.').*s; 
+        [~ , Ynew] = solve(iCP.ode,'Control',Unew);
+        %Jnew = GetFunctional(iCP,Ynew,Unew);
+
         % 
-        dJnew = GetNumericalGradient(iCP,Unew,Ynew);
+        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        
+
+        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);   
+        dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);
         % 
-        dJold = iCP.solution.dJhistory{Iter-1};
         tspan = iCP.ode.tspan;
         
         beta  = (trapz(tspan,sum(dJnew.^2,2)))/(trapz(tspan,sum(dJold.^2,2)));
-       
-        s = - dJnew + beta*s;
+        %numerador   = arrayfun(@(indextime) dJnew(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        %denominador = arrayfun(@(indextime) s(indextime,:)*HessNew(:,:,indextime)*s(indextime,:)',1:length(iCP.ode.tspan));
+        %beta = numerador./denominador;
+        
+        s = - dJnew + (beta.').*s;
 
         AdJnew = mean(abs(trapz(tspan,dJnew)));
         AUnew = mean(abs(trapz(tspan,Unew)));
         error = AdJnew/AUnew;
         
-        if error < tol || OptimalLenght == 0
+        if error < tol || norm(OptimalLenght) == 0
             stop = true;
         else 
             stop = false;
         end
     end
    
+
     function Jsl = SearchLenght(LengthStep)
         
         Usl = Uold + LengthStep*s; 
         %% Resolvemos el problem primal
-        solve(iCP.ode,'Control',Usl);
-        Ysl = iCP.ode.VectorState.Numeric;
+        [~ , Ysl] = solve(iCP.ode,'Control',Usl);
         Jsl = GetFunctional(iCP,Ysl,Usl);
+        
+%         iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ysl(end,:)');
+%         
+%         Psl  = GetNumericalAdjoint(iCP,Usl,Ysl);
+%         dJsl = GetNumericalGradient(iCP,Usl,Ysl,Psl);
+%         
+%         dJsl_s = arrayfun(@(indextime) s(indextime,:)*dJsl(indextime,:)',1:length(iCP.ode.tspan));
+%         dJsl_s = trapz(iCP.ode.tspan,dJsl_s);
+        
     end
 end
 

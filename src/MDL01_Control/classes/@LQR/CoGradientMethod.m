@@ -1,4 +1,4 @@
-function GradientMethod(iCP,varargin)
+function CoGradientMethod(iCP,varargin)
     % name: GradientMethod
     % little_description: The gradient method is able to optimize the given functional, going down the gradient.
     % description: "The gradient method is able to optimize the given
@@ -70,12 +70,12 @@ function GradientMethod(iCP,varargin)
     pinp = inputParser;
     addRequired(pinp,'iControlProblem')
     %%
-    Udefault = zeros(length(iCP.ode.tspan),iCP.ode.Udim);
-    addOptional(pinp,'U0',Udefault)
+    Udefault = zeros(1,iCP.ode.Udim);
+    addOptional(pinp,'f0',Udefault)
     %% Method Parameter
     addOptional(pinp,'MaxIter',500)
-    addOptional(pinp,'tol',1e-5)
-    addOptional(pinp,'DescentAlgorithm',@AdaptativeDescent)
+    addOptional(pinp,'tol',1e-9)
+    addOptional(pinp,'DescentAlgorithm',@CoConjugateGradientDescent)
     addOptional(pinp,'DescentParameters',{})
     %% Graphs Parameters
     addOptional(pinp,'Graphs',false)
@@ -90,7 +90,7 @@ function GradientMethod(iCP,varargin)
 
     parse(pinp,iCP,varargin{:})
 
-    U0                  = pinp.Results.U0;
+    f0                  = pinp.Results.f0;
     MaxIter             = pinp.Results.MaxIter;    
     tol                 = pinp.Results.tol;
     Graphs              = pinp.Results.Graphs;
@@ -105,8 +105,8 @@ function GradientMethod(iCP,varargin)
     % ======================================================
     % ======================================================
     if restart
-        if ~isempty(iCP.solution.UOptimal)
-            U0 = iCP.solution.UOptimal;
+        if ~isempty(iCP.solution.fOptimal)
+            f0 = iCP.solution.fOptimal;
         else
             warning('The parameter restart need a previus execution.')
         end
@@ -116,8 +116,8 @@ function GradientMethod(iCP,varargin)
     if Graphs 
         % initial axes 
         nY = length(iCP.ode.InitialCondition);
-        nU = length(U0(1,:));
-        [axY,axU,axJ] = init_graphs_gradientmethod(TypeGraphs,nY,nU,SaveGif);
+        nU = length(f0(1,:));
+        [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif);
     end
     
     %% Creamos un solucion vacia
@@ -128,39 +128,39 @@ function GradientMethod(iCP,varargin)
     iCP.solution.dJhistory = cell(1,MaxIter);
 
     iCP.solution.Jhistory = zeros(1,MaxIter);
-    %
-    iCP.solution.Uhistory{1} = U0;
+    iCP.solution.fhistory = cell(1,MaxIter);
+    iCP.solution.dfhistory = cell(1,MaxIter);
+    
+    iCP.solution.fhistory{1} = f0;
 
         
     %% Clean the persiten variable LengthStepMemory
     clear(char(DescentAlgorithm))
     % ClassicalDescent
     % ConjugateGradientDescent
-    % ConjugateGradienDescent
+    % CoConjugateGradienDescent
     
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
-        [Unew, Ynew,Pnew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
+        [fnew,dfnew,Unew, Ynew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
 
         % Save history of optimization
         iCP.solution.Uhistory{iter}  = Unew;
+        iCP.solution.fhistory{iter}  = fnew;
+        iCP.solution.dfhistory{iter} = dfnew;
         iCP.solution.Yhistory{iter}  = Ynew;
-        iCP.solution.Phistory{iter}  = Pnew;
         iCP.solution.Jhistory(iter)  = Jnew;
         iCP.solution.dJhistory{iter} = dJnew;
-        iCP.solution.Ehistory(iter)     = error;
-        display(     "error = "        + num2str(error,'%d')        + ...
-                 " | Functional = "    + num2str(Jnew,'%d')         + ...
-                 " | norm(Gradient) = "+ num2str(norm(dJnew),'%d')  + ...
-                 " | norm(U) = "       + num2str(norm(Unew),'%d')   + ...
-                 " | iter = "          + iter)
-       
+        iCP.solution.Ehistory(iter)  = error;
+        %display(['error = ',num2str(error)])
+        %%
+
         % Stopping Criteria
         if iter ~= 1 
             if Graphs   
                 % plot the graphical convergence 
-                bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,iCP.solution.Jhistory,iCP.ode.tspan,iter,TypeGraphs,SaveGif)
+                bucle_graphs(axY,axU,axJ,Ynew,Unew,iCP.solution.Jhistory,iCP.ode.tspan,iter,TypeGraphs,SaveGif)
             end
             if stop
                   break 
@@ -183,6 +183,105 @@ function GradientMethod(iCP,varargin)
     iCP.solution.time = toc; 
     
     resume(iCP.solution)
+end
+
+
+%% 
+function [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif)
+   f = figure;
+   FontSize  = 11;
+   set(f,'defaultuipanelFontSize',FontSize)
+   Ypanel = uipanel('Parent',f,'Units','norm','Pos',[0.0 0.0 1/3 1.0],'Title','State');
+   Upanel = uipanel('Parent',f,'Units','norm','Pos',[1/3 0.0 1/3 1.0],'Title','Control');
+   Jpanel = uipanel('Parent',f,'Units','norm','Pos',[2/3 0.0 1/3 1.0],'Title','Functional Convergence');
+
+   switch TypeGraphs
+       case 'ODE'
+           index = 0;
+           for iY = 1:nY
+              index = index + 1;
+              axY{index} = subplot(nY,1,iY,'Parent',Ypanel);
+              axY{index}.Title.String = ['Y_',num2str(index),'(t)'];
+              axY{index}.XLabel.String = 't';
+           end
+
+           index = 0;
+           for iU = 1:nU
+              index = index + 1;
+              axU{index} = subplot(nU,1,iU,'Parent',Upanel);
+              axU{index}.Title.String = ['U_',num2str(index),'(t)'];
+              axU{index}.XLabel.String = 't';
+           end
+
+       case 'PDE'
+            axY = axes('Parent',Ypanel);
+            axU = axes('Parent',Upanel);
+   end
+          
+   axJ = axes('Parent',Jpanel);
+   axJ.Title.String = 'J';
+   axJ.XLabel.String = 'iter';
+   
+   if SaveGif
+      numbernd =  num2str(floor(100000*rand),'%.6d');
+      gif([numbernd,'.gif'],'frame',f,'DelayTime',1/2)  
+   end
+
+end
+function bucle_graphs(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif)
+
+    Color = {'r','g','b','y','k','c'};
+    
+    switch TypeGraphs
+        case 'ODE'
+            iter_graph = 0;
+            for iy = Ynew
+                iter_graph = iter_graph + 1;
+                index_color = 1+ mod(iter_graph-1,length(Color));
+                line(tspan,iy,'Parent',axY{iter_graph},'Color',Color{index_color},'LineStyle','-','Marker','.')
+                if length(axY{iter_graph}.Children) > 1
+                    axY{iter_graph}.Children(2).Color = 0.25*(3+axY{iter_graph}.Children(2).Color);
+                    axY{iter_graph}.Children(2).Marker = 'none';
+
+
+                end
+            end
+
+            iter_graph = 0;
+            for iu = Unew
+                iter_graph = iter_graph + 1;
+                index_color = 1+ mod(iter_graph-1,length(Color));
+                line(tspan,iu,'Parent',axU{iter_graph},'Color',Color{index_color},'LineStyle','-','Marker','.')
+                if length(axU{iter_graph}.Children) > 1
+                    axU{iter_graph}.Children(2).Color =  0.25*(3+axU{iter_graph}.Children(2).Color);
+                    axU{iter_graph}.Children(2).Marker = 'none';
+
+                end
+            end                  
+        case 'PDE'
+            line(1:length(Ynew(end,:)),Ynew(end,:),'Parent',axY,'Marker','.')
+            if length(axY.Children) > 1
+                    axY.Children(2).Color =  0.25*(3+axY.Children(2).Color);
+                    axY.Children(2).Marker = 'none';
+            end  
+            
+            line(1:length(Unew(end,:)),Unew(end,:),'Parent',axU,'Marker','.')                       
+            if length(axU.Children) > 1
+                    axU.Children(2).Color =  0.25*(3+axU.Children(2).Color);
+                    axU.Children(2).Marker = 'none';
+            end
+             
+            
+    end
+
+
+    line(0:(iter-1),Jhistory(1:iter),'Parent',axJ,'Color','b','Marker','s')
+
+    if SaveGif
+       f = axJ.Parent.Parent;
+       gif('frame',f)
+    end
+    pause(0.1)
 end
 
 

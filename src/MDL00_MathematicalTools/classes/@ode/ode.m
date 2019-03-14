@@ -7,7 +7,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     %               $$ \dot{Y} = f(t,Y,U) \ \  Y(0) = Y_0$$
     %       where 
     %           $$ Y = \begin{pmatrix} y_1 \\ y_2 \\..  \\ y_n  \end{pmatrix} \text{   ,   }
-    %             U  = \begin{pmatrix} u_1 \\ u_2 \\..  \\u_m   \end{pmatrix} $$
+    %              U  = \begin{pmatrix} u_1 \\ u_2 \\..  \\u_m   \end{pmatrix} $$
     %       This class is necessary in the toolbox since within the toolbox to be able to systematize
     %       some algorithms. You can create ode objects, which are capable of parameterizing so that 
     %       with a solve statement it is solved. In this way, we can write the "solve" command within
@@ -26,7 +26,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %                                   aviable if previus solve the equation. 
         %                   </li>
         %               </ul>"
-        VectorState       
+        StateVector       
         %%
         % type: "Struct"
         % dimension: [1x1]
@@ -53,12 +53,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % dimension: [1xN]
         % default: "[0 0 0 ...]"
         % description: "Initial State or Final State dependent of property Type"
-        Condition                                                                double     
-        % type: "double"
-        % dimension: [1x1]
-        % default: "InitialCondition"
-        % description: "The equation can be InitialCondition  or FinalCondition problems."
-        Type        {mustBeMember(Type,{'FinalCondition','InitialCondition'})} = 'InitialCondition'                                                                    
+        InitialCondition                                                                double     
         % type: "double"
         % dimension: [1x1]
         % default: "1"
@@ -69,10 +64,10 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % default: "none"
         % description: "Time interval of plots. ATTENTION - the solution of ode is obtain by ode45, with adatative step"
         dt                                          (1,1)                           double  
-        label = ''
-        RKMethod = @ode45
-        RKParameters = {}
-        PDE = false
+        MassMatrix
+        label = '' 
+        Solver = @ode45
+        SolverParameters = {}
         
     end
 
@@ -81,13 +76,13 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % dimension: [NxN]
         % default: "none"
         % description:  A matrix of lineal problems. If this property is empty, so the ode is not lineal. 
-        %                 $$ \\dot{Y} = \\textbf{A}Y + BU $$
+        %                 $$ \dot{Y} = \textbf{A}Y + BU $$
         A
         % type: "double"
         % dimension: [NxN]
         % default: "none"
         % description: B matrix of lineal problems. If this property is empty, so the ode is not lineal. 
-        %                 $$ \\dot{Y} = AY + \\textbf{B}U $$
+        %                 $$ \dot{Y} = AY + \textbf{B}U $$
         B
         % type: "logical"
         % dimension: [MxN]
@@ -125,8 +120,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             %       description: simbolic expresion
             %       class: Symbolic
             %       dimension: [1x1]
-            %   VectorState: 
-            %       description: VectorState
+            %   StateVector: 
+            %       description: StateVector
             %       class: Symbolic
             %       dimension: [1x1]
             %   Control: 
@@ -152,7 +147,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             p = inputParser;
             
             addOptional(p,'DynamicEquation',[])
-            addOptional(p,'VectorState',[])
+            addOptional(p,'StateVector',[])
             addOptional(p,'Control',[])
             
             addOptional(p,'A',[])
@@ -161,29 +156,29 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             
             addOptional(p,'dt',0.1)
             addOptional(p,'FinalTime',1)
-            addOptional(p,'Condition',[])
+            addOptional(p,'InitialCondition',[])
 
             parse(p,varargin{:})
             
             DynamicEquation     = p.Results.DynamicEquation;
-            VectorState         = p.Results.VectorState;
+            StateVector         = p.Results.StateVector;
             Control             = p.Results.Control;
             
             obj.A              = p.Results.A;
             obj.B              = p.Results.B;
 
             obj.dt              = p.Results.dt;
-            obj.Condition       = p.Results.Condition;
             obj.FinalTime       = p.Results.FinalTime;
-            obj.Condition       = p.Results.Condition;
+            obj.InitialCondition       = p.Results.InitialCondition;
+            
             %% Init Program
-            if  (~isempty(DynamicEquation) && ~isempty(VectorState) && ~isempty(Control) ...
+            if  (~isempty(DynamicEquation) && ~isempty(StateVector) && ~isempty(Control) ...
                  && isempty(obj.A) && isempty(obj.B) )
                     
                    obj.lineal = false;
                    
-            elseif (isempty(DynamicEquation) && isempty(VectorState) && isempty(Control) ...
-                 && ~isempty(obj.A) && ~isempty(obj.B) )
+            elseif (isempty(DynamicEquation) && isempty(StateVector) && isempty(Control) ...
+                 && ~isempty(obj.A) )
              
                    obj.lineal = true;
                     
@@ -194,38 +189,56 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             obj.symt                    = t;
 
             if ~obj.lineal
-                Y    = VectorState;
-                obj.VectorState.Symbolic    = Y;
-                obj.VectorState.Numeric     = [];
+                %%  Ha entrado variables simbolicas
+                Y    = StateVector;
+                obj.StateVector.Symbolic    = Y;
+                obj.StateVector.Numeric     = [];
                 
-                U    = Control;
-                obj.Control.Symbolic    = U;
-                obj.Control.Numeric         = [];
+                index = 0;
+                
+                for iU = Control
+                    index = index + 1;
+                    obj.Control(index).Symbolic        = iU;
+                    obj.Control(index).Numeric         = [];
+                end
+                U =  [obj.Control.Symbolic];
                 
                 obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
                 obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,Y,U});
+                
             else
+                %% Han entrado matrices A y B 
                 [nrow,~ ] = size(obj.A);
                 
-                obj.VectorState.Symbolic = sym('y',[nrow 1]);
-                Y = obj.VectorState.Symbolic;
+                % Creamos la estructura para el vector de estado 
+                obj.StateVector.Symbolic = sym('y',[nrow 1]);
+                Y = obj.StateVector.Symbolic;
                 
-                obj.VectorState.Numeric     = [];
-
+                obj.StateVector.Numeric     = [];
+                % Creamos la estructura para el control
                 [~ ,ncol] = size(obj.B);
                 U = sym('u',[ncol 1]) ;
                 obj.Control.Symbolic        = U;
                 obj.Control.Numeric         = [];
-
-                DynamicEquation = obj.A*Y + obj.B*U;
                 
-                obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
-                obj.Dynamic.Numeric   = @(t,Y,U) obj.A*Y + obj.B*U;
-                obj.RKMethod          = @eulere; 
-                
+               %
+                if ~isempty(U)
+                    DynamicEquation = obj.A*Y + obj.B*U;
+                    obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
+                    obj.Dynamic.Numeric   = @(t,Y,U) obj.A*Y + obj.B*U;
+                else
+                    DynamicEquation = obj.A*Y;
+                    obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.']);
+                    obj.Dynamic.Numeric   = @(t,Y,U) obj.A*Y;
+                end
+                % Por defecto 
+                obj.Solver          = @euleri;
             end
-            if isempty(obj.Condition)
-                obj.Condition =  zeros(length(Y),1);
+             
+            obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
+            obj.MassMatrix      = eye(length(obj.StateVector.Symbolic));
+            if isempty(obj.InitialCondition)
+                obj.InitialCondition =  zeros(length(Y),1);
             end
 
         end
@@ -235,16 +248,23 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         function tspan = get.tspan(obj)
                 tspan = 0:obj.dt:obj.FinalTime;
         end
-        %% ================================================================================
-        %
-        %% ================================================================================
-        %
-        %% ================================================================================
+        %%
         function Udim = get.Udim(obj)
             Udim =  length(obj.Control.Symbolic);
         end
         %% ================================================================================
-        %
+        function set.dt(obj,dt)
+            obj.dt = dt;
+            if ~ isempty(obj.Control)
+                obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
+            end
+        end
+        function set.FinalTime(obj,FinalTime)
+            obj.FinalTime = FinalTime;
+            if ~ isempty(obj.Control)
+                obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
+            end
+        end
         %% ================================================================================
     end
 end
