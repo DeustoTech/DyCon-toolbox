@@ -75,12 +75,12 @@ odeEqn = ode(symF,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'dt',dt);
 %%
 % We next construct cost functional for the control problem.
 symPsi = norm(sin(symThth.' - symThth),'fro');      % Sine distance for the periodic interval $[0,2pi]$.
-symL_1 = 0.0001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
+symL_1 = 0.001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
 %
 iCP_1 = OptimalControl(odeEqn,symPsi,symL_1);
 %% Solve Gradient descent
 tic
-GradientMethod(iCP_1,'Graphs',true)
+GradientMethod(iCP_1,'Graphs',true,'DescentAlgorithm',@ClassicalDescent)
 toc
 %% Visualization
 % First, we present the dynamics without control,
@@ -114,11 +114,11 @@ title('The control function')
 % In this part, we change the regularization into L^1-norm and see the
 % difference.
 
-symL_2 = 0.0001*abs(symU);
+symL_2 = 0.001*abs(symU);
 iCP_2 = OptimalControl(odeEqn,symPsi,symL_2);
 % 
 tic
-GradientMethod(iCP_2,'Graphs',true)
+GradientMethod(iCP_2,'Graphs',true,'DescentAlgorithm',@ClassicalDescent)
 toc
 %%
 odec_2 = iCP_2.ode;

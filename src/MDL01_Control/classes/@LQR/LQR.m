@@ -8,18 +8,20 @@ classdef LQR < OptimalControl
     end
     
     methods
-        function obj = LQR(A,B,varargin)
+        function obj = LQR(A,B,mesh,varargin)
             
             p = inputParser;
             
             addRequired(p,'A')
             addRequired(p,'B')
-            
+            addRequired(p,'mesh')
+
             addOptional(p,'YT', zeros(length(A(:,1)),1))
             addOptional(p,'epsilon', 0.01)
-            parse(p,A,B,varargin{:})
+            parse(p,A,B,mesh,varargin{:})
             
             
+            dx = mesh(2) -mesh(1);
             
             %%
             YT   = p.Results.YT;
@@ -30,8 +32,8 @@ classdef LQR < OptimalControl
             Y = dynamics.StateVector.Symbolic;
             U = dynamics.Control.Symbolic;
 
-            symPsi  = 1/(2*epsilon)*(YT - Y).'*(YT - Y);
-            symL    = 1/2*(U.'*U);
+            symPsi  = dx/(2*epsilon)*(YT - Y).'*(YT - Y);
+            symL    = dx/2*(U.'*U);
             obj@OptimalControl(dynamics,symPsi,symL);
             
             obj.YT = YT;

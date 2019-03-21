@@ -82,11 +82,10 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
         solve(iCP.ode,'Control',Unew);
         %
         Ynew = iCP.ode.StateVector.Numeric;
-        Jnew = GetFunctional(iCP,Ynew,Unew);
+        Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
         
                     %%
         T = iCP.ode.FinalTime;
-        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
             
         Iter = 1;
@@ -97,7 +96,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
     else
         Iter = Iter + 1;
         
-        Pold  = iCP.solution.Uhistory{Iter-1};
+        Pold  = iCP.solution.Phistory{Iter-1};
         Uold  = iCP.solution.Uhistory{Iter-1};
         Yold  = iCP.solution.Yhistory{Iter-1};
         Jold  = iCP.solution.Jhistory(Iter-1);
@@ -174,17 +173,16 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
             case 'L2'
                 normdJold = sqrt(mean(trapz(tspan,dJold.^2)));
         end
-        normdJold = 1;
-        UTry = Uold - LengthStep*dJold/normdJold; 
+        UTry = Uold - LengthStep*dJold/normdJold;
+        UTry = UpdateControlWithConstraints(iCP,UTry);
         %% Resolvemos el problem primal
         [~ , YTry] = solve(iCP.ode,'Control',UTry);
         % Calculate functional value
-        JTry = GetFunctional(iCP,YTry,UTry);
+        JTry = GetNumericalFunctional(iCP,YTry,UTry);
      
         if ((JTry - Jold) <= 0)
             %%
             T = iCP.ode.FinalTime;
-            iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,YTry(end,:)');
             Pnew  = GetNumericalAdjoint(iCP,UTry,YTry);
     %%
             Unew = UTry;
@@ -197,7 +195,6 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
         if (LengthStep <= MinLengthStep)
             %%
             T = iCP.ode.FinalTime;
-            iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,YTry(end,:)');
             Pnew  = GetNumericalAdjoint(iCP,UTry,YTry);
             Unew = Uold;
             Ynew = Yold;

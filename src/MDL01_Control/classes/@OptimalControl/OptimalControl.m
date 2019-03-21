@@ -57,7 +57,7 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
         % description: It is an array that contains the different functional values during the execution of the optimization algorithm that has been used.
         solution
         %
-       
+        constraints
     end
     
      
@@ -104,11 +104,25 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             addRequired(p,'symPsi');
             addRequired(p,'symL');
                     
+            
+            addOptional(p,'Gradient',[])
+            addOptional(p,'Hessian',[])
+            addOptional(p,'Adjoint',[])
+            addOptional(p,'AdjointFinalCondition',[])
+            
             parse(p,iode,symPsi,symL,varargin{:})
             
             t    = iode.symt;
             symU = iode.Control.Symbolic;
             symY = iode.StateVector.Symbolic;
+            Hessian  = p.Results.Hessian;
+            Gradient  = p.Results.Gradient;
+
+            Adjoint   = p.Results.Adjoint;
+            AdjointFinalCondition =  p.Results.AdjointFinalCondition;
+            %% Constraints Struture
+            obj.constraints.Umax = [];
+            obj.constraints.Umin = [];
             %% Functiona Definition
             obj.J.Psi.Symbolic  = symfun(symPsi,[t,symY.']);
             obj.J.Psi.Numeric  = matlabFunction(symPsi,'Vars',{t,symY});
@@ -117,13 +131,43 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             obj.J.L.Numeric    = matlabFunction(symL,'Vars',{t,symY,symU});
             %% Dynamics Definition                   
             obj.ode          = copy(iode);
+            %% Hamiltonian
+            
+            symP  =  sym('p', [length(symY),1]);
+            if obj.ode.lineal   
+                obj.hamiltonian = symL + symP.'*(obj.ode.A* obj.ode.StateVector.Symbolic + obj.ode.B*obj.ode.Control.Symbolic);
+            else
+                obj.hamiltonian = symL + symP.'*formula(obj.ode.Dynamic.Symbolic);
+            end
+            
             %% Direccion del Gradiente
-            GetGradient(obj);
-            GetHessian(obj);
+            
+            if isempty(Gradient)
+                GetSymbolicalGradient(obj);
+            else
+                obj.gradient.num = Gradient;
+            end
+            
+            if isempty(Hessian)
+                if ~isempty(Gradient)
+                    warning('If you specify gradient, is better specify hessian also.')
+                    GetSymbolicalGradient(obj);
+                end
+                GetSymbolicalHessian(obj);
+            end
 
             %% Calculate Adjoint of Dynamics
-            GetAdjointProblem(obj);
-            
+            if isempty(Adjoint)
+                GetSymbolicalAdjointProblem(obj);
+            else
+                obj.adjoint.ode = Adjoint;
+            end
+            %% Calculate Adjoint of Dynamics
+            if isempty(AdjointFinalCondition)
+                GetSymbolicalAdjointFinalCondition(obj);
+            else
+                obj.adjoint.FinalCondition.Numeric = AdjointFinalCondition;
+            end
         end
         
     end

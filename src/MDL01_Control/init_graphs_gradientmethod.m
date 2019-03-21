@@ -7,7 +7,7 @@ function [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif)
    Jpanel = uipanel('Parent',f,'Units','norm','Pos',[2/3 0.0 1/3 1.0],'Title','Functional Convergence');
 
    switch TypeGraphs
-       case 'ODE'
+       case 'ode'
            index = 0;
            for iY = 1:nY
               index = index + 1;
@@ -24,7 +24,7 @@ function [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif)
               axU{index}.XLabel.String = 't';
            end
 
-       case 'PDE'
+       case 'pde'
             axY{1}  = subplot(2,1,1,'Parent',Ypanel);
             axY{1}.Title.String = 'Final State Vector ';
             axY{1}.XLabel.String = 'Space';

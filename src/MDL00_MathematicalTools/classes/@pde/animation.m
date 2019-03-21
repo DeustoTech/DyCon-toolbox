@@ -18,6 +18,9 @@ function animation(iode,varargin)
     
     addRequired(p,'iode')
     addOptional(p,'YLim',[])
+    addOptional(p,'YLimControl',[])
+    addOptional(p,'Target',[])
+
     addOptional(p,'xx',1.0)
     addOptional(p,'SaveGif',false)
     
@@ -26,16 +29,22 @@ function animation(iode,varargin)
     YLim = p.Results.YLim;
     xx = p.Results.xx;
     SaveGif = p.Results.SaveGif;
+    YLimControl = p.Results.YLimControl;
+    Target = p.Results.Target;
     
     structure = [iode.StateVector];
     Y = {structure.Numeric};
-        
+    structure = [iode.Control];
+    U = {structure.Numeric};        
     f = figure;
-    ax = axes('Parent',f);
+    axY = subplot(1,2,1,'Parent',f);
     if ~isempty(YLim)
-        ax.YLim = YLim;
+        axY.YLim = YLim;
     end
-    
+    axU = subplot(1,2,2,'Parent',f);
+    if ~isempty(YLimControl)
+        axU.YLim = YLimControl;
+    end
     %
     tspan = iode.tspan;
         
@@ -47,11 +56,20 @@ function animation(iode,varargin)
    
    if SaveGif
       numbernd =  num2str(floor(100000*rand),'%.6d');
-      gif([numbernd,'.gif'],'frame',ax.Parent,'DelayTime',1/8)  
+      gif([numbernd,'.gif'],'frame',axY.Parent,'DelayTime',1/8)  
    end
    
-   ax.XLabel.String = 'Space';
-   ax.YLabel.String = 'State';
+   axY.XLabel.String = 'Space';
+   axY.YLabel.String = 'State';
+   
+   if ~isempty(Target)
+      line(iode(1).mesh,Target,'Parent',axY) 
+   end
+   
+   
+   axU.XLabel.String = 'Space';
+   axU.YLabel.String = 'Control';
+   
    
    while true
         t = xx*toc;
@@ -60,24 +78,27 @@ function animation(iode,varargin)
         end
         if exist('l','var')
             delete(l)
+            delete(luu)
         end
-        ax.Title.String = ['t = ',num2str(t,'%.2f')];
+        axY.Title.String = ['t = ',num2str(t,'%.2f')];
         
         index = 0;
         colors = {'r','g','b'};
         LinS = {'-','--'};
-        pt = {'*','s'};
+        pt = {'.','.'};
         for iY = Y
             ic = mod(index,3) + 1;
             il = mod(index,2) + 1;
             ip = mod(index,2) + 1;
             index = index + 1;
-            l(index) = line(1:ncol,interp1(tspan,iY{:},t),'Parent',ax,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic});
+            l(index)   = line(iode(1).mesh,interp1(tspan,iY{:},t),'Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic});
+            luu(index) = line(iode(1).mesh,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic});
+
         end
-        legend({iode.label})
+        legend(axU,{iode.label})
         pause(0.1)
         if SaveGif
-            gif('frame',ax.Parent)
+            gif('frame',axY.Parent)
         end
     end
 

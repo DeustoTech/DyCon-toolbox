@@ -1,4 +1,4 @@
-function Jvalue = GetFunctional(iCP,Y,U)
+function Jvalue = GetNumericalFunctional(iCP,Y,U)
 % description: Method capable of calculating the value of the functional defined in the control problem.
 % little_description: Method capable of calculating the value of the functional defined in the control problem.
 % autor: JOroya
@@ -31,16 +31,10 @@ function Jvalue = GetFunctional(iCP,Y,U)
     tspan   = iCP.ode.tspan;
     L       = iCP.J.L.Numeric;
     Psi     = iCP.J.Psi.Numeric;
-    
-    Yfun = @(t) interp1(tspan,Y,t);
-    Ufun = @(t) interp1(tspan,U,t);
 
-    Lvalues = arrayfun(@(t)  L(t,Yfun(t)',Ufun(t)'),tspan);
+    Lvalues = arrayfun(@(index)  L(tspan(index),Y(index,:)',U(index,:)'),1:length(tspan));
 
-    Larea   = trapz(tspan,Lvalues);
-    %        % 
-    T = tspan(end);
-    Jvalue = Larea + Psi(T,Yfun(T)');
+    Jvalue = trapz(tspan,Lvalues) + Psi(tspan(end),Y(end,:)');
 end
 
 

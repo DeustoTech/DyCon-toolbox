@@ -1,4 +1,4 @@
-
+clear
 
 %% Parametros de discretizacion
 N = 50;
@@ -9,9 +9,9 @@ dx = xline(2)-xline(1);
 
 epsilon = dx^4;
 
-
 s = 0.8;
 A = FEFractionalLaplacian(s,1,N);
+
 M = massmatrix(xline);
 %%
 % Moreover, we build the matrix $B$ defining the action of the control, by
@@ -36,15 +36,59 @@ Y0 =sin(pi*xline)';
 C =  -A;
 B =  B;
 %%%%%%%%%%%%%%%%
+iode = pde('A',C,'B',B);
+iode.MassMatrix = M;
+iode.mesh = xline;
+iode.dt = 0.01;
 
-iLQR = LQR(C,B,xline,'epsilon',epsilon);
-iLQR.ode.MassMatrix = M;
-iLQR.ode.dt = 0.005;
-iLQR.ode.FinalTime = FinalTime;
-iLQR.ode.InitialCondition = Y0;
+iode.FinalTime = FinalTime;
+
+iode.InitialCondition = Y0;
+%%
+Y = iode.StateVector.Symbolic;
+U = iode.Control.Symbolic;
+
+symPsi  = dx*1/(2*epsilon)*(Y).'*(Y);
+symL    = dx*sum(abs(U));
+%symL    = dx*1/2*(U.'*U);
+
+iCP = OptimalControl(iode,symPsi,symL);
+
+P0 = 0.0005*ones(length(iCP.ode.tspan),iCP.ode.Udim);
+U0 = P0*B;
+
+load('U0normL1.mat')
+
+U0 = U0_normL1_struct.U0;
+
+funobj =  @(U) Control2Functional(iCP,U);
+
+options = optimoptions('fminunc','Algorithm','quasi-newton','SpecifyObjectiveGradient',false,'Display','iter');
+
+U0_normL1_struct.U0  = fminunc(funobj,U0,options);
+
+U0_normL1_struct.tspan = iCP.ode.tspan;
 
 
-CoGradientMethod(iLQR,'Graphs',true,'TypeGraphs','PDE','tol',1e-5)
+surf(U0_normL1_struct.U0)
+figure 
+solve(iode)
+plot(iode.StateVector.Numeric(end,:))
+hold on
+plot(iCP.ode.StateVector.Numeric(end,:))
+figure
+surf(iCP.ode.StateVector.Numeric)
+% colorbar
+% caxis([-5 5])
+% title('Optimal Control')
+% ylabel('time')
+% xlabel('space')
+% zlim([-20 20])
+% view(0,90)
+% shading interp
+% 
+% save('U0normL1')
+
 
 function [B] = construction_matrix_B(mesh,a,b)
 

@@ -25,7 +25,7 @@
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-N = 20;
+N = 30;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N+2);
 xline = xline(2:end-1);
@@ -33,7 +33,7 @@ xline = xline(2:end-1);
 % Out of that, we can construct the FE approxiamtion of the fractional
 % Lapalcian, using the program FEFractionalLaplacian developped by our
 % team, which implements the methodology described in [1].
-s = 0.3;
+s = 0.8;
 A = FEFractionalLaplacian(s,1,N);
 M = massmatrix(xline);
 %%
@@ -56,12 +56,13 @@ Y0 =sin(pi*xline)';
 %   \end{cases}
 % \end{equation}
 % $$
-C = -(M\A);
-dynamics = ode('A',C,'B',B,'Condition',Y0,'FinalTime',FinalTime,'dt',0.005);
-dynamics.RKMethod = @ode23tb;
-solve(dynamics)
+C = -(A);
+B =  (B);
+dynamics = pde('A',C,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',0.05);
+dynamics.MassMatrix = M;
+solve(dynamics);
 %%
-Y = dynamics.VectorState.Symbolic;
+Y = dynamics.StateVector.Symbolic;
 U = dynamics.Control.Symbolic;
 %% Construction of the control problem
 % Secondly, we construct the control problem, which consists in minimizing
@@ -89,17 +90,18 @@ U = dynamics.Control.Symbolic;
 % Moreover, we set the final target to $y(T)=0$.
 dx = xline(2)-xline(1);
 YT = 0.0*xline';
+epsilon = dx^4;
 symPsi  = dx*(YT - Y).'*(YT - Y);
-symL    = dx*U.'*U;
+symL    = 1e-6*dx*(U.'*U);
 iCP1 = OptimalControl(dynamics,symPsi,symL);
 
 %% Solution of the minimization problem
 % As a final step, we use the gradient method we developed for solving the
 % minimization problem and computing the control. In this case, we choose
 % to use the **Adaptive Gradient Descent** algorithm.
-tol = 1e-9;
+tol = 1e-3;
 %%
-CoGradientMethod(iCP1,'DescentAlgorithm',@CoConjugateGradientDescent,'tol',tol,'Graphs',true,'TypeGraphs','PDE','MaxIter',1000)
+GradientMethod(iCP1,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'Graphs',true,'MaxIter',1000)
 %%
 % As we see, the algorithm has stopped since it has reached the maximum
 % number of iterations allowed, and not because it has encountered a 
@@ -107,7 +109,7 @@ CoGradientMethod(iCP1,'DescentAlgorithm',@CoConjugateGradientDescent,'tol',tol,'
 %%
 % Actually, we can see in the figure below that the final state is not
 % controlled to zero.
-plot(iCP1,'TypeGraphs','PDE')
+plot(iCP1,'TypeGraphs','pde')
 %%
 % This is because the HUM functional $J$ we chose to minimize is not suitable
 % for numerical implementation. Indeed, as it has been pointed out in [2], 

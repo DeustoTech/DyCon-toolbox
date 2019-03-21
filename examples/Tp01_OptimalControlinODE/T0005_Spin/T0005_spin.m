@@ -10,7 +10,7 @@ T = 8;
 Y0 = [2,3.2,1,4];
 Fsym  = symU;
 
-dynamics = ode(Fsym,symY,symU,'Condition',Y0,'FinalTime',T);
+dynamics = ode(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
 %
 beta=1;
 alphaone=0.0392; %in the pdf "draft_Marposs3.pdf", this parameter is "\alpha_1".
@@ -28,8 +28,11 @@ symL    = (0.5)*(symU(1)^2+symU(2)^2+symU(3)^2+symU(4)^2)+ ...
 % Creta the control Problem
 iCP1 = OptimalControl(dynamics,symPsi,symL);
 %% Solve Gradient
-%GradientMethod(iCP1,'Graphs',true,'DescentAlgorithm',@ClassicalDescent,'DescentParameters',{'LengthStep',1e-1})
+%GradientMethod(iCP1,'Graphs',true,'DescentAlgorithm',@ClassicalDescent,'DescentParameters',{'LengthStep',1e-4})
+GradientMethod(iCP1,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all')
 
-GradientMethod(iCP1)
+U0 = iCP1.ode.Control.Numeric
+GradientMethod(iCP1,'Graphs',false,'DescentAlgorithm',@ConjugateGradientDescent,'display','all','U0',U0)
+
 %%
 plot(iCP1)

@@ -23,10 +23,10 @@
 % minimize the distance between the average of the final states and a given final target.
 %%
 % In this case $\nu_i$ are
-nu = 1:2:6;
+nu = 1:0.5:6;
 %%
 % Size of state vector
-N = 3;
+N = 4;
 M = length(nu);
 
 Am = eye(N, N);
@@ -71,31 +71,31 @@ xt = zeros(N, 1);
 %%
 iode = ode('A',A,'B',B);
 Y0 = ones(N, 1);
-iode.Condition = repmat(Y0,M,1);
+iode.InitialCondition = repmat(Y0,M,1);
 iode.dt = 0.01;
 
 %% 
-Ys = iode.VectorState.Symbolic;
+Ys = iode.StateVector.Symbolic;
 U  = iode.Control.Symbolic;
 %%
-Ysm = arrayfun(@(index) mean(Ys(index:M:N*M)),1:M).';
+Ysm = arrayfun(@(index) mean(Ys(index:(M+1):N*M)),1:N).';
 Yt = zeros(N, 1); 
 Psi = (Ysm - Yt).'*(Ysm - Yt);
 beta = 1e-3;
-L   = 0.5*beta*U.'*U;
+L   = 0.5*beta*(U.'*U);
 %%
 % Create the optimal control 
 iCP1 = OptimalControl(iode,Psi,L);
 %% 
 % Solve 
-GradientMethod(iCP1)
+GradientMethod(iCP1,'DescentAlgorithm',@ClassicalDescent,'MaxIter',1000,'Graphs',false)
 %%
 % See average free
 solve(iode)
-Yfree    = iode.VectorState.Numeric;
-Ycontrol = iCP1.ode.VectorState.Numeric;
+Yfree    = iode.StateVector.Numeric;
+Ycontrol = iCP1.ode.StateVector.Numeric;
 %%
-cellstate = arrayfun(@(index) mean(Yfree(:,index:M:N*M),2),1:M,'UniformOutput',0);
+cellstate = arrayfun(@(index) mean(Yfree(:,index:(M+1):N*M),2),1:N,'UniformOutput',0);
 meanvector = [cellstate{:}];
 plot(meanvector);
 legend(strcat(repmat('x_',N,1),num2str((1:N)')))
@@ -103,8 +103,9 @@ title('Free Average States')
 
 %%
 % Average Control
-cellstate = arrayfun(@(index) mean(Ycontrol(:,index:M:N*M),2),1:M,'UniformOutput',0);
+cellstate = arrayfun(@(index) mean(Ycontrol(:,index:(M+1):N*M),2),1:N,'UniformOutput',0);
 meanvector = [cellstate{:}];
+figure
 plot(meanvector);
 legend(strcat(repmat('x_',N,1),num2str((1:N)')))
 title('Control Average States')

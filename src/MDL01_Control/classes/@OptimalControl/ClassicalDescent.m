@@ -78,6 +78,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,var
     LengthStep = p.Results.LengthStep;
     
     persistent Iter
+    persistent seed
     
     if isempty(Iter)
         Unew = iCP.solution.Uhistory{1};
@@ -87,27 +88,45 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,var
         iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
         %
-        Jnew = GetFunctional(iCP,Ynew,Unew);
+        Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
         Iter = 1;
         error = 0;
         dJnew = Unew;
         stop = false;
+        seed = 1;
+        
     else
         Iter = Iter + 1;
         
         Uold  = iCP.solution.Uhistory{Iter-1};
         Yold  = iCP.solution.Yhistory{Iter-1};
         Pold  = iCP.solution.Phistory{Iter-1};
+        Jold  = iCP.solution.Jhistory(Iter-1);
 
         dJnew = GetNumericalGradient(iCP,Uold,Yold,Pold);
         
         %% Actualizamos  Control
-        %[OptimalLenght,Jnew] = fminsearch(@SearchLenght,1);
-        %OptimalLenght = 5;
-        Unew = Uold - LengthStep*dJnew; 
+%         Jnew = Jold + 1;
+%         while Jnew > Jold 
+%             [OptimalLenght,Jnew] = fminunc(@SearchLenght,seed);
+%             if OptimalLenght < 1e-60
+%                 warning('The Optimal Lenght Step is cero.')
+%                 Jnew = Jold;
+%                 OptimalLenght = 0;
+%                 
+%             end
+%             seed = 0.1*seed;
+%         end
+        %options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'Display','off','Algorithm','quasi-newton','CheckGradients',false);
+        %options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'Display','off','Algorithm','trust-region','CheckGradients',false);
+        options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off','Algorithm','quasi-newton','CheckGradients',false);
+
+        [OptimalLenght,Jnew] = fminunc(@SearchLenght,0,options);
+        Unew = Uold - OptimalLenght*dJnew; 
+        Unew = UpdateControlWithConstraints(iCP,Unew);
         %% Resolvemos el problem primal
         [~ ,Ynew] = solve(iCP.ode,'Control',Unew);
-        Jnew = GetFunctional(iCP,Ynew,Unew);
+        %Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
         
         %%
         
@@ -119,17 +138,32 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,var
         AdJnew = mean(abs(trapz(tspan,dJnew)));
         AUnew = mean(abs(trapz(tspan,Unew)));
         error = AdJnew/AUnew;
-        if error < tol
+        if error < tol || OptimalLenght == 0
             stop = true;
         else 
             stop = false;
         end
     end
-    function Jsl = SearchLenght(LengthStep)
+    function [Jsl,varargout] = SearchLenght(LengthStep)
         
         Usl = Uold - LengthStep*dJnew; 
+        Usl = UpdateControlWithConstraints(iCP,Usl);
+
         %% Resolvemos el problem primal
         [~ ,Ysl] = solve(iCP.ode,'Control',Usl);
-        Jsl = GetFunctional(iCP,Ysl,Usl);
+        Jsl = GetNumericalFunctional(iCP,Ysl,Usl);
+        
+        
+        if nargout > 1
+           Psl  = GetNumericalAdjoint(iCP,Usl,Ysl);
+           dJsl = GetNumericalGradient(iCP,Usl,Ysl,Psl);
+           %
+           %dJda  = (trapz(tspan,sum(dJsl.*s,2)));
+           dJda = -arrayfun(@(indextime) dJsl(indextime,:)*dJnew(indextime,:).',1:length(iCP.ode.tspan));
+           dJda = trapz(iCP.ode.tspan,dJda);
+           
+           
+           varargout{1} = dJda;
+        end
     end
 end

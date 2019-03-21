@@ -115,7 +115,7 @@ function GradientMethod(iCP,varargin)
     
     if Graphs 
         % initial axes 
-        nY = length(iCP.ode.Condition);
+        nY = length(iCP.ode.InitialCondition);
         nU = length(f0(1,:));
         [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif);
     end

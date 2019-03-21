@@ -1,9 +1,9 @@
-function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif)
+function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif,live)
 
     Color = {'r','g','b','y','k','c'};
     
     switch TypeGraphs
-        case 'ODE'
+        case 'ode'
             iter_graph = 0;
             for iy = Ynew
                 iter_graph = iter_graph + 1;
@@ -28,7 +28,7 @@ function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,T
 
                 end
             end                  
-        case 'PDE'
+        case 'pde'
             
             nspace = length(Ynew(1,:));
             ntime  = length(tspan);
@@ -70,8 +70,9 @@ function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,T
             axU{2}.Title.String = 'Evolution of Control Vector ';
             axU{2}.YLabel.String = 'Space';
             axU{2}.XLabel.String = 'Time';
-
+            if live
             pause(0.01)
+            end
     end
 
     inititer = 0;

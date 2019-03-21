@@ -74,15 +74,13 @@ function GradientMethod(iCP,varargin)
     addOptional(pinp,'U0',Udefault)
     %% Method Parameter
     addOptional(pinp,'MaxIter',500)
-    addOptional(pinp,'tol',1e-5)
+    addOptional(pinp,'tol',1e-3)
     addOptional(pinp,'DescentAlgorithm',@AdaptativeDescent)
     addOptional(pinp,'DescentParameters',{})
     %% Graphs Parameters
     addOptional(pinp,'Graphs',false)
-    addOptional(pinp,'TypeGraphs','ODE')
+    addOptional(pinp,'display',false)
     addOptional(pinp,'SaveGif',false)
-
-
     addOptional(pinp,'restart',false)
 
     %% 
@@ -95,10 +93,10 @@ function GradientMethod(iCP,varargin)
     tol                 = pinp.Results.tol;
     Graphs              = pinp.Results.Graphs;
     restart             = pinp.Results.restart;
-    TypeGraphs          = pinp.Results.TypeGraphs;
     SaveGif             = pinp.Results.SaveGif;
     DescentAlgorithm    = pinp.Results.DescentAlgorithm;
     DescentParameters   = pinp.Results.DescentParameters;
+    display_parameter   = pinp.Results.display;
     % ======================================================
     % ======================================================
     %                   INIT PROGRAM
@@ -117,6 +115,7 @@ function GradientMethod(iCP,varargin)
         % initial axes 
         nY = length(iCP.ode.InitialCondition);
         nU = length(U0(1,:));
+        TypeGraphs =  class(iCP.ode);
         [axY,axU,axJ] = init_graphs_gradientmethod(TypeGraphs,nY,nU,SaveGif);
     end
     
@@ -150,17 +149,24 @@ function GradientMethod(iCP,varargin)
         iCP.solution.Jhistory(iter)  = Jnew;
         iCP.solution.dJhistory{iter} = dJnew;
         iCP.solution.Ehistory(iter)     = error;
-        display(     "error = "        + num2str(error,'%d')        + ...
-                 " | Functional = "    + num2str(Jnew,'%d')         + ...
-                 " | norm(Gradient) = "+ num2str(norm(dJnew),'%d')  + ...
-                 " | norm(U) = "       + num2str(norm(Unew),'%d')   + ...
-                 " | iter = "          + iter)
-       
+        
+        switch display_parameter
+            case 'all'
+            display(     "error = "        + num2str(error,'%d')        + ...
+                     " | Functional = "    + num2str(Jnew,'%d')         + ...
+                     " | norm(Gradient) = "+ num2str(norm(dJnew),'%d')  + ...
+                     " | norm(U) = "       + num2str(norm(Unew),'%d')   + ...
+                     " | iter = "          + iter)
+            case 'functional'
+            display(     "error = "        + num2str(error,'%d')        + ...
+                     " | Functional = "    + num2str(Jnew,'%d')         + ...
+                     " | iter = "          + iter)
+        end
         % Stopping Criteria
         if iter ~= 1 
             if Graphs   
                 % plot the graphical convergence 
-                bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,iCP.solution.Jhistory,iCP.ode.tspan,iter,TypeGraphs,SaveGif)
+                bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,iCP.solution.Jhistory,iCP.ode.tspan,iter,TypeGraphs,SaveGif,true)
             end
             if stop
                   break 

@@ -60,21 +60,17 @@ function dJnew = GetNumericalGradient(iCP,U,Y,P)
     dH_du               = iCP.gradient.num;
     %
     tspan   =  iCP.ode.tspan;
-    %%
-    U_fun  = @(t) interp1(tspan,U,t); 
-    Y_fun  = @(t) interp1(tspan,Y,t);
-    P_fun  = @(t) interp1(tspan,P,t);
     %% Calculo del descenso   
     % Obtenemos du(t)
-    du_tDepend = @(t) dH_du(t,Y_fun(t)',P_fun(t)',U_fun(t)');
+    du_tDepend = @(index) dH_du(tspan(index),Y(index,:)',P(index,:)',U(index,:)');
     % Obtenemos [du(t1) du(t2) du(t3) ...] a partir de la funccion du(t)
-    [nrow ncol] = size(U);
+    [nrow ,ncol] = size(U);
     dJnew = zeros(nrow,ncol);
    
     index = 0;
     for t = tspan
         index = index + 1;
-        dJnew(index,:) = du_tDepend(t);
+        dJnew(index,:) = du_tDepend(index);
     end
     
 end

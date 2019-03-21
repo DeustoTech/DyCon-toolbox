@@ -33,52 +33,35 @@
 %% 
 % The dynamics and cost functions are based on symbolic vectors $ Y $ and $
 % U $, which represent the state of the dynamics and control vector.
-Y = sym('y',[2 1])
+X = sym('x',[2 1]);
 %%
-U = sym('u',[1 1])
+U = sym('u',[1 1]);
 %%
 % The dynamics of $ Y $ should be given by a symbolic vector with the same
 % dimensions as the state vector. Following the notation at the beginning,
 % this vector represents $ f (t, Y, U) $:
- F = [ Y(2)          ; ...
-      -Y(2) + U(1) ] ;
+ F = [ X(2)          ; ...
+      -X(2) + U(1) ] ;
 %% 
 % Using this dynamics vector, we construct an 'ode' class.
-dynamics = ode(F,Y,U)
-%%
-% The printed information above shows the default setting of this 'ode'
-% class. In order to construct the dynamics we want, we need to customize
-% its parameters. In this case we change the initial condition for the
-% dynamics and the sampling timestep.
-%%
-% The time discretization is generated as a uniform mesh from the timestep
-% $ dt $. It will be used not only for the sampling of the state vector $ Y
-% $ but also to represent the control vector $ U $ and cost $ J $ in
-% 'OptimalControl' class. 
-dynamics.InitialCondition = [0;-1];
+dynamics = ode(F,X,U);
+dynamics.InitialCondition = [1;-1];
+
 dynamics.dt = 0.01;
 %%
 % Next we need to define the functional $ J $ we want to minimize.
 % Following the form presented in [1], we define the expressions of $ \ Psi $
 % and $ L $ in symbolic form:
 Psi = sym(0);
-L   = 0.005*(U.'*U)+Y.'*Y ;
+L   = (X(1)-1)^2 + X(2)^2 + 0.005*U(1)^2;
+
 %%
 % We finally define the optimal control problem as a 'OptimalControl' class:
 iP = OptimalControl(dynamics,Psi,L);
-%%
-% This class contains information we need to find the optimal control
-% vector $ U $. It is worth mentioning that until now we defined the
-% problem but not solved it yet.
-iP
-%%
-% DyCon toolbox uses the gradient methods to optimize the cost functional. 
-% This calculates the gradient of $ J $ along $ U $ from the first order
-% approximation of the Hamiltonian and adjoint state vector in the
-% Pontryagin principle.
+
 %%
 % To solve the problem using the default gradient method, we simply write:
-GradientMethod(iP)
+GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'Graphs',true,'Display','all')
 %% 
 % This command generates 'solution' in the 'OptimalControl' class, which
 % contains the optimal control vector 'UOptimal' and its information, such as the

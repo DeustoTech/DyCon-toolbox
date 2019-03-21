@@ -43,13 +43,12 @@ iode.dt = 0.01;
 iode.FinalTime = FinalTime;
 
 iode.InitialCondition = Y0;
-%iode.Solver = @ode23tb;
 %%
 Y = iode.StateVector.Symbolic;
 U = iode.Control.Symbolic;
 
-symPsi  = 1/(2*epsilon)*(Y).'*(Y);
-symL    = sum(abs(U));
+symPsi  = dx*1/(2*epsilon)*(Y).'*(Y);
+symL    = dx*sum(abs(U));
 %symL    = 1/2*(U.'*U);
 
 ICP = OptimalControl(iode,symPsi,symL);
@@ -57,10 +56,10 @@ ICP = OptimalControl(iode,symPsi,symL);
 P0 = 0.25*ones(length(ICP.ode.tspan),ICP.ode.Udim);
 U0 = P0*B;
 
-%load('U0normL1.mat')
+load('U0normL1.mat')
 %U0 = interp1(U0_normL1_struct.tspan,U0_normL1_struct.U0,ICP.ode.tspan);
 
-GradientMethod(ICP,'Graphs',false,'TypeGraphs','PDE','tol',1e-7,'DescentAlgorithm',@ConjugateGradientDescent,'MaxIter',2000,'U0',U0)
+GradientMethod(ICP,'Graphs',false,'TypeGraphs','PDE','tol',1e-7,'DescentAlgorithm',@ConjugateGradientDescent,'MaxIter',2000,'U0',U0_normL1_struct.U0 ,'display','all')
 
 
 U0_normL1_struct.U0    = ICP.solution.UOptimal;

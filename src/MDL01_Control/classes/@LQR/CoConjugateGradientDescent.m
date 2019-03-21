@@ -85,11 +85,10 @@ function  [fnew,dfnew,Unew ,Ynew,Jnew,dJnew,error,stop] = CoConjugateGradientDes
         Unew = P*iCP.ode.B;
         
         %% Obtenemos la dinamica
-        [~ , YZeroInitial] = solve(ZeroInitialOde,'Control',Unew);
+        [~ , YZeroInitial] = solve(iCP.ode,'Control',Unew);
         %
-
         %% obtenemos el gradiente
-        dfnew = iCP.epsilon*fnew + YZeroInitial(end,:) + Yfree(end,:);
+        dfnew = iCP.epsilon*fnew + YZeroInitial(end,:) - iCP.YT';
         % tomamo w = df
         
         w = dfnew;
@@ -105,26 +104,24 @@ function  [fnew,dfnew,Unew ,Ynew,Jnew,dJnew,error,stop] = CoConjugateGradientDes
     else
         Iter = Iter + 1;
         %% Resolvemos el problem dual
-        %display(norm(w))
         iCP.adjoint.ode.InitialCondition = w;
         P = GetNumericalAdjoint(iCP);
-
 
         %% Calculamos U
         Unew = P*iCP.ode.B;
         
         %% Obtenemos la dinamica
-        [~ ,YZeroInitial] = solve(ZeroInitialOde,'Control',Unew);
+        [~ ,Ynew] = solve(ZeroInitialOde,'Control',Unew);
 
         fold   = iCP.solution.fhistory{Iter-1};
         dfold  = iCP.solution.dfhistory{Iter-1};
         
         %% Actualizamos el gradiente
         %display(norm(YZeroInitial(end,:)))
-        dfbar = iCP.epsilon*w + YZeroInitial(end,:);
+        dfbar = iCP.epsilon*w + Ynew(end,:);
         
         rho = (dfold*M*dfold')/(dfbar*M*w');
-        
+
         dfnew = dfold -rho*dfbar;
         fnew  = fold - rho*w;
         %%
@@ -134,20 +131,15 @@ function  [fnew,dfnew,Unew ,Ynew,Jnew,dJnew,error,stop] = CoConjugateGradientDes
         
         %%
         iCP.adjoint.ode.InitialCondition = fnew;
-        P = GetNumericalAdjoint(iCP);
+        Pnew = GetNumericalAdjoint(iCP);
 
-        Unew = P*iCP.ode.B;
+        Unew = Pnew*iCP.ode.B;
         
         [~ , Ynew] = solve(iCP.ode,'Control',Unew);
-        
+       
         %%
-        %Ynew = YZeroInitial;
-        %dJnew= 1;
-        %Jnew = 1;
-        %%
-        dJnew = GetNumericalGradient(iCP,Unew,Ynew);        
+        dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);        
         Jnew  = GetFunctional(iCP,Ynew,Unew);
-                
         error = sqrt(dfnew*M*dfnew');
         display(["error = "+error]);
 
