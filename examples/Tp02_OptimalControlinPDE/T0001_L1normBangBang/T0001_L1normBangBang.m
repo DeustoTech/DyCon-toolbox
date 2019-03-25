@@ -80,14 +80,14 @@ solve(dynamics,'Control',U00);
 Y = dynamics.StateVector.Symbolic;
 U = dynamics.Control.Symbolic;
 
-%% Construction of the control problem norm-L1 
-
+%% Construction of the control problem norm-LP
+p = 3;
 epsilon = dx^3;
 %%
 % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
 %%
 Psi  = (dx/(2*epsilon))*(YT - Y).'*(YT - Y);
-L    = (dx)*sum(abs(U));
+L    = (dx)*sum(abs(U).^p);
 %%
 % Optional Parameters to go faster
 Gradient                =  @(t,Y,P,U) dx*sign(U) + B*P;

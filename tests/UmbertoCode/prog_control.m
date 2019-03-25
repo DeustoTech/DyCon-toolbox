@@ -73,7 +73,7 @@ for Nmaillage=choixN
         matrices=init_matrices(maillage,discr);
         
         soly_libre=solution_forward(y0,zeros(size(y0,1),discr.Mtemps+1),...
-            donnees,discr,matrices);
+            donnees,discr,matrices,maillage);
         
         sec_membre=-soly_libre(:,discr.Mtemps+1);
         

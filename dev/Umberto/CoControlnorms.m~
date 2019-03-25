@@ -1,0 +1,217 @@
+clear all
+close all
+%% PDE definition
+% ====================================================================================
+N = 50;
+xi = -1; xf = 1;
+xline = linspace(xi,xf,N+2);
+xline = xline(2:end-1);
+dx = xline(2)-xline(1);
+%% Matrix A y M
+s = 0.8;
+A = -FEFractionalLaplacian(s,1,N);
+M = massmatrix(xline);
+%% Matrix B
+% Moreover, we build the matrix $B$ defining the action of the control, by
+% using the program "construction_matrix_B" (see below).
+a = -0.3; b = 0.5;
+B = construction_matrix_B(xline,a,b);
+%%
+% We can then define a final time and an initial datum
+FinalTime = 0.7;
+Y0 = cos(0.5*pi*xline');
+%%
+dt = 0.005;
+dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
+dynamics.MassMatrix = M;
+dynamics.mesh = xline;
+%% Define adjoint problem
+adjoint = pde('A',A);
+adjoint.MassMatrix = M;
+adjoint.mesh = xline;
+adjoint.dt = dt;
+adjoint.FinalTime = FinalTime;
+%%
+% ====================================================================================
+% zeros 
+%YT = dynamics.Control.Numeric(1,:).';
+YT = 2*Y0;
+%%
+k = 1/(2*dx^5);
+s = Inf;
+sp = 1;
+
+dx = xline(2) - xline(1);
+%
+Params.YT = YT;
+Params.k  = k;
+Params.s  = s;
+Params.sp = sp;
+Params.dx = dx;
+Params.xline = xline;
+Params.tspan = dynamics.tspan;
+Params.B = dynamics.B;
+Params.dynamics = dynamics;
+Params.adjoint = adjoint;
+%%
+f0 = zeros(length(adjoint.StateVector.Symbolic),1);
+% f0 = f
+% funobj = @(f)FinalCondition2Functional(f,Params)
+% options=optimoptions(@fminunc,'display','iter')
+% fopt = fminunc(funobj,f0,options)
+% 
+% adjoint.InitialCondition = fopt;
+% [~ ,P ] = solve(adjoint);
+% P = flipud(P);
+%     
+% U = Adjoint2Control(P,Params);
+% subplot(1,2,1)
+% surf(U)
+% [ ~  , Y ] = solve(dynamics,'Control',U);
+% subplot(1,2,2)
+% 
+% surf(Y)
+% error
+f = f0 +1;
+%%
+%%
+adjoint.InitialCondition = f;
+[~ , P ] = solve(adjoint);
+P = flipud(P);
+
+U = Adjoint2Control(P,Params);
+
+[ ~  , Y ] = solve(dynamics,'Control',U);
+dJ = dJfunctional(f,Y,Params);
+
+J  = Jfunctional(U,Y,Params)
+
+OptimalLenght = 1e-7;
+    
+for iter = 1:30000
+    
+    f = f - OptimalLenght*dJ;
+    adjoint.InitialCondition = f;
+    [~ ,P ] = solve(adjoint);
+    P = flipud(P);
+    
+    U = Adjoint2Control(P,Params);
+    
+    [ ~  , Y ] = solve(dynamics,'Control',U);
+    dJ = dJfunctional(f,Y,Params);
+
+    J  = Jfunctional(U,Y,Params)
+    
+
+    %%
+    if mod(iter,100) == 0 || iter == 1
+    subplot(1,4,1)
+    surf(U)
+    shading interp
+    title('Control')
+    subplot(1,4,2)
+    surf(Y)
+    shading interp
+    title('State')
+    subplot(1,4,3)
+    plot([Y(end,:).',YT])
+    ylim([0 2.5])
+    subplot(1,4,4)
+    plot(dJ)
+    title('Gradient')
+
+    pause(0.01)
+    end
+end
+
+
+%%
+function J = FinalCondition2Functional(f,Params)
+    adjoint = Params.adjoint;
+    dynamics = Params.dynamics;
+    
+    adjoint.InitialCondition = f;
+    [~ ,P ] = solve(adjoint);
+    P = flipud(P);
+    
+    U = Adjoint2Control(P,Params);
+
+    [ ~  , Y ] = solve(dynamics,'Control',U);
+
+    J  = Jfunctional(U,Y,Params);
+    
+end
+%%
+function U = Adjoint2Control(P,Params)
+    sp = Params.sp;
+    xline = Params.xline;
+    tspan = Params.tspan;
+    B     = Params.B;
+    
+    if sp ~= 1
+        P_norm_Ls = trapz(tspan,trapz(xline,abs(P.').^sp));
+        P_norm_Ls = P_norm_Ls.^(1/sp);
+        P_norm_Ls = P_norm_Ls^(2-sp); 
+
+        U = -P_norm_Ls*(P.*(abs(P).^(sp-2)))*B;
+    else
+        P_norm_L1 = trapz(tspan,trapz(xline,abs(P.')));
+        U = -P_norm_L1*(sign(P)*B);
+    end
+end
+
+function J = Jfunctional(U,Y,Params)
+    xline = Params.xline;
+    tspan = Params.tspan;
+    s     = Params.s;
+    k     = Params.k;
+    YT    = Params.YT;
+    if s == Inf
+        dY = Y(end,:).'-YT;
+        dY_norm_L2 = trapz(xline,abs(dY.').^2);
+        
+         J = 0.5*max(max(U))^2 + 0.5*k*dY_norm_L2;
+    else
+        
+        U_norm_Ls = trapz(tspan,trapz(xline,abs(U.').^s));
+        U_norm_Ls = U_norm_Ls.^(1/s);
+
+        dY = Y(end,:).'-YT;
+        dY_norm_L2 = trapz(xline,abs(dY.').^2);
+
+        J = 0.5*U_norm_Ls^2 + 0.5*k*dY_norm_L2;
+    end
+end
+%%
+function dJ = dJfunctional(f,Y,Params)
+
+    k = Params.k;
+    YT = Params.YT;
+    %%
+    dJ = +f + k*(YT-Y(end,:)');
+
+end
+%%
+function M = massmatrix(mesh)
+    N = length(mesh);
+    dx = mesh(2)-mesh(1);
+    M = 2/3*eye(N);
+    for i=2:N-1
+        M(i,i+1)=1/6;
+        M(i,i-1)=1/6;
+    end
+    M(1,2)=1/6;
+    M(N,N-1)=1/6;
+            
+    M=dx*sparse(M);
+end
+%%
+function [B] = construction_matrix_B(mesh,a,b)
+
+N = length(mesh);
+B = zeros(N,N);
+
+control = (mesh>=a).*(mesh<=b);
+B = diag(control);
+B = sparse(B);
+end

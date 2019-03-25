@@ -94,21 +94,47 @@ end
 %%%% using implicit Euler method
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [soly]=solution_forward(y0,adjoint,donnees,discr,matrices)
+function [soly]=solution_forward(y0,adjoint,donnees,discr,matrices,malla)
 dt=donnees.T/discr.Mtemps;          
 %C = speye(100,100)+dt*(matrices.M\matrices.A);
+        if norm(adjoint) ~= 0
+        dt=donnees.T/discr.Mtemps;
+        dx = malla.pas;
+        tspan = 0:dt:donnees.T;
+        xline =  malla.xi;
+        s = 3;
+
+        U_norm_Ls = trapz(tspan,trapz(xline,abs(adjoint).^s));
+        U_norm_Ls = U_norm_Ls.^(1/s);
+        %
+        U_norm_Ls = U_norm_Ls^(2-s);
+        
+        %U_norm_Ls = norm(adjoint,s);
+        U = matrices.B*matrices.Bstar*(adjoint.*(abs(adjoint).^(s-2)));
+        U = U_norm_Ls*U;
+        else
+            U = adjoint*0;
+        end 
+        
+        %normL1P = norm(adjoint,1);
+%         normL1P = sum(sum(abs(adjoint)))*dx*dt;
+%         U = matrices.B*matrices.Bstar*sign(adjoint);
+%         U = normL1P*U;
+        
         soly=zeros(size(y0,1),discr.Mtemps+1);
         
         soly(:,1)=y0;
         for i=1:discr.Mtemps
             soly(:,i+1)=matrices.C\(soly(:,i) ...
-				  + dt*matrices.B*matrices.Bstar*adjoint(:,i));
+				  + dt*U(:,i));
         end
 % 
 %             figure
 %          surf(matrices.Bstar*adjoint)
 %          title('Umberto Control')  
         display("P ="+norm(adjoint))
+        
+        
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,6 +149,7 @@ end
 
 function [solphi]=solution_adjoint(phi0,maillage,discr,donnees,matrices)
 
+        
         solphi=zeros(size(phi0,1),discr.Mtemps+1);
         solphi(:,discr.Mtemps+1) = phi0;
         for i=discr.Mtemps:-1:1
@@ -203,7 +230,7 @@ function [w] = grammian(phi0,maillage,discr,donnees,matrices)
 
     
     
-    soly= solution_forward(0*phi0,solphi,donnees,discr,matrices);
+    soly= solution_forward(0*phi0,solphi,donnees,discr,matrices,maillage);
     
     w=soly(:,discr.Mtemps+1);
 
@@ -216,13 +243,21 @@ function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,ver
         produitscalaire_Eh=maill_funcs{3};
     
     it_restart=5000;
-    f=f_init; 
+    f=f_init*0 + 0.1; 
 
     Lambdaf=grammian(f,maillage,discr,donnees,matrices);
             
     g = Lambdaf - secmem;
-    
-    g=g+epsilon*f;
+    %g = - secmem;
+    %%
+    %g=g+epsilon*f;
+    s = 3;
+    xspan = maillage.xi;
+    %f_norm_Ls = trapz(xspan,abs(f).^s);
+    %f_norm_Ls = f_norm_Ls.^(1/s);
+    f_norm_Ls = norm(f,s);
+    f_norm_Ls = f_norm_Ls^(2-s);
+    g=g+epsilon*f_norm_Ls*f.*(abs(f).^(s-2));
     
     w=g;
 
@@ -252,7 +287,14 @@ function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,ver
 %         
        % display(norm(Lambdaw))
 
-	    newgbar = Lambdaw + epsilon*w;
+	    %newgbar = Lambdaw + epsilon*w;
+	    
+        
+        f_norm_Ls = norm(w,s);
+        f_norm_Ls = f_norm_Ls^(2-s);
+        
+    
+        newgbar = Lambdaw + epsilon*(f_norm_Ls*w.*(abs(w).^(s-2)));
 
         rho = produitscalaire_Eh(maillage,g,g,0)/ ...
         produitscalaire_Eh(maillage,newgbar,w,0);
@@ -287,12 +329,33 @@ function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,ver
     %%
                 
             solphi_1=solution_adjoint(f,maillage,discr,donnees,matrices);
-            controle_1=matrices.Bstar*solphi_1;
 
-            soly_1=solution_forward(y0,solphi_1,donnees,discr,matrices);
+            
+            dt=donnees.T/discr.Mtemps;
+            dx = maillage.pas;
+            tspan = 0:dt:donnees.T;
+            xline =  maillage.xi;
+
+            U_norm_Ls = trapz(tspan,trapz(xline,abs(solphi_1).^s));
+            U_norm_Ls = U_norm_Ls.^(1/s);
+            %
+            U_norm_Ls = U_norm_Ls^(2-s);
+
+            U = matrices.B*matrices.Bstar*(solphi_1.*(abs(solphi_1).^(s-2)));
+            controle_1 = U_norm_Ls*U;
+        
+            soly_1=solution_forward(y0,solphi_1,donnees,discr,matrices,maillage);
             
             cout_controle_temps=zeros(discr.Mtemps,1);
 
+%             figure
+            subplot(1,3,1)
+            surf(controle_1)
+            subplot(1,3,2)
+            surf(soly_1)
+            subplot(1,3,3)
+            plot(soly_1(:,end))
+            pause
             for j=1:discr.Mtemps
                 cout_controle_temps(j)=calcul_norme_Eh(maillage,controle_1(:,j),0);
             end
@@ -305,8 +368,8 @@ function [f,it]=grad_conj(maillage,discr,donnees,matrices,secmem,epsilon,tol,ver
             F_eps=1/2*sum(cout_controle_temps.^2)*donnees.T/discr.Mtemps...
                 +1/(2*epsilon)*calcul_norme_Eh(maillage,soly_1(:,discr.Mtemps+1),0).^2;
             %fprintf('F_eps(v_eps)= %g \n',F_eps)
-            hold on
-            plot(it,F_eps,'*')
+%             hold on
+%             plot(it,F_eps,'*')
             J_eps=1/2*sum(cout_controle_temps.^2)*donnees.T/discr.Mtemps+...
             epsilon/2*calcul_norme_Eh(maillage,f,0)^2+...
             produitscalaire_Eh(maillage,solphi_1(:,1),y0,0);

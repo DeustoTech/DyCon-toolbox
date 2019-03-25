@@ -124,12 +124,12 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
         Unew = Uold + OptimalLenght*s; 
         Unew = UpdateControlWithConstraints(iCP,Unew);
         [~ , Ynew] = solve(iCP.ode,'Control',Unew);
-
         %% Get Gradient
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);   
         dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);
         %% 
-        diffdJ = dJnew - dJold;
+        %diffdJ = dJnew - dJold;
+        diffdJ = dJnew;
         nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
         nume = trapz(tspan,nume);
         deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
