@@ -1,8 +1,8 @@
 clear all
-close all
+%close all
 %% PDE definition
 % ====================================================================================
-N = 50;
+N = 60;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N+2);
 xline = xline(2:end-1);
@@ -30,12 +30,13 @@ B = construction_matrix_B(xline,a,b);
 % We can then define a final time and an initial datum
 FinalTime = 1;
 %%
+% Caso Arriba - abajo
 Y0 = 2*cos(0.5*pi*xline');
 Y00 = cos(0.5*pi*xline');
 % Y0 = 0.5*cos(0.5*pi*xline');
 % Y00 = 3*cos(0.5*pi*xline');
 %%
-Nt = 50;
+Nt = 100;
 dt = FinalTime/Nt;
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
 dynamics.MassMatrix = M;
@@ -96,22 +97,110 @@ Params.adjoint = adjoint;
 %% Caso 2: 
 % ====================================================================================
 Params.YT = YT';
-Params.Umax = 2;
+Params.Umax = 2000;
 Params.Umin = 0*max(Params.YT);
 
 % Params.Umax = 50000000*max(Params.YT);
 % Params.Umin = -50000000*max(Params.YT);
 
 Params.dynamics.label = 'Controlada'; 
-MaxIter = 2000;
+
+
+% MaxIter = 2000;
+% f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+% f = f0 +0.1;
+% OptimalLenght = 1e-6;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% 
+% MaxIter = 2000;
+% OptimalLenght = 1e-9;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
+%% Busqueda del tiempo minimo para la controlabilidad
+% ====================================================================================
+
+
+FinalTimes = 0.6 : 0.1 : 1.0;
+FinalTimeFun = arrayfun(@(FinalTime) FinalTime2Psi(FinalTime,Params,Nt),FinalTimes);
+
+epsilon = 1/(Nt*N);
+
+figure
+plot(FinalTimes,FinalTimeFun,'Marker','*')
+line(FinalTimes,repmat(epsilon,1,length(FinalTimes))) 
+title('Distance target and final state')
+ylabel('||y(T)-y_{T}||_{L^2}')
+xlabel('Final Time')
+
+%%
+
+Topt = interp1(FinalTimeFun,FinalTimes,epsilon,'lineal')
+%Topt = 2*Topt;
+%%
+dt        = Topt/Nt;
+
+Params.adjoint.FinalTime = Topt;
+Params.adjoint.dt = dt;
+
+Params.dynamics.FinalTime = Topt;
+Params.dynamics.dt = dt;
+
 f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
 f = f0 +0.1;
+
+% Etapa 1
+MaxIter = 200;
+OptimalLenght = 1e-4;
+[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% Etapa 2
+%MaxIter = 50;
 OptimalLenght = 1e-6;
 [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
-
-MaxIter = 2000;
-OptimalLenght = 1e-9;
+% Etapa 3
+%MaxIter = 50;
+OptimalLenght = 1e-8;
+%[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% Etapa 4
+%MaxIter = 50;
+OptimalLenght = 1e-15;
 [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+%%
+% animation([Params.dynamics],'xx',0.1,'YLim',[0,2.5],'Target',Params.YT)
+% surf(U)
+
+function dY_norm_L2 = FinalTime2Psi(FinalTime,Params,Nt)
+
+    dt        = FinalTime/Nt;
+
+    Params.adjoint.FinalTime = FinalTime;
+    Params.adjoint.dt = dt;
+  
+    Params.dynamics.FinalTime = FinalTime;
+    Params.dynamics.dt = dt;
+    
+    f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+    f = f0 +0.1;
+    
+    % Etapa 1
+    MaxIter = 100;
+    OptimalLenght = 1e-5;
+    [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+    % Etapa 2
+    %MaxIter = 50;
+    OptimalLenght = 1e-6;
+    [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+    % Etapa 3
+    %MaxIter = 50;
+    OptimalLenght = 1e-8;
+    [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+    % Etapa 4
+    %MaxIter = 50;
+    OptimalLenght = 1e-15;
+    [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+    
+    dY = Y(end,:).'-Params.YT;
+    dY_norm_L2 = trapz(Params.xline,abs(dY.').^2);
+end
 
 function [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f)
     %f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);

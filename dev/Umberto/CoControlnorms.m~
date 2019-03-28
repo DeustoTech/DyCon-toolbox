@@ -28,10 +28,12 @@ a = -0.3; b = 0.8;% Params.YT = YT';
 B = construction_matrix_B(xline,a,b);
 %%
 % We can then define a final time and an initial datum
-FinalTime = 0.5;
+FinalTime = 1;
 %%
-Y0 = 0.5*cos(0.5*pi*xline');
-Y00 = 3*cos(0.5*pi*xline');
+Y0 = 2*cos(0.5*pi*xline');
+Y00 = cos(0.5*pi*xline');
+% Y0 = 0.5*cos(0.5*pi*xline');
+% Y00 = 3*cos(0.5*pi*xline');
 %%
 Nt = 50;
 dt = FinalTime/Nt;
@@ -69,38 +71,40 @@ Params.adjoint = adjoint;
 %% Caso 1: 
 % ====================================================================================
 % zeros 
-Params.YT = YT';
-% Params.Umax = 1000000*max(Params.YT);
-% Params.Umin = -1000000*max(Params.YT);
-
-Params.Umax = *max(Params.YT);
-Params.Umin = 0*max(Params.YT);
-
-Params.dynamics.label = 'Controlada';
-OptimalLenght = 1e-6;
-MaxIter = 2000;
-f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
-f = f0 +0.5;
-[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
-
-OptimalLenght = 1e-8;
-MaxIter = 2000;
-[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
-
-OptimalLenght = 1e-12;
-MaxIter = 1000;
-[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% Params.YT = YT';
+% % Params.Umax = 1000000*max(Params.YT);
+% % Params.Umin = -1000000*max(Params.YT);
+% 
+% Params.Umax = 2;
+% Params.Umin = 0*max(Params.YT);
+% 
+% Params.dynamics.label = 'Controlada';
+% OptimalLenght = 1e-6;
+% MaxIter = 2000;
+% f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+% f = f0 +0.5;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% 
+% OptimalLenght = 1e-8;
+% MaxIter = 2000;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% 
+% OptimalLenght = 1e-12;
+% MaxIter = 1000;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
 %%
 %% Caso 2: 
 % ====================================================================================
-% Params.YT = YT';
-% % Params.Umax = max(Params.YT);
-% % Params.Umin = 0*max(Params.YT);
-% 
+Params.YT = YT';
+Params.Umax = 2;
+Params.Umin = 0*max(Params.YT);
+
 % Params.Umax = 50000000*max(Params.YT);
 % Params.Umin = -50000000*max(Params.YT);
-% 
-% Params.dynamics.label = 'Controlada'; 
+
+Params.dynamics.label = 'Controlada'; 
+
+
 % MaxIter = 2000;
 % f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
 % f = f0 +0.1;
@@ -110,6 +114,27 @@ MaxIter = 1000;
 % MaxIter = 2000;
 % OptimalLenght = 1e-9;
 % [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
+%% Busqueda del tiempo minimo para la controlabilidad
+
+
+FinalTime = 1;
+dt        = FinalTime/Nt;
+
+adjoint.FinalTime = FinalTime;
+adjoint.dt = dt;
+
+dynamics.FinalTime = FinalTime;
+dynamics.dt = dt;
+
+
+f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+f = f0 +0.1;
+
+MaxIter = 200;
+OptimalLenght = 1e-6;
+[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
 
 function [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f)
     %f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
