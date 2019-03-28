@@ -96,11 +96,11 @@ function animation(iode,varargin)
             il = mod(index,2) + 1;
             ip = mod(index,2) + 1;
             index = index + 1;
-%              if t == tmax
-%                  l(index)   = line(iode(1).mesh,Target','Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
-%              else
+             if t == tmax
+                 l(index)   = line(iode(1).mesh,Target','Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+             else
             l(index)   = line(iode(1).mesh,interp1(tspan,iY{:},t),'Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
-%              end
+             end
             luu(index) = line(iode(1).mesh,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
             
         end
@@ -118,7 +118,7 @@ function animation(iode,varargin)
         titlefigdownCL = strcat(titlefig,'_down_constrained_tlarge.png');
         
         
-        print(titlefigdownCL,'-dpng','-r500')
+        print(titlefigupCL,'-dpng','-r500')
         
         if SaveGif
             gif('frame',axY.Parent)

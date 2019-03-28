@@ -14,132 +14,145 @@ M = massmatrix(xline);
 %% Matrix B
 % Moreover, we build the matrix $B$ defining the action of the control, by
 % using the program "construction_matrix_B" (see below).
-a = -0.3; b = 0.5;
+a = -0.3; b = 0.8;% Params.YT = YT';
+% Params.Umax = 50*max(Params.YT);
+% Params.Umin = 0*max(Params.YT);
+% 
+% Params.dynamics.label = 'Controlada'; 
+% MaxIter = 2000;
+% f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+% f = f0 +0.1;
+% OptimalLenght = 1e-6;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
 B = construction_matrix_B(xline,a,b);
 %%
 % We can then define a final time and an initial datum
-FinalTime = 0.7;
-Y0 = cos(0.5*pi*xline');
+FinalTime = 0.5;
 %%
-dt = 0.005;
+Y0 = 0.5*cos(0.5*pi*xline');
+Y00 = 3*cos(0.5*pi*xline');
+%%
+Nt = 50;
+dt = FinalTime/Nt;
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
 dynamics.MassMatrix = M;
 dynamics.mesh = xline;
+%%
+TargetDynamics = copy(dynamics);
+TargetDynamics.InitialCondition = Y00;
+RightHandSide = 0*TargetDynamics.Control.Numeric+1;
+RightHandSide = RightHandSide*B;
+[~,YT] = solve(TargetDynamics,'Control',RightHandSide);
+YT = YT(end,:);
+%%
+FreeDynamics = copy(dynamics);
+FreeDynamics.label = 'Free';
+solve(FreeDynamics);
 %% Define adjoint problem
 adjoint = pde('A',A);
 adjoint.MassMatrix = M;
 adjoint.mesh = xline;
 adjoint.dt = dt;
 adjoint.FinalTime = FinalTime;
-%%
-% ====================================================================================
-% zeros 
-%YT = dynamics.Control.Numeric(1,:).';
-YT = 2*Y0;
-%%
-k = 1/(2*dx^5);
-s = Inf;
-sp = 1;
-
-dx = xline(2) - xline(1);
-%
-Params.YT = YT;
-Params.k  = k;
-Params.s  = s;
-Params.sp = sp;
+%% Constantes
+Params.k  = 1/(dx^4);
+Params.s  = Inf;
+Params.sp = 1;
 Params.dx = dx;
 Params.xline = xline;
 Params.tspan = dynamics.tspan;
 Params.B = dynamics.B;
 Params.dynamics = dynamics;
 Params.adjoint = adjoint;
+
+%% Caso 1: 
+% ====================================================================================
+% zeros 
+Params.YT = YT';
+% Params.Umax = 1000000*max(Params.YT);
+% Params.Umin = -1000000*max(Params.YT);
+
+Params.Umax = *max(Params.YT);
+Params.Umin = 0*max(Params.YT);
+
+Params.dynamics.label = 'Controlada';
+OptimalLenght = 1e-6;
+MaxIter = 2000;
+f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+f = f0 +0.5;
+[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
+OptimalLenght = 1e-8;
+MaxIter = 2000;
+[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
+OptimalLenght = 1e-12;
+MaxIter = 1000;
+[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
 %%
-f0 = zeros(length(adjoint.StateVector.Symbolic),1);
-% f0 = f
-% funobj = @(f)FinalCondition2Functional(f,Params)
-% options=optimoptions(@fminunc,'display','iter')
-% fopt = fminunc(funobj,f0,options)
+%% Caso 2: 
+% ====================================================================================
+% Params.YT = YT';
+% % Params.Umax = max(Params.YT);
+% % Params.Umin = 0*max(Params.YT);
 % 
-% adjoint.InitialCondition = fopt;
-% [~ ,P ] = solve(adjoint);
-% P = flipud(P);
-%     
-% U = Adjoint2Control(P,Params);
-% subplot(1,2,1)
-% surf(U)
-% [ ~  , Y ] = solve(dynamics,'Control',U);
-% subplot(1,2,2)
+% Params.Umax = 50000000*max(Params.YT);
+% Params.Umin = -50000000*max(Params.YT);
 % 
-% surf(Y)
-% error
-f = f0 +1;
-%%
-%%
-adjoint.InitialCondition = f;
-[~ , P ] = solve(adjoint);
-P = flipud(P);
+% Params.dynamics.label = 'Controlada'; 
+% MaxIter = 2000;
+% f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+% f = f0 +0.1;
+% OptimalLenght = 1e-6;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% 
+% MaxIter = 2000;
+% OptimalLenght = 1e-9;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
 
-U = Adjoint2Control(P,Params);
-
-[ ~  , Y ] = solve(dynamics,'Control',U);
-dJ = dJfunctional(f,Y,Params);
-
-J  = Jfunctional(U,Y,Params)
-
-OptimalLenght = 1e-7;
-    
-for iter = 1:30000
-    
-    f = f - OptimalLenght*dJ;
-    adjoint.InitialCondition = f;
-    [~ ,P ] = solve(adjoint);
+function [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f)
+    %f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+    %f = f0 +0.1;
+    %%
+    %%
+    Params.adjoint.InitialCondition = f;
+    [~ , P ] = solve(Params.adjoint);
     P = flipud(P);
-    
+
     U = Adjoint2Control(P,Params);
-    
-    [ ~  , Y ] = solve(dynamics,'Control',U);
+    [ ~  , Y ] = solve(Params.dynamics,'Control',U);
     dJ = dJfunctional(f,Y,Params);
 
     J  = Jfunctional(U,Y,Params)
-    
 
-    %%
-    if mod(iter,100) == 0 || iter == 1
-    subplot(1,4,1)
-    surf(U)
-    shading interp
-    title('Control')
-    subplot(1,4,2)
-    surf(Y)
-    shading interp
-    title('State')
-    subplot(1,4,3)
-    plot([Y(end,:).',YT])
-    ylim([0 2.5])
-    subplot(1,4,4)
-    plot(dJ)
-    title('Gradient')
+    bestJ = Inf;
+    for iter = 1:MaxIter
 
-    pause(0.01)
+        f = f - OptimalLenght*dJ;
+        Params.adjoint.InitialCondition = f;
+        [~ ,P ] = solve(Params.adjoint);
+        P = flipud(P);
+
+        U = Adjoint2Control(P,Params);
+
+        [ ~  , Y ] = solve(Params.dynamics,'Control',U);
+        dJ = dJfunctional(f,Y,Params);
+
+        J  = Jfunctional(U,Y,Params)
+        if J < bestJ
+            bestJ = J;
+            bestf = f;
+        end
     end
-end
+    Params.adjoint.InitialCondition = bestf;
+        [~ ,P ] = solve(Params.adjoint);
+        P = flipud(P);
 
+        U = Adjoint2Control(P,Params);
 
-%%
-function J = FinalCondition2Functional(f,Params)
-    adjoint = Params.adjoint;
-    dynamics = Params.dynamics;
-    
-    adjoint.InitialCondition = f;
-    [~ ,P ] = solve(adjoint);
-    P = flipud(P);
-    
-    U = Adjoint2Control(P,Params);
-
-    [ ~  , Y ] = solve(dynamics,'Control',U);
-
-    J  = Jfunctional(U,Y,Params);
-    
+        [ ~  , Y ] = solve(Params.dynamics,'Control',U);
+        J = bestJ;
 end
 %%
 function U = Adjoint2Control(P,Params)
@@ -158,7 +171,11 @@ function U = Adjoint2Control(P,Params)
         P_norm_L1 = trapz(tspan,trapz(xline,abs(P.')));
         U = -P_norm_L1*(sign(P)*B);
     end
+    
+    U(U>Params.Umax) = Params.Umax;
+    U(U<Params.Umin) = Params.Umin;
 end
+%%
 
 function J = Jfunctional(U,Y,Params)
     xline = Params.xline;

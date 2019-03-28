@@ -8,25 +8,45 @@ xline = linspace(xi,xf,N+2);
 xline = xline(2:end-1);
 dx = xline(2)-xline(1);
 %% Matrix A y M
-s = 0.5;
+s = 0.8;
 A = -FEFractionalLaplacian(s,1,N);
 M = massmatrix(xline);
 %% Matrix B
 % Moreover, we build the matrix $B$ defining the action of the control, by
 % using the program "construction_matrix_B" (see below).
-a = -0.3; b = 0.2;
+a = -0.3; b = 0.8;% Params.YT = YT';
+% Params.Umax = 50*max(Params.YT);
+% Params.Umin = 0*max(Params.YT);
+% 
+% Params.dynamics.label = 'Controlada'; 
+% MaxIter = 2000;
+% f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+% f = f0 +0.1;
+% OptimalLenght = 1e-6;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
 B = construction_matrix_B(xline,a,b);
 %%
 % We can then define a final time and an initial datum
-FinalTime = 0.3;
+FinalTime = 1;
 %%
-Y0 = cos(0.5*pi*xline');
+Y0 = 2*cos(0.5*pi*xline');
+Y00 = cos(0.5*pi*xline');
+% Y0 = 0.5*cos(0.5*pi*xline');
+% Y00 = 3*cos(0.5*pi*xline');
 %%
 Nt = 50;
 dt = FinalTime/Nt;
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
 dynamics.MassMatrix = M;
 dynamics.mesh = xline;
+%%
+TargetDynamics = copy(dynamics);
+TargetDynamics.InitialCondition = Y00;
+RightHandSide = 0*TargetDynamics.Control.Numeric+1;
+RightHandSide = RightHandSide*B;
+[~,YT] = solve(TargetDynamics,'Control',RightHandSide);
+YT = YT(end,:);
 %%
 FreeDynamics = copy(dynamics);
 FreeDynamics.label = 'Free';
@@ -51,28 +71,51 @@ Params.adjoint = adjoint;
 %% Caso 1: 
 % ====================================================================================
 % zeros 
-Params.YT = 2*Y0;
-Params.Umax = 10000*max(Params.YT);
-Params.Umin = 0;
-Params.dynamics.label = 'Controlada';
-OptimalLenght = 1e-6;
-MaxIter = 1000;
-[U,Y,J] = ClassicalDescent(Params,OptimalLenght,MaxIter);
+% Params.YT = YT';
+% % Params.Umax = 1000000*max(Params.YT);
+% % Params.Umin = -1000000*max(Params.YT);
+% 
+% Params.Umax = 2;
+% Params.Umin = 0*max(Params.YT);
+% 
+% Params.dynamics.label = 'Controlada';
+% OptimalLenght = 1e-6;
+% MaxIter = 2000;
+% f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+% f = f0 +0.5;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% 
+% OptimalLenght = 1e-8;
+% MaxIter = 2000;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+% 
+% OptimalLenght = 1e-12;
+% MaxIter = 1000;
+% [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
 %%
 %% Caso 2: 
 % ====================================================================================
-% Params.YT = 1/2*Y0;
-% Params.Umax = max(Params.YT);
-% Params.Umin = 0;
+Params.YT = YT';
+Params.Umax = 2;
+Params.Umin = 0*max(Params.YT);
 
-% Params.dynamics.label = 'Controlada'; 
-% MaxIter = 1000;
-% OptimalLenght = 1e-6;
-% [U,Y,J] = ClassicalDescent(Params,OptimalLenght,MaxIter);
+% Params.Umax = 50000000*max(Params.YT);
+% Params.Umin = -50000000*max(Params.YT);
 
-function [U,Y,J] = ClassicalDescent(Params,OptimalLenght,MaxIter)
-    f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
-    f = f0 +1;
+Params.dynamics.label = 'Controlada'; 
+MaxIter = 2000;
+f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+f = f0 +0.1;
+OptimalLenght = 1e-6;
+[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
+MaxIter = 2000;
+OptimalLenght = 1e-9;
+[U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f);
+
+function [U,Y,J,f] = ClassicalDescent(Params,OptimalLenght,MaxIter,f)
+    %f0 = zeros(length(Params.adjoint.StateVector.Symbolic),1);
+    %f = f0 +0.1;
     %%
     %%
     Params.adjoint.InitialCondition = f;
@@ -85,7 +128,7 @@ function [U,Y,J] = ClassicalDescent(Params,OptimalLenght,MaxIter)
 
     J  = Jfunctional(U,Y,Params)
 
-
+    bestJ = Inf;
     for iter = 1:MaxIter
 
         f = f - OptimalLenght*dJ;
@@ -99,9 +142,19 @@ function [U,Y,J] = ClassicalDescent(Params,OptimalLenght,MaxIter)
         dJ = dJfunctional(f,Y,Params);
 
         J  = Jfunctional(U,Y,Params)
-
+        if J < bestJ
+            bestJ = J;
+            bestf = f;
+        end
     end
-    
+    Params.adjoint.InitialCondition = bestf;
+        [~ ,P ] = solve(Params.adjoint);
+        P = flipud(P);
+
+        U = Adjoint2Control(P,Params);
+
+        [ ~  , Y ] = solve(Params.dynamics,'Control',U);
+        J = bestJ;
 end
 %%
 function U = Adjoint2Control(P,Params)
