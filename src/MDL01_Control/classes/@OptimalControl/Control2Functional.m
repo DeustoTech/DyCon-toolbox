@@ -8,7 +8,7 @@ function [Jfuntional, varargout ] = Control2Functional(iCP,U)
         
         iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Y(end,:)');
         P = GetNumericalAdjoint(iCP,U,Y);
-        varargout{1} = GetNumericalGradient(iCP,U,Y,P);
+        varargout{1} = 0.01*GetNumericalGradient(iCP,U,Y,P);
     end
     
 end

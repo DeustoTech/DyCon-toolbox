@@ -66,7 +66,7 @@ F = [ Y(2)             ; ...
       -Y(2)      + U(1) ] ;
 
 dynamics = ode(F,Y,U); % Define 'ode' class
-dynamics.Condition = [0;-1];
+dynamics.InitialCondition = [0;-1];
 dynamics.dt = 0.01;
 
 YT = [2;4];
@@ -77,13 +77,35 @@ iP = OptimalControl(dynamics,Psi,L); % Define 'OptimalControl' class
 
 %%
 % 'GradientMethod' solves the optimal control problem of 'OptimalControl'
-% class. In order to specify a descent algorithm, we use 'DescentAlgorithm'
-% parameter of 'GradientMethod' function:
+% class, where the default function is '@ConjugateGradientDescent'. In
+% order to specify a descent algorithm, we use 'DescentAlgorithm' parameter
+% of 'GradientMethod' function: 
+%%
+GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent) % Same as default
+plot(iP)
+
+tspan = iP.ode.tspan;
+U1_tspan = iP.solution.UOptimal;
+Cost1 = iP.solution.JOptimal;
+%%
 GradientMethod(iP,'DescentAlgorithm',@ClassicalDescent)
 plot(iP)
+
+U2_tspan = iP.solution.UOptimal;
 %%
 GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent)
 plot(iP)
+
+U3_tspan = iP.solution.UOptimal;
 %%
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent)
-plot(iP)
+figure();
+plot(tspan,[U1_tspan U2_tspan U3_tspan]);
+legend('ConjugateGradientDescent','ClassicalDescent','AdaptiveDescent')
+xlabel('Time')
+ylabel('Control')
+
+%%
+% We may use the options of 'GradientMethod', such as 'Graphs' or 'U0',
+% where we may plot the figures during the calculation and provide initial
+% guess on the control function by 'U0'. 
+GradientMethod(iP,'Graphs',true,'U0',U3_tspan);
