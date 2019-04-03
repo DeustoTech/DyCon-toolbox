@@ -123,6 +123,7 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             %% Constraints Struture
             obj.constraints.Umax = [];
             obj.constraints.Umin = [];
+            obj.constraints.Projection = [];
             %% Functiona Definition
             obj.J.Psi.Symbolic  = symfun(symPsi,[t,symY.']);
             obj.J.Psi.Numeric  = matlabFunction(symPsi,'Vars',{t,symY});

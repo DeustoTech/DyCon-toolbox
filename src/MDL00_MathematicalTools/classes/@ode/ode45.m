@@ -6,9 +6,12 @@ tspan = iode.tspan;
 InitialCondition = iode.InitialCondition;
 U = iode.Control.Numeric;
 
-iode.SolverParameters = {odeset('Mass',iode.MassMatrix)};
-
-%iode.SolverParameters{:} = varargin;
+if isempty(varargin)
+  iode.SolverParameters = {odeset('Mass',iode.MassMatrix)};
+else
+  iode.SolverParameters{:} = varargin{:};
+  iode.SolverParameters{:}.Mass = iode.MassMatrix;
+end
 
 Ufun = @(t) interp1(tspan,U,t)';
 dynamics = @(t,Y) iode.Dynamic.Numeric(t,Y,Ufun(t));

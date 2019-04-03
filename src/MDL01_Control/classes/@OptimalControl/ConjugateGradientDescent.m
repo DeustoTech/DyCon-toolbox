@@ -65,9 +65,11 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
     p = inputParser;
     
     addRequired(p,'iCP')
-   
+    addOptional(p,'StopCriteria',[])
     parse(p,iCP,varargin{:})
 
+    StopCriteria = p.Results.StopCriteria;
+    
     persistent Iter
     persistent s
     persistent SeedLengthStep
@@ -113,7 +115,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
             [OptimalLenght,Jnew] = fminunc(@SearchLenght,SeedLengthStep,options);
             SeedLengthStep = 0.5*SeedLengthStep;
             if abs(OptimalLenght) < 1e-10
-                warning('The Optimal length step of Conjugate Gradient is cero. Posible local minimun.')
+                warning('The Optimal length step of Conjugate Gradient is zero. Possible local minimum.')
                 OptimalLenght = 0;
                 Jnew = Jold;
             end
@@ -123,6 +125,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
         %% Update Control with Optimal Length Step
         Unew = Uold + OptimalLenght*s; 
         Unew = UpdateControlWithConstraints(iCP,Unew);
+        
         [~ , Ynew] = solve(iCP.ode,'Control',Unew);
         %% Get Gradient
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);   
@@ -138,9 +141,23 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
         %
         s = - dJnew + beta*s;
 
-        AdJnew = mean(abs(trapz(tspan,dJnew)));
-        AUnew = mean(abs(trapz(tspan,Unew)));
-        error = AdJnew/AUnew;
+        % Possible stopping criterion for constrainted control problems.
+        % Call it using GradientMethod(...,'DescentParameters',{'StopCriteria','Jdiff'}).
+        if ~isempty(StopCriteria)
+          switch StopCriteria
+            case {'JDiff','Jdiff','jdiff'}
+              % Stop when the difference of J is smaller than tol^2 + Jold*tol.
+              error = (Jold-Jnew)/(Jold+tol);               
+            otherwise
+              AdJnew = mean(abs(trapz(tspan,dJnew)));
+              AUnew = mean(abs(trapz(tspan,Unew)));
+              error = AdJnew/AUnew;
+          end
+        else % Usual Stopping criterion
+          AdJnew = mean(abs(trapz(tspan,dJnew)));
+          AUnew = mean(abs(trapz(tspan,Unew)));
+          error = AdJnew/AUnew;
+        end
         
         if error < tol || OptimalLenght == 0 
             stop = true;
