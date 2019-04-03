@@ -75,7 +75,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
     persistent SeedLengthStep
     persistent HistoryOptimalLength
 
-    tspan = iCP.ode.tspan;
+    tspan = iCP.dynamics.tspan;
 
     if isempty(Iter)
         %% First Iteration
@@ -83,7 +83,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
         % Get First Control
         Unew = iCP.solution.Uhistory{1};
         % Solve Dynamics with this control
-        [~, Ynew] = solve(iCP.ode,'Control',Unew);
+        [~, Ynew] = solve(iCP.dynamics,'Control',Unew);
         % Calculate de Functional numerical Value
         Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
         % Calculate de Gradient numerical Value
@@ -124,9 +124,9 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
         SeedLengthStep = OptimalLenght;
         %% Update Control with Optimal Length Step
         Unew = Uold + OptimalLenght*s; 
-        Unew = UpdateControlWithConstraints(iCP,Unew);
+        Unew = UpdateControlWithConstraints(iCP.constraints,Unew);
         
-        [~ , Ynew] = solve(iCP.ode,'Control',Unew);
+        [~ , Ynew] = solve(iCP.dynamics,'Control',Unew);
         %% Get Gradient
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);   
         dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);
@@ -170,9 +170,9 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
     function [Jsl ,varargout] = SearchLenght(LengthStep)
         
         Usl = Uold + LengthStep*s; 
-        Usl = UpdateControlWithConstraints(iCP,Usl);
+        Usl = UpdateControlWithConstraints(iCP.constraints,Usl);
         %% Resolvemos el problem primal
-        [~ , Ysl] = solve(iCP.ode,'Control',Usl);
+        [~ , Ysl] = solve(iCP.dynamics,'Control',Usl);
         Jsl = GetNumericalFunctional(iCP,Ysl,Usl);
 
         if nargout > 1

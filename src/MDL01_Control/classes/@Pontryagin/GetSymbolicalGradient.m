@@ -14,25 +14,25 @@ function GetSymbolicalGradient(iP)
 %    dimension: [1x1]
     syms t
     %%
-    iode   = iP.ode;
-    L   = iP.J.L.Symbolic; 
+    idynamics   = iP.dynamics;
+    L   = iP.Functional.L.Symbolic; 
     %% Creamos las variables simbolica 
-    symU   = iode.Control.Symbolic;
+    symU   = idynamics.Control.Symbolic;
     % Obtenemos el vector Symbolico Y = [y1 y2 y3 ...]^T
-    symY   = iode.StateVector.Symbolic;
+    symY   = idynamics.StateVector.Symbolic;
     % Creamos el vector Symbolico   P = [p1 p2 p3 ...]
     
     symP  =  sym('p', [length(symY),1]);
-    if iP.ode.lineal    
-        dH_du =(iode.B.'*symP).' + gradient(formula(L),symU).';
+    if iP.dynamics.lineal    
+        dH_du =(idynamics.B.'*symP).' + gradient(formula(L),symU).';
         dH_du = dH_du.';
     else
         dH_du = gradient(formula(iP.hamiltonian),symU).';
     end
     %
-    iP.gradient.sym = symfun(dH_du,[t symY.' symP.' symU.']);
+    iP.ControlGradient.Symbolical = symfun(dH_du,[t symY.' symP.' symU.']);
     % Pasamos esta funcion a una function_handle
-    iP.gradient.num = matlabFunction(dH_du,'Vars',{t,symY,symP,symU});
+    iP.ControlGradient.Numerical = matlabFunction(dH_du,'Vars',{t,symY,symP,symU});
             
 
 end

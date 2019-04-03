@@ -82,7 +82,7 @@ U = dynamics.Control.Symbolic;
 
 %% Construction of the control problem norm-LP
 p = 3;
-epsilon = dx^3;
+epsilon = dx^4;
 %%
 % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
 %%
@@ -91,19 +91,19 @@ L    = (dx)*sum(abs(U).^p);
 %%
 % Optional Parameters to go faster
 Gradient                =  @(t,Y,P,U) dx*sign(U) + B*P;
-Hessian                 =  @(t,Y,P,U) dx*eye(iCP.ode.Udim)*dirac(U);
+Hessian                 =  @(t,Y,P,U) dx*eye(iCP.dynamics.Udim)*dirac(U);
 AdjointFinalCondition   =  @(t,Y) (dx/(epsilon))* (Y-YT);
 Adjoint = pde('A',A);
-OCParmaters = {'Hessian',Hessian,'Gradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
+OCParmaters = {'Hessian',Hessian,'ControlGradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
 %%
 % build problem with constraints
-iCP_norm_L1 =  OptimalControl(dynamics,Psi,L,OCParmaters{:});
+iCP_norm_L1 =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
 iCP_norm_L1.constraints.Umax =  20*max(Y0_other);
 iCP_norm_L1.constraints.Umin =  min(Y0_other);
 
 %%
 % Solver L1
-Parameters = {'DescentAlgorithm',@ConjugateGradientDescent, ...
+Parameters = {'DescentAlgorithm',@AdaptativeDescent, ...
              'tol',1e-3,                                    ...
              'Graphs',false,                               ...
              'MaxIter',5000,                               ...
@@ -122,16 +122,16 @@ L    = (dx/2)*(U.'*U);
 Gradient                =  @(t,Y,P,U) (dx*U + (B*P));
 AdjointFinalCondition   =  @(t,Y) (dx/(epsilon))* (Y-YT);
 Adjoint                 =  pde('A',A);
-Hessian                 =  @(t,Y,P,U) dx*eye(iCP.ode.Udim);
+Hessian                 =  @(t,Y,P,U) dx*eye(iCP.dynamics.Udim);
 %
 OCParmaters = {'Hessian',Hessian,'Gradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
 %%
-iCP_norm_L2 = OptimalControl(dynamics,Psi,L,OCParmaters{:});
+iCP_norm_L2 = Pontryagin(dynamics,Psi,L,OCParmaters{:});
 %iCP_norm_L2.constraints.Umax = 10*max(Y0_other);
 %iCP_norm_L2.constraints.Umin = min(Y0_other);
 %% Solver L2
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Parameters = {'DescentAlgorithm',@ConjugateGradientDescent, ...
+Parameters = {'DescentAlgorithm',@AdaptativeDescent, ...
              'tol',1e-3,                                    ...
              'Graphs',false,                               ...
              'MaxIter',5000,                               ...
@@ -142,14 +142,14 @@ GradientMethod(iCP_norm_L2,Parameters{:})
 %%
 figure
 subplot(1,2,1)
-surf(iCP_norm_L1.ode.Control.Numeric)
+surf(iCP_norm_L1.dynamics.Control.Numeric)
 xlabel('Space')
 ylabel('Time')
 
 caxis([-0.2 0.2])
 title('L1')
 subplot(1,2,2)
-surf(iCP_norm_L2.ode.Control.Numeric)
+surf(iCP_norm_L2.dynamics.Control.Numeric)
 caxis([-0.2 0.2])
 title('L2')
 xlabel('Space')
@@ -157,16 +157,16 @@ ylabel('Time')
 %%
 solve(dynamics);
 dynamics.label = 'Free';
-iCP_norm_L2.ode.label = 'Control norm L^2';
-iCP_norm_L1.ode.label = 'Control norm L^1';
+iCP_norm_L2.dynamics.label = 'Control norm L^2';
+iCP_norm_L1.dynamics.label = 'Control norm L^1';
 
-%animation([iCP_norm_L2.ode,iCP_norm_L1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
+%animation([iCP_norm_L2.dynamics,iCP_norm_L1.dynamics,dynamics],'YLim',[-1 1],'xx',0.05)
 
 %%
 
 %%
 %  ```
-% animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
+% animation([iCP1.dynamics,dynamics],'YLim',[-1 1],'xx',0.05)
 % ```
 %%
 % ![](extra-data/063235.gif)

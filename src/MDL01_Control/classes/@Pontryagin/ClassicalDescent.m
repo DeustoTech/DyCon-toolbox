@@ -83,9 +83,9 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,var
     if isempty(Iter)
         Unew = iCP.solution.Uhistory{1};
         %
-        [~,Ynew] = solve(iCP.ode,'Control',Unew);
-        T = iCP.ode.FinalTime;
-        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        [~,Ynew] = solve(iCP.dynamics,'Control',Unew);
+        T = iCP.dynamics.FinalTime;
+        iCP.adjoint.dynamics.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
         %
         Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
@@ -123,18 +123,18 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,var
 
         [OptimalLenght,Jnew] = fminunc(@SearchLenght,0,options);
         Unew = Uold - OptimalLenght*dJnew; 
-        Unew = UpdateControlWithConstraints(iCP,Unew);
+        Unew = UpdateControlWithConstraints(iCP.constraints,Unew);
         %% Resolvemos el problem primal
-        [~ ,Ynew] = solve(iCP.ode,'Control',Unew);
+        [~ ,Ynew] = solve(iCP.dynamics,'Control',Unew);
         %Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
         
         %%
         
-        T = iCP.ode.FinalTime;
-        iCP.adjoint.ode.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
+        T = iCP.dynamics.FinalTime;
+        iCP.adjoint.dynamics.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Ynew(end,:)');
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
         
-        tspan = iCP.ode.tspan;
+        tspan = iCP.dynamics.tspan;
         AdJnew = mean(abs(trapz(tspan,dJnew)));
         AUnew = mean(abs(trapz(tspan,Unew)));
         error = AdJnew/AUnew;
@@ -147,10 +147,10 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,var
     function [Jsl,varargout] = SearchLenght(LengthStep)
         
         Usl = Uold - LengthStep*dJnew; 
-        Usl = UpdateControlWithConstraints(iCP,Usl);
+        Usl = UpdateControlWithConstraints(iCP.constraints,Usl);
 
         %% Resolvemos el problem primal
-        [~ ,Ysl] = solve(iCP.ode,'Control',Usl);
+        [~ ,Ysl] = solve(iCP.dynamics,'Control',Usl);
         Jsl = GetNumericalFunctional(iCP,Ysl,Usl);
         
         
@@ -159,8 +159,8 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,var
            dJsl = GetNumericalGradient(iCP,Usl,Ysl,Psl);
            %
            %dJda  = (trapz(tspan,sum(dJsl.*s,2)));
-           dJda = -arrayfun(@(indextime) dJsl(indextime,:)*dJnew(indextime,:).',1:length(iCP.ode.tspan));
-           dJda = trapz(iCP.ode.tspan,dJda);
+           dJda = -arrayfun(@(indextime) dJsl(indextime,:)*dJnew(indextime,:).',1:length(iCP.dynamics.tspan));
+           dJda = trapz(iCP.dynamics.tspan,dJda);
            
            
            varargout{1} = dJda;

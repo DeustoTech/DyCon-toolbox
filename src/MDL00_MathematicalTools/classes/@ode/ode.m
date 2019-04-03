@@ -48,7 +48,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %                   <li> Numeric  - function_handle of dynamics equation. 
         %                   </li>
         %               </ul>
-        Dynamic                                                                                
+        DynamicEquation                                                                                
         % type: "double"
         % dimension: [1xN]
         % default: "[0 0 0 ...]"
@@ -203,8 +203,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 end
                 U =  [obj.Control.Symbolic];
                 
-                obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
-                obj.Dynamic.Numeric   = matlabFunction(obj.Dynamic.Symbolic,'Vars',{t,Y,U});
+                obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
+                obj.DynamicEquation.Numeric   = matlabFunction(obj.DynamicEquation.Symbolic,'Vars',{t,Y,U});
                 
             else
                 %% Han entrado matrices A y B 
@@ -224,12 +224,12 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                %
                 if ~isempty(U)
                     DynamicEquation = obj.A*Y + obj.B*U;
-                    obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
-                    obj.Dynamic.Numeric   = @(t,Y,U) obj.A*Y + obj.B*U;
+                    obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
+                    obj.DynamicEquation.Numeric   = @(t,Y,U) obj.A*Y + obj.B*U;
                 else
                     DynamicEquation = obj.A*Y;
-                    obj.Dynamic.Symbolic  = symfun(DynamicEquation,[t,Y.']);
-                    obj.Dynamic.Numeric   = @(t,Y,U) obj.A*Y;
+                    obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.']);
+                    obj.DynamicEquation.Numeric   = @(t,Y,U) obj.A*Y;
                 end
                 % Por defecto 
                 obj.Solver          = @euleri;

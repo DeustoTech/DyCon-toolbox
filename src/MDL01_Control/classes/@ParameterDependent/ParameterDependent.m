@@ -1,4 +1,4 @@
-classdef ParameterDependent < OptimalControl
+classdef ParameterDependent < AbstractOptimalControl
     %PARAMETERDEPENDENT Summary of this class goes here
     %   Detailed explanation goes here
     

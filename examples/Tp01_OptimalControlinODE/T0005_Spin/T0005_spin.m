@@ -26,12 +26,12 @@ symL    = (0.5)*(symU(1)^2+symU(2)^2+symU(3)^2+symU(4)^2)+ ...
 % For last, you an create the functional object
 %% 
 % Creta the control Problem
-iCP1 = OptimalControl(dynamics,symPsi,symL);
+iCP1 = Pontryagin(dynamics,symPsi,symL);
 %% Solve Gradient
 %GradientMethod(iCP1,'Graphs',true,'DescentAlgorithm',@ClassicalDescent,'DescentParameters',{'LengthStep',1e-4})
 GradientMethod(iCP1,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all')
 
-U0 = iCP1.ode.Control.Numeric
+U0 = iCP1.dynamics.Control.Numeric
 GradientMethod(iCP1,'Graphs',false,'DescentAlgorithm',@ConjugateGradientDescent,'display','all','U0',U0)
 
 %%

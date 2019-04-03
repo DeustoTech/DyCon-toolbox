@@ -79,13 +79,13 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
     if isempty(Iter)
         Unew = iCP.solution.Uhistory{1};
         %
-        solve(iCP.ode,'Control',Unew);
+        solve(iCP.dynamics,'Control',Unew);
         %
-        Ynew = iCP.ode.StateVector.Numeric;
+        Ynew = iCP.dynamics.StateVector.Numeric;
         Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
         
                     %%
-        T = iCP.ode.FinalTime;
+        T = iCP.dynamics.FinalTime;
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
             
         Iter = 1;
@@ -103,7 +103,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
         
         [Unew,Ynew,Pnew,Jnew,dJnew] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,varargin{:});
         
-        tspan = iCP.ode.tspan;
+        tspan = iCP.dynamics.tspan;
         
         switch Norm
             case 'L1'
@@ -166,7 +166,7 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
         % en cada iteracion dividimos el LengthStep
         LengthStep = LengthStep/2;
         %% Actualizamos  Control
-        tspan = iCP.ode.tspan;
+        tspan = iCP.dynamics.tspan;
         switch norm
             case 'L1'
                 normdJold = mean(trapz(tspan,abs(dJold)));
@@ -174,15 +174,15 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
                 normdJold = sqrt(mean(trapz(tspan,dJold.^2)));
         end
         UTry = Uold - LengthStep*dJold/normdJold;
-        UTry = UpdateControlWithConstraints(iCP,UTry);
+        UTry = UpdateControlWithConstraints(iCP.constraints,UTry);
         %% Resolvemos el problem primal
-        [~ , YTry] = solve(iCP.ode,'Control',UTry);
+        [~ , YTry] = solve(iCP.dynamics,'Control',UTry);
         % Calculate functional value
         JTry = GetNumericalFunctional(iCP,YTry,UTry);
      
         if ((JTry - Jold) <= 0)
             %%
-            T = iCP.ode.FinalTime;
+            T = iCP.dynamics.FinalTime;
             Pnew  = GetNumericalAdjoint(iCP,UTry,YTry);
     %%
             Unew = UTry;
@@ -194,7 +194,7 @@ function [Unew,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
         end
         if (LengthStep <= MinLengthStep)
             %%
-            T = iCP.ode.FinalTime;
+            T = iCP.dynamics.FinalTime;
             Pnew  = GetNumericalAdjoint(iCP,UTry,YTry);
             Unew = Uold;
             Ynew = Yold;

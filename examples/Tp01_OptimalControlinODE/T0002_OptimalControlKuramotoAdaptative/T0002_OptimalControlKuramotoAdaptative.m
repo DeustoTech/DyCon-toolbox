@@ -1,5 +1,5 @@
 %% 
-% In this tutorial, we present how to use OptimalControl environment to
+% In this tutorial, we present how to use Pontryagin environment to
 % control a consensus system that models the complex emergent dynamics over 
 % a given network. The control basically minimize the cost functional which
 % contains the running cost and desired final state.
@@ -65,7 +65,7 @@ Vsys = symOm + (symU./m)*sum(symK.*sin(symThth.' - symThth),2);   % Kuramoto int
 K_init = ones(m,m);                 % Constant coupling strength, 1.
 T = 5;                              % We give enough time for the frequency synchronization.
 
-file = 'T002_OptimalControlKuramotoAdaptative.m';
+file = 'T002_PontryaginKuramotoAdaptative.m';
 path_data = replace(which(file),file,'');
 load([path_data,'functions/random_init.mat'],'Om_init','Th_init'); % reference data
 %%
@@ -77,7 +77,7 @@ odeEqn = ode(symF,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'dt',dt);
 symPsi = norm(sin(symThth.' - symThth),'fro');      % Sine distance for the periodic interval $[0,2pi]$.
 symL_1 = 0.001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
 %
-iCP_1 = OptimalControl(odeEqn,symPsi,symL_1);
+iCP_1 = Pontryagin(odeEqn,symPsi,symL_1);
 %% Solve Gradient descent
 tic
 GradientMethod(iCP_1,'Graphs',true,'DescentAlgorithm',@ClassicalDescent)
@@ -93,7 +93,7 @@ xlabel('Time [sec]')
 title('The dynamics without control (incoherence)')
 %%
 % and see the controled dynamics.
-odec_1 = iCP_1.ode;
+odec_1 = iCP_1.dynamics;
 figure
 plot(odec_1.tspan',odec_1.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])
@@ -115,13 +115,13 @@ title('The control function')
 % difference.
 
 symL_2 = 0.001*abs(symU);
-iCP_2 = OptimalControl(odeEqn,symPsi,symL_2);
+iCP_2 = Pontryagin(odeEqn,symPsi,symL_2);
 % 
 tic
 GradientMethod(iCP_2,'Graphs',true,'DescentAlgorithm',@ClassicalDescent)
 toc
 %%
-odec_2 = iCP_2.ode;
+odec_2 = iCP_2.dynamics;
 figure
 plot(odec_2.tspan',odec_2.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])

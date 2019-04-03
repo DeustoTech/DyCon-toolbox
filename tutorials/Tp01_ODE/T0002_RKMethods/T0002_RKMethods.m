@@ -26,7 +26,7 @@ A = [ -5 -10 ; 10 0];
 B = [1 ; 1];
 
 dynamics_linear = ode('A',A,'B',B);
-dynamics_linear.Condition = [1,2];
+dynamics_linear.InitialCondition = [1,2];
 solve(dynamics_linear)
 plot(dynamics_linear)
 %%
@@ -37,20 +37,20 @@ plot(dynamics_linear)
 
 dt = 0.01;
 dynamics_linear_fine = ode('A',A,'B',B,'dt',dt);
-dynamics_linear_fine.Condition = [1,2];
+dynamics_linear_fine.InitialCondition = [1,2];
 solve(dynamics_linear_fine)
-Y_ode45 = dynamics_linear_fine.VectorState.Numeric;
+Y_ode45 = dynamics_linear_fine.StateVector.Numeric;
 T_ode45 = dynamics_linear_fine.tspan;
 plot(dynamics_linear_fine)
 hold on
-Y_default = dynamics_linear.VectorState.Numeric;
+Y_default = dynamics_linear.StateVector.Numeric;
 T_default = dynamics_linear.tspan;
 plot(T_default,Y_default,'*')
 hold off
 legend('Y_1','Y_2','Y_1','Y_2')
 
 %%
-% 'VectorState.Numeric' and 'tspan' are manual methods to get the results
+% 'StateVector.Numeric' and 'tspan' are manual methods to get the results
 % of 'solve' function. Note that the values coincide though we gave them
 % different time-steps.
 %% 
@@ -71,11 +71,11 @@ legend('Y_1','Y_2')
 
 %%
 % We may implement the 'options' feature on the 'ode' class, using the
-% structure parameter 'RKParameters' of 'ode' class:
+% structure parameter 'SolverParameters' of 'ode' class:
 
-dynamics_linear_fine.RKParameters = {options};
+dynamics_linear_fine.SolverParameters = {options};
 solve(dynamics_linear_fine)
-Y_new = dynamics_linear_fine.VectorState.Numeric;
+Y_new = dynamics_linear_fine.StateVector.Numeric;
 T_new = dynamics_linear_fine.tspan;
 plot(T_new,Y_new-y)
 xlabel('time(s)')
@@ -89,10 +89,10 @@ legend('Y_1','Y_2')
 %%
 % We can use other built-in functions, such as 'ode23'.
 dynamics_linear_23 = ode('A',A,'B',B,'dt',dt);
-dynamics_linear_23.Condition = [1,2];
-dynamics_linear_23.RKMethod = @ode23;
+dynamics_linear_23.InitialCondition = [1,2];
+dynamics_linear_23.Solver = @ode23;
 solve(dynamics_linear_23)
-Y_ode23 = dynamics_linear_fine.VectorState.Numeric;
+Y_ode23 = dynamics_linear_fine.StateVector.Numeric;
 T_ode23 = dynamics_linear_fine.tspan;
 hold on
 plot(T_ode23,Y_ode23-Y_ode45)
@@ -106,20 +106,23 @@ legend('Y_1','Y_2')
 % define the first-order Euler method and use it for solving 'ode' classes.
 
 dynamics_linear_Euler = ode('A',A,'B',B,'dt',dt);
-dynamics_linear_Euler.Condition = [1,2];
-dynamics_linear_Euler.RKMethod = @Euler;
+dynamics_linear_Euler.InitialCondition = [1,2];
+dynamics_linear_Euler.Solver = @Euler;
 solve(dynamics_linear_Euler)
 plot(dynamics_linear_Euler)
 %%
-function [tline,yline] = Euler(odefun,tspan,y0,options)
-    tline = tspan;
-    yline = zeros(length(tspan),length(y0));
-    yline(1,:) = y0;
-    
-    for i=1:length(tspan)-1
-        vector = odefun(tline(i),yline(i,:)')';
+function [tline,yline] = Euler(iode)
+    tline = iode.tspan;
+    yline = zeros(length(tline),length(iode.StateVector.Symbolic));
+    yline(1,:) = iode.InitialCondition;
+    u0    = iode.Control.Numeric;
+    odefun = iode.DynamicEquation.Numeric;
+    for i=1:length(tline)-1
+        vector = odefun(tline(i),yline(i,:)',u0(i,:)')';
         yline(i+1,:) = yline(i,:) + vector*(tline(i+1)-tline(i));
     end        
 end
+
+
 
 

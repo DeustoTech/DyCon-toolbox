@@ -1,4 +1,4 @@
-classdef CPSolution < handle
+classdef solution < handle
     %CPSOLUTION Summary of this class goes here
     %   Detailed explanation goes here
     

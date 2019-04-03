@@ -1,4 +1,4 @@
-classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
+classdef Pontryagin < AbstractOptimalControl
 % description: "This class is able to solve optimization problems of a function restricted to an ordinary equation.
 %               This scheme is used to solve optimal control problems in which the functional derivative is calculated. 
 %               <strong>OptimalControl</strong> class has methods that help us find optimal control as well as obtaining 
@@ -30,39 +30,10 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
 %                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/AdaptativeDescent'>Gradient method with adaptive descend step</a></li>
 %                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/ConjugateGradientDescent'>Conjugate gradient method</a></li>
 %                 </ul>
-    properties 
-        % type: "Functional"
-        % default: "none"
-        % description: "This property represent the cost of optimal control"
-        J        
-        % type: ode
-        % default: none
-        % description: This property represented ordinary differential equation
-        ode        
-        % type: double
-        % default: function_handle
-        % description: The derivative of the Hamiltonian with respect to the control u 
-        adjoint
-        % type: double
-        % default: function_handle
-        % description: The derivative of the Hamiltonian with respect to the control u 
-        hamiltonian
-        % type: struct
-        % default: none
-        % description: The adjoint propertir contain the numerical function that represents the adjoint problem this struct have a two properties. The first is dP_dt and the second is P0.   
-        gradient
-        hessian
-        % type: double
-        % default: none
-        % description: It is an array that contains the different functional values during the execution of the optimization algorithm that has been used.
-        solution
-        %
-        constraints
-    end
-    
+
      
     methods
-        function obj = OptimalControl(iode,symPsi,symL,varargin)
+        function obj = Pontryagin(iode,symPsi,symL,varargin)
         % name: ControlProblem
         % description: 
         % autor: JOroya
@@ -105,52 +76,49 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             addRequired(p,'symL');
                     
             
-            addOptional(p,'Gradient',[])
+            addOptional(p,'ControlGradient',[])
             addOptional(p,'Hessian',[])
             addOptional(p,'Adjoint',[])
             addOptional(p,'AdjointFinalCondition',[])
             
             parse(p,iode,symPsi,symL,varargin{:})
             
-            t    = iode.symt;
-            symU = iode.Control.Symbolic;
-            symY = iode.StateVector.Symbolic;
-            Hessian  = p.Results.Hessian;
-            Gradient  = p.Results.Gradient;
+            t           = iode.symt;
+            symU        = iode.Control.Symbolic;
+            symY        = iode.StateVector.Symbolic;
+            Hessian     = p.Results.Hessian;
+            ControlGradient    = p.Results.ControlGradient;
 
-            Adjoint   = p.Results.Adjoint;
-            AdjointFinalCondition =  p.Results.AdjointFinalCondition;
-            %% Constraints Struture
-            obj.constraints.Umax = [];
-            obj.constraints.Umin = [];
-            obj.constraints.Projection = [];
+            Adjoint                 = p.Results.Adjoint;
+            AdjointFinalCondition   = p.Results.AdjointFinalCondition;
             %% Functiona Definition
-            obj.J.Psi.Symbolic  = symfun(symPsi,[t,symY.']);
-            obj.J.Psi.Numeric  = matlabFunction(symPsi,'Vars',{t,symY});
+            obj.Functional.Psi.Symbolic      = symfun(symPsi,[t,symY.']);
+            obj.Functional.Psi.Numeric       = matlabFunction(symPsi,'Vars',{t,symY});
 
-            obj.J.L.Symbolic    = symfun(symL,[t,symY.',symU.']);
-            obj.J.L.Numeric    = matlabFunction(symL,'Vars',{t,symY,symU});
+            obj.Functional.L.Symbolic        = symfun(symL,[t,symY.',symU.']);
+            obj.Functional.L.Numeric         = matlabFunction(symL,'Vars',{t,symY,symU});
             %% Dynamics Definition                   
-            obj.ode          = copy(iode);
+            obj.dynamics                 = copy(iode);
             %% Hamiltonian
             
             symP  =  sym('p', [length(symY),1]);
-            if obj.ode.lineal   
-                obj.hamiltonian = symL + symP.'*(obj.ode.A* obj.ode.StateVector.Symbolic + obj.ode.B*obj.ode.Control.Symbolic);
+            
+            if obj.dynamics.lineal   
+                obj.hamiltonian = symL + symP.'*(obj.dynamics.A* obj.dynamics.StateVector.Symbolic + obj.dynamics.B*obj.dynamics.Control.Symbolic);
             else
-                obj.hamiltonian = symL + symP.'*formula(obj.ode.Dynamic.Symbolic);
+                obj.hamiltonian = symL + symP.'*formula(obj.dynamics.DynamicEquation.Symbolic);
             end
             
             %% Direccion del Gradiente
             
-            if isempty(Gradient)
+            if isempty(ControlGradient)
                 GetSymbolicalGradient(obj);
             else
-                obj.gradient.num = Gradient;
+                obj.ControlGradient.num = ControlGradient;
             end
             
             if isempty(Hessian)
-                if ~isempty(Gradient)
+                if ~isempty(ControlGradient)
                     warning('If you specify gradient, is better specify hessian also.')
                     GetSymbolicalGradient(obj);
                 end
@@ -161,7 +129,7 @@ classdef OptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
             if isempty(Adjoint)
                 GetSymbolicalAdjointProblem(obj);
             else
-                obj.adjoint.ode = Adjoint;
+                obj.adjoint.dynamics = Adjoint;
             end
             %% Calculate Adjoint of Dynamics
             if isempty(AdjointFinalCondition)

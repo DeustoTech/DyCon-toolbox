@@ -1,5 +1,5 @@
 
-FinalTimes = 0.2:0.5:4;
+FinalTimes = 0.6:0.1:4;
 JValues = arrayfun(@(FinalTime) OptiTime(FinalTime),FinalTimes);
 
 plot(FinalTimes,JValues)
@@ -18,17 +18,17 @@ M = massmatrix(xline);
 % Moreover, we build the matrix $B$ defining the action of the control, by
 % using the program "construction_matrix_B" (see below).
 a = -0.3; b = 0.8;
-B = construction_matrix_B(xline,a,b);
+B = BInterior(xline,a,b);
 %%
 % We can then define a final time and an initial datum
-Y0 = cos(0.5*pi*xline');
+Y0 = 1+cos(pi*xline');
 %%
 dt = FinalTime/50;
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
 dynamics.MassMatrix = M;
 dynamics.mesh = xline;
 %% Target 
-YT = Y0*0;
+YT = 1+sin(0.5*pi*xline');
 %% Calculate Free 
 dynamics.InitialCondition = Y0;
 U00 = dynamics.Control.Numeric*0;
@@ -51,14 +51,14 @@ Adjoint = pde('A',A);
 OCParmaters = {'Hessian',Hessian,'Gradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
 %%
 % build problem with constraints
-iCP_norm_L1 =  OptimalControl(dynamics,Psi,L,OCParmaters{:});
+iCP_norm_L1 =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
 %iCP_norm_L1.constraints.Umax =  20*max(Y0_other);
 %iCP_norm_L1.constraints.Umin =  min(Y0_other);
 iCP_norm_L1.constraints.Umax =  200;
 iCP_norm_L1.constraints.Umin =  -200;
 %%
 % Solver L1
-Parameters = {'DescentAlgorithm',@ConjugateGradientDescent, ...
+Parameters = {'DescentAlgorithm',@AdaptativeDescent, ...
              'tol',5e-2,                                    ...
              'Graphs',false,                               ...
              'MaxIter',500,                               ...
@@ -68,15 +68,7 @@ GradientMethod(iCP_norm_L1,Parameters{:})
 J = iCP_norm_L1.solution.Jhistory(end);
 end
 %%
-function [B] = construction_matrix_B(mesh,a,b)
 
-N = length(mesh);
-B = zeros(N,N);
-
-control = (mesh>=a).*(mesh<=b);
-B = diag(control);
-
-end
 function M = massmatrix(mesh)
     N = length(mesh);
     dx = mesh(2)-mesh(1);

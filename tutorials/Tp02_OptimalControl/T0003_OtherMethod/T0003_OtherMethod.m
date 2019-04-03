@@ -52,7 +52,7 @@ iCP = OptimalControl(iode,Psi,L);
 U0 = iode.Control.Numeric;
 Umax = 1*ones(size(iode.Control.Numeric));
 Umin = -1*ones(size(iode.Control.Numeric));
-options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',false);
+options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',true);
 [U1_tspan,J1_optimal] = fmincon(@(U)Control2Functional(iCP,U),U0,[],[],[],[],Umin,Umax,[],options);
 %[U1_tspan,J1_optimal] = fminunc(@(U)Control2Functional(iCP,U),U0,options);
 
@@ -62,7 +62,7 @@ options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',fals
 iCP.constraints.Umax = 1;
 iCP.constraints.Umin = -1;
 
-GradientMethod(iCP,'Graphs',false,'DescentAlgorithm',@ConjugateGradientDescent,'display','all')
+GradientMethod(iCP,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all')
 U2_tspan = iCP.solution.UOptimal;
 J2_optimal = iCP.solution.JOptimal;
 %%

@@ -1,4 +1,4 @@
-classdef InverseProblem < handle
+classdef InverseProblem < OptimalControl
     %INVERSEPROBLEM Summary of this class goes here
     %   Detailed explanation goes here
     

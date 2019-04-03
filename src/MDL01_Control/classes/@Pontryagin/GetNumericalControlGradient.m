@@ -16,11 +16,11 @@ function dJnew = GetNumericalGradient(iCP,U,Y,P)
 %    YOld: 
 %        description: State Vector in time 
 %        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
+%        dimension: [length(iCP.dynamics.Y0),iCP.tspan]
 %    JOld: 
 %        description: Value of functional J(Uold,Yold)
 %        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
+%        dimension: [length(iCP.dynamics.Y0),iCP.tspan]
 %  OptionalInputs:
 %    InitialLengthStep: 
 %        description: This parameter is the step size if the MiddleStepControl option is false. 
@@ -41,7 +41,7 @@ function dJnew = GetNumericalGradient(iCP,U,Y,P)
 %                       step-logitudes, provided that the control update decrements the functional value. If it is
 %                       deactivated, the descent of the gradient will be constant.
 %        class: double
-%        dimension: [length(iCP.ode.Y0),iCP.tspan]
+%        dimension: [length(iCP.dynamics.Y0),iCP.tspan]
 %  Outputs:
 %    Unew:
 %        description: Update of Control Vector  
@@ -57,9 +57,9 @@ function dJnew = GetNumericalGradient(iCP,U,Y,P)
 %        dimension: [1x1]
 
 %% Recupereamos las variables para empezar el problema 
-    dH_du               = iCP.gradient.num;
+    dH_du               = iCP.ControlGradient.Numerical;
     %
-    tspan   =  iCP.ode.tspan;
+    tspan   =  iCP.dynamics.tspan;
     %% Calculo del descenso   
     % Obtenemos du(t)
     du_tDepend = @(index) dH_du(tspan(index),Y(index,:)',P(index,:)',U(index,:)');

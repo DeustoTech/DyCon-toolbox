@@ -24,17 +24,28 @@ function Jvalue = GetNumericalFunctional(iCP,Y,U)
 %    class: double
 %    dimension: [1x1]
 
-    %p = parse()
-    %addRequired(p,'iCP')
+    xline = iCP.dynamics.xline;
+    tspan = iCP.dynamics.tspan;
+    s     = iCP.s;
+    k     = iCP.kappa;
+    YT    = iCP.YT;
     
+    if s == Inf
+        dY = Y(end,:).'-YT;
+        dY_norm_L2 = trapz(xline,abs(dY.').^2);
+        
+         J = 0.5*max(max(U))^2 + 0.5*k*dY_norm_L2;
+    else
+        
+        U_norm_Ls = trapz(tspan,trapz(xline,abs(U.').^s));
+        U_norm_Ls = U_norm_Ls.^(1/s);
+
+        dY = Y(end,:).'-YT;
+        dY_norm_L2 = trapz(xline,abs(dY.').^2);
+
+        J = 0.5*U_norm_Ls^2 + 0.5*k*dY_norm_L2;
+    end
     
-    tspan   = iCP.ode.tspan;
-    L       = iCP.J.L.Numeric;
-    Psi     = iCP.J.Psi.Numeric;
-
-    Lvalues = arrayfun(@(index)  L(tspan(index),Y(index,:)',U(index,:)'),1:length(tspan));
-
-    Jvalue = trapz(tspan,Lvalues) + Psi(tspan(end),Y(end,:)');
 end
 
 

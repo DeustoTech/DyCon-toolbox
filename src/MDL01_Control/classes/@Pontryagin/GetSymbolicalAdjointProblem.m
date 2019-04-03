@@ -21,8 +21,8 @@
 %        class: ControlProblem
 %        dimension: [1x1]
 
-    Jfun   = obj.J;
-    iode   = obj.ode;
+    Jfun   = obj.Functional;
+    iode   = obj.dynamics;
     L      = Jfun.L.Symbolic;
     %% Creamos las variables simbolica 
     symU   = iode.Control.Symbolic;
@@ -31,17 +31,17 @@
     symP  =  sym('p', [1 length(symY)]);
     
     % H_y = L_y + p*f_y
-    if obj.ode.lineal
+    if obj.dynamics.lineal
         Lu = gradient(L,symY);
         if  sum(gradient(L,symY)) == sym(0)
-            obj.adjoint.ode = ode('A',iode.A);
+            obj.adjoint.dynamics = ode('A',iode.A);
         else
             dP_dt = Lu + iode.A*symP.';
             % Convertimos la expresion a una funcion simbolica
             % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
             Control = [symY.' symU.'].';
             State   = symP.';
-            obj.adjoint.ode = ode(dP_dt,State,Control);
+            obj.adjoint.dynamics = ode(dP_dt,State,Control);
         end
     else
          %% Hamiltoniano
@@ -53,7 +53,7 @@
         % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
         Control = [symY.' symU.'].';
         State   = symP.';
-        obj.adjoint.ode = ode(dP_dt,State,Control);
+        obj.adjoint.dynamics = ode(dP_dt,State,Control);
         % Pasamos esta funcion a una function_handle
     end
 

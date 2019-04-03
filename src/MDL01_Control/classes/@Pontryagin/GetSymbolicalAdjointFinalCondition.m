@@ -21,12 +21,12 @@
 %        class: ControlProblem
 %        dimension: [1x1]
 
-    Jfun   = obj.J;
-    iode   = obj.ode;
+    Jfun   = obj.Functional;
+    idynamics   = obj.dynamics;
     symPsi = Jfun.Psi.Symbolic;
     %% Creamos las variables simbolica 
-    symY   = iode.StateVector.Symbolic;
-    t      = iode.symt;
+    symY   = idynamics.StateVector.Symbolic;
+    t      = idynamics.symt;
     symP  =  sym('p', [1 length(symY)]);
     
     %% Condicion inicial del problema adjunto

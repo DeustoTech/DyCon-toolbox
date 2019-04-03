@@ -33,7 +33,7 @@ Psi = 0.5*delta*(Y-YT).'*(Y-YT);
 L   = gamma*(abs(u1) + abs(u2));
 %L   = gamma*((u1)^2 + u2^2);
 
-iCP = OptimalControl(iode,Psi,L);
+iCP = Pontryagin(iode,Psi,L);
 
 U0 = iode.Control.Numeric;
 options = optimoptions(@fminunc,'display','iter','SpecifyObjectiveGradient',true);
@@ -42,4 +42,4 @@ fminunc(@(U)Control2Functional(iCP,U),U0,options)
 %iCP.constraints.Umax = 0.2;
 %iCP.constraints.Umin = -0.2;
 
-GradientMethod(iCP,'Graphs',true,'DescentAlgorithm',@ConjugateGradientDescent,'display','all')
+GradientMethod(iCP,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','functional')

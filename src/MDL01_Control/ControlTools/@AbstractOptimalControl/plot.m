@@ -39,15 +39,15 @@ function plot(iCP,varargin)
     SaveGif     = p.Results.SaveGif;
     TypeGraphs  = p.Results.TypeGraphs;
     
-    nY = length(iCP.ode.InitialCondition);
+    nY = length(iCP.dynamics.InitialCondition);
     nU = length(iCP.solution.UOptimal(1,:));
     
     
-    TypeGraphs = class(iCP.ode); 
+    TypeGraphs = class(iCP.dynamics); 
     [axY,axU,axJ] = init_graphs_gradientmethod(TypeGraphs,nY,nU,SaveGif);
     
     Jhistory = iCP.solution.Jhistory;
-    tspan = iCP.ode.tspan;
+    tspan = iCP.dynamics.tspan;
     for iter = 2:iCP.solution.iter
         Ynew = iCP.solution.Yhistory{iter};
         Unew = iCP.solution.Uhistory{iter};

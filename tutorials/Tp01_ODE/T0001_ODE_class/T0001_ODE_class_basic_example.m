@@ -43,7 +43,7 @@ resume(dynamics)
 % We also can directly modify its variables, for example, we may change the
 % initial data:
 
-dynamics.Condition = [1,-1];
+dynamics.InitialCondition = [1,-1];
 resume(dynamics)
 %%
 % 'solve' function solves the differential equation of 'ode'. The values of
@@ -53,13 +53,6 @@ solve(dynamics)
 %%
 % 'plot' function plots the states of 'Y', the vector of states. Note that
 % this produces errors if 'solve' function is not operated.
-plot(dynamics)
-%%
-% We may modify the conditions of 'ode' and solve it again. Here we change
-% the initial condition to be a final condition.
-dynamics.Type = 'FinalCondition';
-
-solve(dynamics)
 plot(dynamics)
 %%
 % If the system is linear, then we can create the 'ode' class using the
@@ -72,6 +65,6 @@ A = [ 0 -2 ; 2 0];
 B = [1 ; 1];
 
 dynamics_linear = ode('A',A,'B',B);
-dynamics_linear.Condition = [1,0];
+dynamics_linear.InitialCondition = [1,0];
 solve(dynamics_linear)
 plot(dynamics_linear)
