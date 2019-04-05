@@ -65,10 +65,12 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
     p = inputParser;
     
     addRequired(p,'iCP')
-    addOptional(p,'StopCriteria',[])
+    addOptional(p,'StopCriteria','relative')
+    addOptional(p,'DirectionParameter','FR')
     parse(p,iCP,varargin{:})
 
     StopCriteria = p.Results.StopCriteria;
+    DirectionParameter = p.Results.DirectionParameter;
     
     persistent Iter
     persistent s
@@ -127,36 +129,70 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
         Unew = UpdateControlWithConstraints(iCP,Unew);
         
         [~ , Ynew] = solve(iCP.ode,'Control',Unew);
-        %% Get Gradient
+        % Get Gradient. DirectionParameter works here to find a proper
+        % conjugate direction.
         Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);   
         dJnew = GetNumericalGradient(iCP,Unew,Ynew,Pnew);
-        %% 
         %diffdJ = dJnew - dJold;
-        diffdJ = dJnew;
-        nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
-        nume = trapz(tspan,nume);
-        deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
-        deno = trapz(tspan,deno);
-        beta  = nume/deno;
+        diffdJ = dJnew - dJold;
+        switch DirectionParameter
+          case 'FR' % Fletcher-Reeves method
+            nume = arrayfun(@(indextime) dJnew(indextime,:)*dJnew(indextime,:).',1:length(tspan));
+            nume = trapz(tspan,nume);
+            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
+            deno = trapz(tspan,deno);
+            beta  = nume/deno;
+          case 'PPR' %Positive Polak-Ribi\'ere.
+            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
+            nume = trapz(tspan,nume);
+            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
+            deno = trapz(tspan,deno);
+            beta  = max(0,nume/deno);
+          case 'PR' % Polak-Ribi\'ere method
+            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
+            nume = trapz(tspan,nume);
+            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
+            deno = trapz(tspan,deno);
+            beta  = nume/deno;
+          case 'HS' % Hestenes-Stiefel method
+            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
+            nume = trapz(tspan,nume);
+            deno = arrayfun(@(indextime) s(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
+            deno = trapz(tspan,deno);
+            beta  = nume/deno;
+          case 'DY' % Dai-Yuan method
+            nume = arrayfun(@(indextime) dJnew(indextime,:)*dJnew(indextime,:).',1:length(tspan));
+            nume = trapz(tspan,nume);
+            deno = arrayfun(@(indextime) s(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
+            deno = trapz(tspan,deno);
+            beta  = nume/deno;
+          otherwise %'Popular choice': Positive Polak-Ribi\'ere.
+            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
+            nume = trapz(tspan,nume);
+            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
+            deno = trapz(tspan,deno);
+            beta  = max(0,nume/deno);
+        end
+
         %
         s = - dJnew + beta*s;
 
         % Possible stopping criterion for constrainted control problems.
         % Call it using GradientMethod(...,'DescentParameters',{'StopCriteria','Jdiff'}).
-        if ~isempty(StopCriteria)
-          switch StopCriteria
-            case {'JDiff','Jdiff','jdiff'}
-              % Stop when the difference of J is smaller than tol^2 + Jold*tol.
-              error = (Jold-Jnew)/(Jold+tol);               
-            otherwise
-              AdJnew = mean(abs(trapz(tspan,dJnew)));
-              AUnew = mean(abs(trapz(tspan,Unew)));
-              error = AdJnew/AUnew;
-          end
-        else % Usual Stopping criterion
-          AdJnew = mean(abs(trapz(tspan,dJnew)));
-          AUnew = mean(abs(trapz(tspan,Unew)));
-          error = AdJnew/AUnew;
+        switch StopCriteria
+          case 'relative'
+            AdJnew = mean(abs(trapz(tspan,dJnew)));
+            AUnew = mean(abs(trapz(tspan,Unew)));
+            error = AdJnew/AUnew;
+          case {'JDiff','Jdiff','jdiff'}
+            % Stop when the difference of J is smaller than tol^2 + Jold*tol.
+            error = (Jold-Jnew)/(Jold+tol);
+          case 'absolute'
+            error = AdJnew;
+          otherwise
+            AdJnew = mean(abs(trapz(tspan,dJnew)));
+            AUnew = mean(abs(trapz(tspan,Unew)));
+            error = AdJnew/AUnew;
         end
         
         if error < tol || OptimalLenght == 0 
