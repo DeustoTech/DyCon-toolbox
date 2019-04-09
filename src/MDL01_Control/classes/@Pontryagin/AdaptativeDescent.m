@@ -118,6 +118,8 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
             case 'relative'
                 AUnew = mean(trapz(tspan,abs(Unew)));
                 error = AdJnew/AUnew;
+            case {'Jdiff','jdiff','JDiff'}
+                error = (Jold-Jnew)/(Jold+tol);    % Stop when the difference of J is smaller than tol^2 + Jold*tol.
         end
         %%
         if error < tol || norm(Unew - Uold) == 0
