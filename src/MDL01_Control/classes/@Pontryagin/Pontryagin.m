@@ -114,7 +114,7 @@ classdef Pontryagin < AbstractOptimalControl
             if isempty(ControlGradient)
                 GetSymbolicalGradient(obj);
             else
-                obj.ControlGradient.num = ControlGradient;
+                obj.ControlGradient.Numerical = ControlGradient;
             end
             
             if isempty(Hessian)

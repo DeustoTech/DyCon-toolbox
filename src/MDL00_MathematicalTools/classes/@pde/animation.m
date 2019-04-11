@@ -83,8 +83,11 @@ function animation(iode,varargin)
         end
         if exist('l','var')
             delete(l)
-            delete(luu)
         end
+                if exist('luu','var')
+
+                    delete(luu)
+                end
         axY.Title.String = ['t = ',num2str(t,'%.2f')];
         
         index = 0;
@@ -101,11 +104,12 @@ function animation(iode,varargin)
               %else
                 l(index)   = line(iode(1).mesh,interp1(tspan,iY{:},t),'Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
               %end
+              if ~isempty(U{index})
             luu(index) = line(iode(1).mesh,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
-            
+              end
         end
-        legend(axY,{'Initial datum','Target','State'})
-        %legend(axU,{iode.label})
+        %legend(axY,{'Initial datum','Target','State'})
+        legend(axU,{iode.label})
         pause(0.1)
         
         titlefig = strcat('sol_t_',num2str(t,'%.2f'));

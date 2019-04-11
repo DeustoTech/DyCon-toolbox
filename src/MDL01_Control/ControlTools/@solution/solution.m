@@ -18,6 +18,7 @@ classdef solution < handle
         % type: cell
         % default: none
         % description: It is an cell that contains the different solutions of state, $Y$, during the execution of the optimization algorithm that has been used.        
+        Y0history
         Yhistory
         % type: double
         % default: none

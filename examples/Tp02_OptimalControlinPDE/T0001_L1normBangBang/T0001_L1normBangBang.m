@@ -1,175 +1,131 @@
-%% 
-% We use DyCon Toolbox for solving numerically the following control 
-% problem: given any $T>0$, find a control function $g\in L^2( ( -1 , 1) \times (0,T))$ 
-% such that the corresponding solution to the parabolic problem
-%%
-% $$
-% \begin{equation}\label{frac_heat}
-%   \begin{cases}
-%       z_t+(d_x^2)^s z = g\chi_\omega, & (x,t)\in(-1,1)\times(0,T) \\
-%       z = 0, & (x,t)\in[\mathbb{R}\setminus(-1,1)]\times(0,T) \\
-%       z(x,0) = z_0(x), & x\in(-1,1)
-%   \end{cases}
-% \end{equation} $$
-%%
-% satisfies $z(x,T)=0$.
-%%
-% Here, for all $s\in(0,1)$, $(-d_x^2)^s$ denotes the one-dimensional 
-% fractional Laplace operator, defined as the following singular integral
-%%
-% $$
-% \begin{equation*}
-%   (-d_x^2)^s z(x) = c_s P.V. \int_{\mathbb{R}}
-%   \frac{z(x)-z(y)}{|x-y|^{1+2s}}\,dy.
-% \end{equation*} $$
+
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-%clear
-N = 100;
-xi = -1; xf = 1;
-xline = linspace(xi,xf,N+2);
-xline = xline(2:end-1);
-dx = xline(2)-xline(1);
-%%
-% Out of that, we can construct the FE approxiamtion of the fractional
-% Lapalcian, using the program FEFractionalLaplacian developped by our
-% team, which implements the methodology described in [1].
-%%
-s = 0.8;
-A = -FEFractionalLaplacian(s,1,N);
-M = massmatrix(xline);
-%%
-% Moreover, we build the matrix $B$ defining the action of the control, by
-% using the program "construction_matrix_B" (see below).
-a = -0.3; b = 0.8;
-B = construction_matrix_B(xline,a,b);
-%%
-% We can then define a final time and an initial datum
-FinalTime = 0.15;
-Y0 = 0.1*cos(0.5*pi*xline');
 
-%%
-% and construct the system
-%%
-% $$
-% \begin{equation}\label{abstract_syst}
-%   \begin{cases}
-%       Y'(t) = AY(t)+BU(t), & t\in(0,T)
-%       Y(0) = Y0.
-%   \end{cases}
-% \end{equation}
-% $$
-dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',0.01);
-dynamics.MassMatrix = M;
-dynamics.mesh = xline;
+FinalTimes = linspace(0.025,0.5,4);
+%FinalTimes = linspace(1.05,1.1,4);
+%FinalTimes = 0.1652;
+iOCPs = arrayfun(@(FinalTime) FinalTime2OCP(FinalTime),FinalTimes);
 
-%% Calculate the Target
-Y0_other = cos(0.5*pi*xline');
-dynamics.InitialCondition = Y0_other;
-U00 = dynamics.Control.Numeric*0 + 0.5;
-[~ ,YT] = solve(dynamics,'Control',U00);
-YT = YT(end,:).';
-%% Calculate Free 
-dynamics.InitialCondition = Y0;
-U00 = dynamics.Control.Numeric*0;
-solve(dynamics,'Control',U00);
+ncol = 3;
+nft  = length(FinalTimes);
 
-%% 
-% Take simbolic vars
-Y = dynamics.StateVector.Symbolic;
-U = dynamics.Control.Symbolic;
+figure;
 
-%% Construction of the control problem norm-LP
-p = 3;
-epsilon = dx^4;
-%%
-% $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
-%%
-Psi  = (dx/(2*epsilon))*(YT - Y).'*(YT - Y);
-L    = (dx)*sum(abs(U).^p);
-%%
-% Optional Parameters to go faster
-Gradient                =  @(t,Y,P,U) dx*sign(U) + B*P;
-Hessian                 =  @(t,Y,P,U) dx*eye(iCP.dynamics.Udim)*dirac(U);
-AdjointFinalCondition   =  @(t,Y) (dx/(epsilon))* (Y-YT);
-Adjoint = pde('A',A);
-OCParmaters = {'Hessian',Hessian,'ControlGradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
-%%
-% build problem with constraints
-iCP_norm_L1 =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
-iCP_norm_L1.constraints.Umax =  20*max(Y0_other);
-iCP_norm_L1.constraints.Umin =  min(Y0_other);
+iter = 0;
+for iOCP = iOCPs
+    iter = iter + 1;
+    subplot(ceil(nft/ncol),ncol,iter)
+    surf(iOCP.solution.UOptimal)
+    title("T_f = "+FinalTimes(iter)+ "& |.| = "+sqrt(iOCP.solution.JOptimal))
+    shading interp;colormap jet
+    %caxis([0 40])
+    colorbar
+    view(0,90)
+end
 
-%%
-% Solver L1
-Parameters = {'DescentAlgorithm',@AdaptativeDescent, ...
-             'tol',1e-3,                                    ...
-             'Graphs',false,                               ...
-             'MaxIter',5000,                               ...
-             'display','all',};
-%%
-GradientMethod(iCP_norm_L1,Parameters{:})
-%%
+solutions = [iOCPs.solution];
+distance =  sqrt([solutions.JOptimal])
 
-%% Construction of the control problem norm-L2 
-%%
-% $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||^2dt $
-Psi  = (dx/(2*epsilon))*(YT - Y).'*(YT - Y);
-L    = (dx/2)*(U.'*U);
-%%
-% Optional Parameters to go faster
-Gradient                =  @(t,Y,P,U) (dx*U + (B*P));
-AdjointFinalCondition   =  @(t,Y) (dx/(epsilon))* (Y-YT);
-Adjoint                 =  pde('A',A);
-Hessian                 =  @(t,Y,P,U) dx*eye(iCP.dynamics.Udim);
-%
-OCParmaters = {'Hessian',Hessian,'Gradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
-%%
-iCP_norm_L2 = Pontryagin(dynamics,Psi,L,OCParmaters{:});
-%iCP_norm_L2.constraints.Umax = 10*max(Y0_other);
-%iCP_norm_L2.constraints.Umin = min(Y0_other);
-%% Solver L2
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Parameters = {'DescentAlgorithm',@AdaptativeDescent, ...
-             'tol',1e-3,                                    ...
-             'Graphs',false,                               ...
-             'MaxIter',5000,                               ...
-             'display','all',};
-%
-GradientMethod(iCP_norm_L2,Parameters{:})
-%%
-%%
+Tmin = interp1(distance,FinalTimes,5e-2)
+
+
+iOCP_MinTime = FinalTime2OCP(Tmin)
+
 figure
-subplot(1,2,1)
-surf(iCP_norm_L1.dynamics.Control.Numeric)
-xlabel('Space')
-ylabel('Time')
+surf(iOCP_MinTime.solution.UOptimal)
+title("T_f = "+Tmin+ "& |.| = "+sqrt(iOCP_MinTime.solution.JOptimal))
+shading interp;colormap jet
+%caxis([0 40])
+colorbar
+view(0,90)
+    
+function iOCP = FinalTime2OCP(FinalTime)
+    Nx = 50;
+    xi = -1; xf = 1;
+    xline = linspace(xi,xf,Nx+2);
+    xline = linspace(0,1,Nx+2);
+    xline = xline(2:end-1);
+    dx = xline(2)-xline(1);
+    %%
+    % Out of that, we can construct the FE approxiamtion of the fractional
+    % Lapalcian, using the program FEFractionalLaplacian developped by our
+    % team, which implements the methodology described in [1].
+    %%
+    s = 0.8;
+    A = -FEFractionalLaplacian(s,1,Nx);
+    A = FDLaplacian(xline);
+    %A(1,2) = 2*Nx^2;
+    %A(end,end-1) = 2*Nx^2;
+    M = massmatrix(xline);
+    M = eye(Nx);
+    %%
+    % Moreover, we build the matrix $B$ defining the action of the control, by
+    % using the program "construction_matrix_B" (see below).
+    a = -0.3; b = 0.8;
+    B = construction_matrix_B(xline,a,b);
+    B = B*0;
+    B(1,1) = 2*Nx;
+    B(end,end) = 2*Nx;
+    
+    %%
+    % We can then define a final time and an initial datum
+    Y0 = 0.5*cos(0.5*pi*xline');
+    %Y0 = 0*xline' + 5;
+    Y0 = 0*xline' + 1;
+    Nt = 400;
+    dt = FinalTime/Nt;
+    dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
+    dynamics.MassMatrix = M;
+    dynamics.mesh = xline;
 
-caxis([-0.2 0.2])
-title('L1')
-subplot(1,2,2)
-surf(iCP_norm_L2.dynamics.Control.Numeric)
-caxis([-0.2 0.2])
-title('L2')
-xlabel('Space')
-ylabel('Time')
-%%
-solve(dynamics);
-dynamics.label = 'Free';
-iCP_norm_L2.dynamics.label = 'Control norm L^2';
-iCP_norm_L1.dynamics.label = 'Control norm L^1';
+    %% Calculate the Target
+    Y0_other = 3*cos(0.5*pi*xline');
+    TargetDynamics = copy(dynamics);
+    TargetDynamics.InitialCondition = Y0_other;
+    U00 = TargetDynamics.Control.Numeric*0 + 1.5;
+    U00 = cos(3*pi*xline')*cos(20*pi*dynamics.tspan);
+    [~ ,YT] = solve(TargetDynamics,'Control',U00');
+    
+    YT = YT(end,:).';
+    %YT = 0*xline' + 1;
+    YT = 0*xline' + 5;
 
-%animation([iCP_norm_L2.dynamics,iCP_norm_L1.dynamics,dynamics],'YLim',[-1 1],'xx',0.05)
+    %% 
+    % Take simbolic vars
+    Y = dynamics.StateVector.Symbolic;
+    U = dynamics.Control.Symbolic;
+    beta = dx^4;
+    %% Construction of the control problem 
+    %%
+    % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
+    %%
+    Psi  = dx*(YT - Y).'*(YT - Y);
+    L    = beta*dx*sum(abs(U));
+    %%
+    % Optional Parameters to go faster
+    Gradient                =  @(t,Y,P,U) beta*dx*sign(U) + B*P;
+    Hessian                 =  @(t,Y,P,U) 0;
+    AdjointFinalCondition   =  @(t,Y) (dx/(2))* (Y-YT);
+    Adjoint = pde('A',A);
+    OCParmaters = {'Hessian',Hessian,'ControlGradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
+    %%
+    % build problem with constraints
+    iOCP =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
+    iOCP.constraints.Umax =  50;
+    iOCP.constraints.Umin =  0;
 
-%%
-
-%%
-%  ```
-% animation([iCP1.dynamics,dynamics],'YLim',[-1 1],'xx',0.05)
-% ```
-%%
-% ![](extra-data/063235.gif)
+    %%
+    % Solver L1
+    Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
+                 'tol',1e-9,                                    ...
+                 'Graphs',false,                               ...
+                 'MaxIter',5000,                               ...
+                 'display','all',};
+    %%
+    GradientMethod(iOCP,Parameters{:})
+end
 %%
 function [B] = construction_matrix_B(mesh,a,b)
 

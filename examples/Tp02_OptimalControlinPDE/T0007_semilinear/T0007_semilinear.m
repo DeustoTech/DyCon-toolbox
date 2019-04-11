@@ -34,7 +34,7 @@
 % Definition of the time 
 syms t
 % Discretization of the space
-N = 11;
+N = 100;
 xi = 0; xf = 1;
 xline = linspace(xi,xf,N);
 %%
@@ -116,7 +116,7 @@ T = 1;
 % modifying this parameter in the object, we might get the solution in
 % certain time steps that will hide part of the dynamics.
 %%
-odeEqn = ode(Fsym,symY,symU,'Condition',Y0,'FinalTime',T);
+odeEqn = ode(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
 odeEqn.dt=0.01;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
@@ -124,28 +124,29 @@ odeEqn.dt=0.01;
 solve(odeEqn)
 %%
 figure;
-SIZ=size(odeEqn.VectorState.Numeric);
+SIZ=size(odeEqn.StateVector.Numeric);
 time=linspace(0,T,SIZ(1));
 space=linspace(1,N,N);
 [TIME,SPACE]=meshgrid(time,space);
-surf(TIME',SPACE',odeEqn.VectorState.Numeric,'EdgeColor','none');
+surf(TIME',SPACE',odeEqn.StateVector.Numeric,'EdgeColor','none');
 title('Free Dynamics')
 ylabel('space discretization')
 xlabel('Time')
 %%
 % We create the object that collects the formulation of an optimal control problem  by means of the object that describes the dynamics odeEqn, the functional to minimize Jfun and the time horizon T
 %%
-iCP1 = OptimalControl(odeEqn,symPsi,symL);
+iCP1 = Pontryagin(odeEqn,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
-GradientMethod(iCP1)
+GradientMethod(iCP1,'display','all')
+error
 %%
 figure;
-SIZ=size(iCP1.ode.VectorState.Numeric);
+SIZ=size(iCP1.dynamics.StateVector.Numeric);
 time=linspace(0,T,SIZ(1));
 space=linspace(1,N,N);
 [TIME,SPACE]=meshgrid(time,space);
-surf(TIME',SPACE',iCP1.ode.VectorState.Numeric,'EdgeColor','none')
+surf(TIME',SPACE',iCP1.dynamics.StateVector.Numeric,'EdgeColor','none')
 title('Controlled Dynamics')
 ylabel('space discretization')
 xlabel('Time')
@@ -163,8 +164,8 @@ xlabel('Time')
 %%
 figure;
 line(xline,YT,'Color','red')
-line(xline,odeEqn.VectorState.Numeric(end,:),'Color','blue')
-line(xline,iCP1.ode.VectorState.Numeric(end,:),'Color','green')
+line(xline,odeEqn.StateVector.Numeric(end,:),'Color','blue')
+line(xline,iCP1.dynamics.StateVector.Numeric(end,:),'Color','green')
 legend('Target','Free Dynamics','controlled dynamics')
 %%
 % Now we apply the same procedure for the collective

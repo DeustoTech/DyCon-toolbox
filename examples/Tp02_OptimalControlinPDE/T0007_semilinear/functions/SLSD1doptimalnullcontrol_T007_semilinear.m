@@ -140,7 +140,7 @@ T = T;
 % modifying this parameter in the object, we might get the solution in
 % certain time steps that will hide part of the dynamics.
 %%
-odeEqn2 = ode(Fsym,symY,symU,'Condition',Y0,'FinalTime',T);
+odeEqn2 = ode(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
 odeEqn2.dt=0.01;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.

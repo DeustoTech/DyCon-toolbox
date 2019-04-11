@@ -1,20 +1,25 @@
-classdef InverseProblem < OptimalControl
-    %INVERSEPROBLEM Summary of this class goes here
+classdef InverseProblem < handle
+    %INVERSEPROBLEM Summary of this clas    s goes here
     %   Detailed explanation goes here
     
     properties
-        FinalState
-        dynamics 
+        functional
+        dynamics
         adjoint
+        gradient
+        FinalState
+        solution
+        constraints constraints = constraints
     end
     
     methods
-        function obj = InverseProblem(A,FinalState)
+        function obj = InverseProblem(dynamics,FinalState)
             
-                obj.dynamics = ode('A',A);
-                obj.adjoint.dynamics  = ode('A',A);
-                obj.adjoint.FinalCondition = @(Y) (Y-FinalState);
-                obj.FinalState = FinalState;
+            obj.dynamics            	= copy(dynamics);
+            obj.adjoint.dynamics        = copy(dynamics);
+            obj.FinalState              = FinalState;
+            obj.adjoint.FinalCondition  = @(Y) (Y-obj.FinalState) ;
+
                 
         end
 
