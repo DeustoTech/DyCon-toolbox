@@ -3,7 +3,7 @@
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
 
-FinalTimes = linspace(0.025,0.5,4);
+FinalTimes = linspace(0.05,0.5,4);
 %FinalTimes = linspace(1.05,1.1,4);
 %FinalTimes = 0.1652;
 iOCPs = arrayfun(@(FinalTime) FinalTime2OCP(FinalTime),FinalTimes);
@@ -45,7 +45,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     Nx = 50;
     xi = -1; xf = 1;
     xline = linspace(xi,xf,Nx+2);
-    xline = linspace(0,1,Nx+2);
+    %xline = linspace(0,1,Nx+2);
     xline = xline(2:end-1);
     dx = xline(2)-xline(1);
     %%
@@ -55,26 +55,26 @@ function iOCP = FinalTime2OCP(FinalTime)
     %%
     s = 0.8;
     A = -FEFractionalLaplacian(s,1,Nx);
-    A = FDLaplacian(xline);
+    %A = FDLaplacian(xline);
     %A(1,2) = 2*Nx^2;
     %A(end,end-1) = 2*Nx^2;
     M = massmatrix(xline);
-    M = eye(Nx);
+    %M = eye(Nx);
     %%
     % Moreover, we build the matrix $B$ defining the action of the control, by
     % using the program "construction_matrix_B" (see below).
     a = -0.3; b = 0.8;
     B = construction_matrix_B(xline,a,b);
-    B = B*0;
-    B(1,1) = 2*Nx;
-    B(end,end) = 2*Nx;
+    %B = B*0;
+    %B(1,1) = 2*Nx;
+    %B(end,end) = 2*Nx;
     
     %%
     % We can then define a final time and an initial datum
     Y0 = 0.5*cos(0.5*pi*xline');
     %Y0 = 0*xline' + 5;
-    Y0 = 0*xline' + 1;
-    Nt = 400;
+    %Y0 = 0*xline' + 1;
+    Nt = 50;
     dt = FinalTime/Nt;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
     dynamics.MassMatrix = M;
@@ -84,19 +84,19 @@ function iOCP = FinalTime2OCP(FinalTime)
     Y0_other = 3*cos(0.5*pi*xline');
     TargetDynamics = copy(dynamics);
     TargetDynamics.InitialCondition = Y0_other;
-    U00 = TargetDynamics.Control.Numeric*0 + 1.5;
-    U00 = cos(3*pi*xline')*cos(20*pi*dynamics.tspan);
+    U00 = TargetDynamics.Control.Numeric*0 + 0.5;
+    %U00 = cos(3*pi*xline')*cos(20*pi*dynamics.tspan);
     [~ ,YT] = solve(TargetDynamics,'Control',U00');
     
     YT = YT(end,:).';
     %YT = 0*xline' + 1;
-    YT = 0*xline' + 5;
+    %YT = 0*xline' + 5;
 
     %% 
     % Take simbolic vars
     Y = dynamics.StateVector.Symbolic;
     U = dynamics.Control.Symbolic;
-    beta = dx^4;
+    beta = 0;
     %% Construction of the control problem 
     %%
     % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
@@ -113,7 +113,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     %%
     % build problem with constraints
     iOCP =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
-    iOCP.constraints.Umax =  50;
+    %iOCP.constraints.Umax =  50;
     iOCP.constraints.Umin =  0;
 
     %%
