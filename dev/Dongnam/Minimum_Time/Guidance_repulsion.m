@@ -5,7 +5,20 @@
 %% Model
 % The dynamics are in two-dimensional space, where 'ud' and 'ue' are
 % positions of the driver and evaders, and 'vd' and 've' are velocities of
-% them.
+% them. Then, the dynamics are given by relative interactions,
+%%
+% $$
+% \dot v_d = -f_d(|u_d - u_e|)*(u_d - u_e) - \nu_d v_d + \kappa(t) (u_d -
+% u_e)^{\perp},
+% $$
+%%
+% $$
+% \dot u_d = -f_e(|u_d - u_e|)*(u_d - u_e) - \nu_e v_e,
+% $$
+%%
+% for some interactions kernels 'f_d' and 'f_e'. We may describe it as
+% follows:
+
 
 Y = sym('y',[8 1]); % States vectors for positions and velocities
 ud = Y(1:2); ue = Y(3:4); vd = Y(5:6); ve = Y(7:8);
@@ -27,16 +40,19 @@ dot_vd = -f_d2(ur.'*ur)*ur - nu_d*vd + kappa * [-ur(2);ur(1)];
 dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
 
 %%
-% The control function is the only argument we can use for minimization. We
-% put U(2) as a time variable T(s) for s in [0,1]. Therefore, this implies
-% that we use the time-scaling
+% The control function is the only argument we can use for minimization.
+% For time minimization, we set U(2) as a time variable T(s) for s in
+% [0,1]. Therefore, this implies that we use the time-scaling
 %%
-% $$ t = T(s) $$
+% $$ dt = T(s)ds, $$
 %%
 % from the original equation with t to the equation with s. Then, we need
 % to multiply T(s) on the equation, and the final time is calculated by
 %%
-% $$ T = \int_0^1 T(s)ds. $$
+% $$ T_f = \int_0^1 T(s)ds. $$
+%%
+% In this way, we have flexible final time $T_f$ based on non-negative
+% function T(s).
 
 T = U(2); % Time-scaling from s to t
 F = [dot_ud;dot_ue;dot_vd;dot_ve]*T; % Multiply original velocities with time-scaling T(s).
@@ -82,13 +98,13 @@ xlabel('abscissa')
 ylabel('ordinate')
 
 %% Cost with time minimization
-% We choose the cost with (1. closedness of the target), (2. final time),
-% and (3. regularization on control). Hence, we may set the cost as
+% We set the cost with (1. closedness of the target), (2. final time),
+% and (3. regularization on control). Hence, we may define the cost:
 %%
-% $$ J = 1*|ue(T)-uf|^2 + 0.1*T + 0.01*\int_0^T |u(t)|^2dt. $$
+% $$ J = 1*|ue(T)-uf|^2 + 0.1*T + 0.001*\int_0^T |u(t)|^2dt. $$
 
 Psi = 1*(ue-uf).'*(ue-uf);
-L   = 0.1*T + 0.01*(kappa.'*kappa)*T;
+L   = 0.1*T + 0.001*(kappa.'*kappa)*T;
 
 iP = OptimalControl(dynamics,Psi,L);
 
@@ -112,10 +128,11 @@ YO_tline = iP.solution.Yhistory(end);
 YO_tline = YO_tline{1};   % Trajectories
 JO = iP.solution.JOptimal;    % Cost
 zz = YO_tline;
+tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on the values of t, which is the integration of T(s)ds.
+
 f1 = figure('position', [0, 0, 1000, 400]);
 
 % Cost calcultaion
-tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on t, which is the integration of T(s)ds.
 Final_Time = tline_UO(end);
 
 Final_Position = [zz(end,3);zz(end,4)];
@@ -150,7 +167,7 @@ xlabel('Time')
 ylabel('Control \kappa(t)')
 legend(['Total Time = ',num2str(tline_UO(end))])
 
-title(['Cost = ',num2str(Final_Psi),' + 0.1*',num2str(Final_Time),' + 0.01*',num2str(Final_Reg),' = ',num2str(JO)])
+title(['Cost = ',num2str(Final_Psi),' + 0.1*',num2str(Final_Time),' + 0.001*',num2str(Final_Reg),' = ',num2str(JO)])
 
 
 

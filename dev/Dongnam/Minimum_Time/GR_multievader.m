@@ -48,7 +48,7 @@ dynamics.InitialCondition = Y0;
 
 tline = dynamics.tspan;
 U0_tline = [0.5*ones([length(tline),1]),-0.5*ones([length(tline),1])];
-U0_tline = UO_tline;
+%U0_tline = UO_tline;
 
 dynamics.Control.Numeric = U0_tline;
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
