@@ -34,7 +34,7 @@
 % Definition of the time 
 syms t
 % Discretization of the space
-N = 100;
+N = 40;
 xi = 0; xf = 1;
 xline = linspace(xi,xf,N);
 %%
@@ -116,7 +116,7 @@ T = 1;
 % modifying this parameter in the object, we might get the solution in
 % certain time steps that will hide part of the dynamics.
 %%
-odeEqn = ode(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
+odeEqn = pde(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
 odeEqn.dt=0.01;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
@@ -139,7 +139,7 @@ iCP1 = Pontryagin(odeEqn,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
 GradientMethod(iCP1,'display','all')
-error
+
 %%
 figure;
 SIZ=size(iCP1.dynamics.StateVector.Numeric);

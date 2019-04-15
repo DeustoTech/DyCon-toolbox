@@ -31,6 +31,9 @@ classdef Pontryagin < AbstractOptimalControl
 %                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/ConjugateGradientDescent'>Conjugate gradient method</a></li>
 %                 </ul>
 
+properties
+   Target 
+end
      
     methods
         function obj = Pontryagin(iode,symPsi,symL,varargin)

@@ -1,4 +1,4 @@
-function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif,live)
+function bucle_graphs_gradientmethodinv(axY,axU,axJ,Ynew,Y0new,Jhistory,tspan,iter,TypeGraphs,SaveGif,live)
 
     Color = {'r','g','b','y','k','c'};
     
@@ -18,7 +18,7 @@ function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,T
             end
 
             iter_graph = 0;
-            for iu = Unew
+            for iu = Y0new
                 iter_graph = iter_graph + 1;
                 index_color = 1+ mod(iter_graph-1,length(Color));
                 line(tspan,iu,'Parent',axU{iter_graph},'Color',Color{index_color},'LineStyle','-','Marker','.')
@@ -37,42 +37,32 @@ function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,T
             nintertime  = floor(ntime/80);
             if ninterspace ~= 0 && nintertime ~= 0
                 Ynew = Ynew(1:nintertime:ntime,1:ninterspace:nspace);
-                Unew = Unew(1:nintertime:ntime,1:ninterspace:nspace);
+                Y0new = Y0new(1:nintertime:ntime,1:ninterspace:nspace);
             elseif  ninterspace ~= 0 && nintertime == 0
                 Ynew = Ynew(:,1:ninterspace:nspace);
-                Unew = Unew(:,1:ninterspace:nspace);                
+                Y0new = Y0new(:,1:ninterspace:nspace);                
             elseif ninterspace == 0 && nintertime ~= 0
                 Ynew = Ynew(1:nintertime:ntime,:);
-                Unew = Unew(1:nintertime:ntime,:);  
+                Y0new = Y0new(1:nintertime:ntime,:);  
             end
             
-            line(1:length(Ynew(end,:)),Ynew(end,:),'Parent',axY{1},'Marker','.')
-            if length(axY{1}.Children) > 1
-                    axY{1}.Children(2).Color =  0.25*(3+axY{1}.Children(2).Color);
-                    axY{1}.Children(2).Marker = 'none';
-            end  
-            
-            
-
-            
-            surf(Ynew','Parent',axY{2})
-            axY{2}.Title.String = 'Evolution of State Vector ';
-            axY{2}.YLabel.String = 'Space';
-            axU{2}.XLabel.String = 'Time';
-
-            line(1:length(Unew(end,:)),Unew(end,:),'Parent',axU{1},'Marker','.')                       
+            line(1:length(Ynew(end,:)),Ynew(end,:),'Parent',axU{1},'Marker','.')
             if length(axU{1}.Children) > 1
                     axU{1}.Children(2).Color =  0.25*(3+axU{1}.Children(2).Color);
                     axU{1}.Children(2).Marker = 'none';
+            end  
+            
+
+
+            line(1:length(Y0new(end,:)),Y0new(end,:),'Parent',axY{1},'Marker','.')                       
+            if length(axY{1}.Children) > 1
+                    axY{1}.Children(2).Color =  0.25*(3+axY{1}.Children(2).Color);
+                    axY{1}.Children(2).Marker = 'none';
             end
  
-            
-            surf(Unew','Parent',axU{2})
-            axU{2}.Title.String = 'Evolution of Control Vector ';
-            axU{2}.YLabel.String = 'Space';
-            axU{2}.XLabel.String = 'Time';
+
             if live
-            pause(0.01)
+                pause(0.01)
             end
     end
 

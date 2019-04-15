@@ -28,25 +28,35 @@ function animation(iode,varargin)
     
     parse(p,iode,varargin{:})
     
-    YLim = p.Results.YLim;
-    xx = p.Results.xx;
-    SaveGif = p.Results.SaveGif;
-    YLimControl = p.Results.YLimControl;
-    Target = p.Results.Target;
-    InitCondition = p.Results.InitCondition;
+    YLim            = p.Results.YLim;
+    xx              = p.Results.xx;
+    SaveGif         = p.Results.SaveGif;
+    YLimControl     = p.Results.YLimControl;
+    Target          = p.Results.Target;
+    InitCondition   = p.Results.InitCondition;
     
-    structure = [iode.StateVector];
-    Y = {structure.Numeric};
-    structure = [iode.Control];
-    U = {structure.Numeric};        
+    structure       = [iode.StateVector];
+    Y               = {structure.Numeric};
+    structure       = [iode.Control];
+    U               = {structure.Numeric};        
     f = figure;
-    axY = subplot(2,1,1,'Parent',f);
-    if ~isempty(YLim)
-        axY.YLim = YLim;
-    end
-    axU = subplot(2,1,2,'Parent',f);
-    if ~isempty(YLimControl)
-        axU.YLim = YLimControl;
+    
+    havecontrol = ~isempty(iode.Control.Symbolic);
+    
+    if havecontrol
+        axY = subplot(2,1,1,'Parent',f);
+        if ~isempty(YLim)
+            axY.YLim = YLim;
+        end
+        axU = subplot(2,1,2,'Parent',f);
+        if ~isempty(YLimControl)
+            axU.YLim = YLimControl;
+        end
+    else
+        axY = subplot(1,1,1,'Parent',f);
+        if ~isempty(YLim)
+            axY.YLim = YLim;
+        end
     end
     %
     tspan = iode.tspan;
@@ -84,10 +94,11 @@ function animation(iode,varargin)
         if exist('l','var')
             delete(l)
         end
-                if exist('luu','var')
-
-                    delete(luu)
-                end
+        if havecontrol
+            if exist('luu','var')
+                delete(luu)
+            end
+        end
         axY.Title.String = ['t = ',num2str(t,'%.2f')];
         
         index = 0;
@@ -105,11 +116,13 @@ function animation(iode,varargin)
                 l(index)   = line(iode(1).mesh,interp1(tspan,iY{:},t),'Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
               %end
               if ~isempty(U{index})
-            luu(index) = line(iode(1).mesh,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+                %luu(index) = line(iode(1).mesh,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+                luu(index) = line(1:iode.Udim,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+
               end
         end
-        %legend(axY,{'Initial datum','Target','State'})
-        legend(axU,{iode.label})
+        legend(axY,{'Initial datum','Target','State'})
+        %legend(axU,{iode.label})
         pause(0.1)
         
         titlefig = strcat('sol_t_',num2str(t,'%.2f'));

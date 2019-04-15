@@ -116,7 +116,7 @@ function GradientMethod(iCP,varargin)
         nY = length(iCP.dynamics.InitialCondition);
         nU = length(Y0(1,:));
         TypeGraphs =  class(iCP.dynamics);
-        [axY,axU,axJ] = init_graphs_gradientmethod(TypeGraphs,nY,nU,SaveGif);
+        [axY,axU,axJ] = init_graphs_gradientmethodinv(TypeGraphs,nY,nU,SaveGif);
     end
     
     %% Creamos un solucion vacia
@@ -139,16 +139,16 @@ function GradientMethod(iCP,varargin)
     % ConjugateGradientDescent
     % ConjugateGradienDescent
     
-    clf
-    plot(1:length(iCP.FinalState),iCP.FinalState,'r*-')
+    %clf
+    %plot(1:length(iCP.FinalState),iCP.FinalState,'r*-')
     
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
         [Y0new,Ynew,Pnew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
 
-        line(1:length(Ynew(1,:)),Ynew(1,:),'Color','Green')
-        line(1:length(Ynew(end,:)),Ynew(end,:))
+        %line(1:length(Ynew(1,:)),Ynew(1,:),'Color','Green')
+        %line(1:length(Ynew(end,:)),Ynew(end,:))
         pause(0.1)
         % Save history of optimization
         iCP.solution.Y0history{iter}  = Y0new;
@@ -174,7 +174,7 @@ function GradientMethod(iCP,varargin)
         if iter ~= 1 
             if Graphs   
                 % plot the graphical convergence 
-                bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,iCP.solution.Jhistory,iCP.dynamics.tspan,iter,TypeGraphs,SaveGif,true)
+                bucle_graphs_gradientmethodinv(axY,axU,axJ,Ynew,Y0new,iCP.solution.Jhistory,iCP.dynamics.tspan,iter,TypeGraphs,SaveGif,true)
             end
             if stop
                   break 

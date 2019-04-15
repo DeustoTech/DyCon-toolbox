@@ -65,7 +65,7 @@ Psi = sym(0);
 L   = 0.005*(U.'*U)+Y.'*Y ;
 %%
 % We finally define the optimal control problem as a 'OptimalControl' class:
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %%
 % This class contains information we need to find the optimal control
 % vector $ U $. It is worth mentioning that until now we defined the

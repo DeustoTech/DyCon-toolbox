@@ -98,7 +98,7 @@ ylabel('ordinate')
 Psi = 1*(ue-u_f).'*(ue-u_f);
 L   = 0.001*(kappa.'*kappa)*T;%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;
@@ -109,7 +109,7 @@ U0_tline(1:2,1:length(temp)) = temp';
 %%
 %U0_tline = 1.5662*ones([length(tline),2]);
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',U0_tline);
 
 
 %iP.solution
@@ -294,7 +294,7 @@ ylabel('ordinate')
 Psi = 1*(ue-u_f).'*(ue-u_f);
 L   = 0.001*(kappa.'*kappa)*T+0.1*T;%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;

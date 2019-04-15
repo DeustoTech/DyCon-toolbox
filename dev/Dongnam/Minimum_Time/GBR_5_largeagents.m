@@ -1,6 +1,6 @@
 %% Two drivers, Flexible time
 
-N_sqrt = 10;
+N_sqrt = 5;
 M = 6; N = N_sqrt^2;
 
 Y = sym('y',[4*(M+N) 1]);
@@ -154,10 +154,11 @@ grid on
 
 %%
 
+
 Psi = (ue1-u_f).'*(ue1-u_f)+(ue2-u_f).'*(ue2-u_f);
 L   = 0.001*(kappa.'*kappa)*T;%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;

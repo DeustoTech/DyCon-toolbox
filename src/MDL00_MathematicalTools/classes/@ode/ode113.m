@@ -1,4 +1,4 @@
-function [tspan,StateVector] = ode45(iode,varargin)
+function [tspan,StateVector] = ode113(iode,varargin)
 %ODE45 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -14,15 +14,21 @@ else
 end
 
 
-Uinterp = arrayfun( @(ui) griddedInterpolant(tspan,U(:,ui)),1:iode.Udim,'UniformOutput',false);
-Ufun = @(t) arrayfun( @(ui) Uinterp{ui}(t),1:iode.Udim)
+%Uinterp = arrayfun( @(ui) griddedInterpolant(tspan,U(:,ui)),1:iode.Udim,'UniformOutput',false);
+%Ufun = @(t) arrayfun( @(ui) Uinterp{ui}(t),1:iode.Udim).';
 %Ufun = @(t) interp1(tspan,U,t)';
-
+Ufun = @(t) interp(tspan,U,t)';
 dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t));
 
-[tspan,StateVector] = ode45(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
+[tspan,StateVector] = ode113(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
 
 iode.StateVector.Numeric = StateVector;
 
+
 end
 
+
+function result = interp(tspan,U,t)
+    [~ ,index] = min(abs(t-tspan));
+    result = U(index,:);
+end

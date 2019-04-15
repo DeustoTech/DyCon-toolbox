@@ -50,9 +50,9 @@ classdef AbstractOptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Co
         % type: struct
         % default: none
         % description: The adjoint propertir contain the numerical function that represents the adjoint problem this struct have a two properties. The first is dP_dt and the second is P0.   
-        ControlGradient         SymNumFun = SymNumFun
-        AdjointFinalGradient    SymNumFun = SymNumFun
-        
+        ControlGradient             SymNumFun = SymNumFun
+        AdjointFinalGradient        SymNumFun = SymNumFun
+        InitialConditionGradient    SymNumFun = SymNumFun
         hessian         SymNumFun = SymNumFun
         % type: double
         % default: none

@@ -57,7 +57,7 @@ dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
 T = U(2); % Time-scaling from s to t
 F = [dot_ud;dot_ue;dot_vd;dot_ve]*T; % Multiply original velocities with time-scaling T(s).
 
-dt = 0.1; % Numerical time discretization
+dt = 0.01; % Numerical time discretization
 dynamics = ode(F,Y,U,'FinalTime',1,'dt',dt);
 
 % ud = (-3,0), ue = (0,0), and zero velocities initially.
@@ -106,14 +106,14 @@ ylabel('ordinate')
 Psi = 1*(ue-uf).'*(ue-uf);
 L   = 0.1*T + 0.001*(kappa.'*kappa)*T;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 
 %Constraints on the control : Time should be nonnegative
-iP.constraints.Projection = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];
+iP.constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];
 %%
 figure(2);
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
-%GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
+%GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
 
 temp = iP.solution.UOptimal;
 %GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-4,'Graphs',true,'U0',temp);

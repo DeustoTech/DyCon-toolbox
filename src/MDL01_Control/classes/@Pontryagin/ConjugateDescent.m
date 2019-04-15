@@ -107,12 +107,12 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
         dJold = iCP.solution.dJhistory{Iter-1};
         Jold = iCP.solution.Jhistory(Iter-1);
          
-        %options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'Display','off','Algorithm','trust-region');
+        options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'Display','none','Algorithm','trust-region');
         %options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off','Algorithm','quasi-newton');
-        options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off','Algorithm','quasi-newton','CheckGradients',false);
+        %options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','none','Algorithm','quasi-newton','CheckGradients',false);
 
         if Iter > 2
-            options.FunctionTolerance = abs(Jold -iCP.solution.Jhistory(Iter-2));
+            options.FunctionTolerance = 0.1*abs(Jold -iCP.solution.Jhistory(Iter-2));
         end
         %% Search Optimal Length Step
         Jnew = Jold + 1;
@@ -216,7 +216,7 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
 
         if nargout > 1
            Psl  = GetNumericalAdjoint(iCP,Usl,Ysl);
-           dJsl = GetNumericalGradient(iCP,Usl,Ysl,Psl);
+           dJsl = GetNumericalControlGradient(iCP,Usl,Ysl,Psl);
            %
         
            dJda = arrayfun(@(indextime) dJsl(indextime,:)*dJsl(indextime,:).',1:length(tspan));

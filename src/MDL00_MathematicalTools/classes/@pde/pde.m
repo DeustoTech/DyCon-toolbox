@@ -1,6 +1,7 @@
 classdef pde < ode
     
     properties
+        
         mesh
         dimension
     end

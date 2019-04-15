@@ -81,18 +81,18 @@ Y_f = [0;-4];
 Psi = 100*(Y_e-Y_f).'*(Y_e-Y_f);
 L   = 0.1*(U.'*U);%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;
 %%
 tline = dynamics.tspan;
 %U0_tline = zeros(size(dynamics.Control.Numeric));
-U0_tline(1:2,1:length(temp)) = temp';
+%U0_tline(1:2,1:length(temp)) = temp';
 %%
-%U0_tline = 1.5662*ones([length(tline),2]);
+U0_tline = 1.5662*ones([length(tline),2]);
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',U0_tline);
 
 %iP.solution
 %plot(iP)
@@ -100,18 +100,22 @@ temp = iP.solution.UOptimal;
 %%
 %temp = temp3;
 %temp = try1;
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',temp);
+GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',temp);
 %GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'Graphs',true,'U0',temp);
 %plot(iP)
 temp = iP.solution.UOptimal;
 %%
 UO_tline = iP.solution.UOptimal;
 YO_tline = iP.solution.Yhistory(end);
-YO_tline = YO_tline{1};
+UO_tline = iP.dynamics.Control.Numeric;
+YO_tline = iP.dynamics.StateVector.Numeric;
+
+%YO_tline = YO_tline{1};
 zz = YO_tline;
 f1 = figure('position', [0, 0, 1000, 400]);
 
 subplot(1,2,1)
+
 plot(zz(:,1),zz(:,2),'b-','LineWidth',1.3);
 hold on
 plot(zz(:,3),zz(:,4),'r-','LineWidth',1.3);
@@ -232,7 +236,7 @@ ylabel('ordinate')
 Psi = 100*(ue-u_f).'*(ue-u_f);
 L   = 0.1*(kappa.'*kappa)*T;%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;
@@ -243,7 +247,7 @@ U0_tline(1:2,1:length(temp)) = temp';
 %%
 %U0_tline = 1.5662*ones([length(tline),2]);
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-%GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',U0_tline);
+%GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',U0_tline);
 
 
 %iP.solution
@@ -252,7 +256,7 @@ temp = iP.solution.UOptimal;
 %%
 %temp = temp3;
 %temp = try1;
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'DirectionParameter','FR'},'tol',1e0,'Graphs',true,'U0',temp);
+GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'DirectionParameter','FR'},'tol',1e0,'Graphs',true);
 %GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'Graphs',true,'U0',temp);
 %plot(iP)
 temp = iP.solution.UOptimal;

@@ -78,21 +78,17 @@ function  [Y0new,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
     
     if isempty(Iter)
         Y0new = iCP.solution.Y0history{1};
-        iCP.dynamics.InitialCondition = Y0new;
-
         %
+        iCP.dynamics.InitialCondition = Y0new;
         [~ , Ynew] =  solve(iCP.dynamics);
         %
-        iCP.adjoint.dynamics.InitialCondition = iCP.adjoint.FinalCondition(Ynew(end,:));
-        [~ , Pnew] = solve(iCP.adjoint.dynamics);
-        Pnew = flipud(Pnew);
+        Pnew = GetNumericalAdjoint(iCP,Ynew);
 
-        dJnew = Pnew(1,:);
-
+        dJnew = GetNumericalInitGradient(iCP,Ynew,Pnew);
         Iter = 1;
         error = 0;
         stop = false;
-        Jnew = 0.5*trapz(iCP.dynamics.mesh, (iCP.FinalState - Y0new(end,:)).^2);
+        Jnew = GetNumericalFunctional(iCP,Ynew);
     else
         Iter = Iter + 1;
         
@@ -161,34 +157,32 @@ function [Y0new,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Y0old,Yold,Pold,Jol
     %% Empezamos con un LengthStep
     LengthStep =2*InitialLengthStep;
     
-    dJold = Pold(1,:); 
+    mesh = iCP.dynamics.mesh;
+    dJold = GetNumericalInitGradient(iCP,Yold,Pold);
+    switch norm
+        case 'L1'
+            normdJold = trapz(mesh,abs(dJold));
+        case 'L2'
+            normdJold = sqrt(trapz(mesh,dJold.^2));
+    end
+
     while true 
         % en cada iteracion dividimos el LengthStep
         LengthStep = LengthStep/2;
         %% Actualizamos  Control
-        mesh = iCP.dynamics.mesh;
-        switch norm
-            case 'L1'
-                normdJold = trapz(mesh,abs(dJold));
-            case 'L2'
-                normdJold = sqrt(trapz(mesh,dJold.^2));
-        end
+
         Y0try = Y0old - LengthStep*dJold/normdJold;
         Y0try = UpdateControlWithConstraints(iCP.constraints,Y0try);
         %% Resolvemos el problem primal
+        iCP.dynamics.InitialCondition = Y0try;
         [~ , YTry] = solve(iCP.dynamics);
         % Calculate functional value
-        JTry = 0.5*trapz(iCP.dynamics.mesh, (iCP.FinalState - YTry(end,:)).^2);
+        JTry = GetNumericalFunctional(iCP,YTry);
      
         if ((JTry - Jold) <= 0)
-            %%
-            iCP.dynamics.InitialCondition = Y0try;
-
-            [~ , Ynew] =  solve(iCP.dynamics);
             %
-            iCP.adjoint.dynamics.InitialCondition = iCP.adjoint.FinalCondition(Ynew(end,:));
-            [~ , Pnew] = solve(iCP.adjoint.dynamics);
-            Pnew = flipud(Pnew);    %%
+            Pnew = GetNumericalAdjoint(iCP,YTry);
+            %
             Y0new = Y0try;
             Ynew = YTry;
             Jnew = JTry;
@@ -200,8 +194,8 @@ function [Y0new,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Y0old,Yold,Pold,Jol
             %%
             Pnew  = Pold;
             Y0new = Y0old;
-            Ynew = Yold;
-            Jnew = Jold;
+            Ynew  = Yold;
+            Jnew  = Jold;
             warning(" Length Step ="+LengthStep+newline+" The Min Length Step of the Adaptative Descent has been achieve")
             return
         end

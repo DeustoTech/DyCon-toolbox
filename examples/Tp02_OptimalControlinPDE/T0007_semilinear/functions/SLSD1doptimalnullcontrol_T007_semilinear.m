@@ -145,15 +145,15 @@ odeEqn2.dt=0.01;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
-solve(odeEqn2)
+solve(odeEqn2);
 %%
-SIZ=size(odeEqn2.VectorState.Numeric);
+SIZ=size(odeEqn2.StateVector.Numeric);
 time=linspace(0,T,SIZ(1));
 space=linspace(1,N,N);
 [TIME,SPACE]=meshgrid(time,space);
 freedynamics.time=TIME';
 freedynamics.space=SPACE';
-freedynamics.value=odeEqn2.VectorState.Numeric;
+freedynamics.value=odeEqn2.StateVector.Numeric;
 
 %%
 % f2=figure;
@@ -162,19 +162,19 @@ freedynamics.value=odeEqn2.VectorState.Numeric;
 % legend('Target','Free Dynamics')
 % We create the object that collects the formulation of an optimal control problem by means of the object that describes the dynamics odeEqn, the functional to minimize Jfun and the time horizon T
 %%
-iCP2 = OptimalControl(odeEqn2,symPsi,symL);
+iCP2 = Pontryagin(odeEqn2,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
 %
-GradientMethod(iCP2)
+GradientMethod(iCP2,'display','all','DescentAlgorithm',@ClassicalDescent)
 %%
-SIZ=size(iCP2.ode.VectorState.Numeric);
+SIZ=size(iCP2.dynamics.StateVector.Numeric);
 time=linspace(0,T,SIZ(1));
 space=linspace(1,N,N);
 [TIME,SPACE]=meshgrid(time,space);
 controlleddynamics.time=TIME';
 controlleddynamics.space=SPACE';
-controlleddynamics.value=iCP2.ode.VectorState.Numeric;
+controlleddynamics.value=iCP2.dynamics.StateVector.Numeric;
 title('Controlled Dynamics')
 ylabel('space discretization')
 xlabel('Time')
@@ -189,15 +189,15 @@ ucontrol.value=iCP2.solution.UOptimal;
 
 %%
 targetplusdynamicspluscontrol.y1=YT;
-targetplusdynamicspluscontrol.y2=odeEqn2.VectorState.Numeric(end,:);
-targetplusdynamicspluscontrol.y3=iCP2.ode.VectorState.Numeric(end,:);
+targetplusdynamicspluscontrol.y2=odeEqn2.StateVector.Numeric(end,:);
+targetplusdynamicspluscontrol.y3=iCP2.dynamics.StateVector.Numeric(end,:);
 %%
 uu=iCP2.solution.UOptimal;
 for j=1:length(uu(:,1))
 normscb=normscb+(uu(j,:)*uu(j,:)')*(abs(w1-w2))/count;
 end 
-for j=size(iCP2.ode.VectorState.Numeric(end,:))
-targnormscb=targnormscb+iCP2.ode.VectorState.Numeric(end,j)^2;
+for j=size(iCP2.dynamics.StateVector.Numeric(end,:))
+targnormscb=targnormscb+iCP2.dynamics.StateVector.Numeric(end,j)^2;
 end
 targnormscb/N;
 end

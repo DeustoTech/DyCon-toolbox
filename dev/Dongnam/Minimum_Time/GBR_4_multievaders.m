@@ -96,7 +96,7 @@ plot([u_f(1)],[u_f(2)],'ks','MarkerSize',20)
 Psi = (ue1-u_f).'*(ue1-u_f)+(ue2-u_f).'*(ue2-u_f);
 L   = 0.001*(kappa.'*kappa)*T;%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;
@@ -210,7 +210,7 @@ grid on
 Psi = (ue1-u_f).'*(ue1-u_f)+(ue2-u_f).'*(ue2-u_f);
 L   = 0.001*(kappa.'*kappa)*T+0.1*T;%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;

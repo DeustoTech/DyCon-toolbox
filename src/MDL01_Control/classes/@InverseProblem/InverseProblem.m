@@ -3,6 +3,7 @@ classdef InverseProblem < handle
     %   Detailed explanation goes here
     
     properties
+        gamma  = 1e-3
         functional
         dynamics
         adjoint
@@ -18,8 +19,9 @@ classdef InverseProblem < handle
             obj.dynamics            	= copy(dynamics);
             obj.adjoint.dynamics        = copy(dynamics);
             obj.FinalState              = FinalState;
-            obj.adjoint.FinalCondition  = @(Y) (Y-obj.FinalState) ;
-
+            
+            dx = dynamics.mesh(2) - dynamics.mesh(1);
+            obj.adjoint.FinalCondition  = @(Y) dx*(Y-obj.FinalState) ;
                 
         end
 
