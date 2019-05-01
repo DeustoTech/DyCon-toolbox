@@ -1,20 +1,20 @@
 function P = GetNumericalAdjoint(iCP,U,Y)
 
-        T = iCP.dynamics.FinalTime;
-        iCP.adjoint.dynamics.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Y(end,:)');
+        T = iCP.Dynamics.FinalTime;
+        iCP.Adjoint.Dynamics.InitialCondition = iCP.Adjoint.FinalCondition.Numeric(T,Y(end,:)');
 
-        iCP.adjoint.dynamics.dt = iCP.dynamics.dt;
-        iCP.adjoint.dynamics.FinalTime = iCP.dynamics.FinalTime;
-        iCP.adjoint.dynamics.SolverParameters = iCP.dynamics.SolverParameters;
-        iCP.adjoint.dynamics.MassMatrix = iCP.dynamics.MassMatrix;
-        iCP.adjoint.dynamics.Solver = iCP.dynamics.Solver;
+        iCP.Adjoint.Dynamics.dt = iCP.Dynamics.dt;
+        iCP.Adjoint.Dynamics.FinalTime = iCP.Dynamics.FinalTime;
+        iCP.Adjoint.Dynamics.SolverParameters = iCP.Dynamics.SolverParameters;
+        iCP.Adjoint.Dynamics.MassMatrix = iCP.Dynamics.MassMatrix;
+        iCP.Adjoint.Dynamics.Solver = iCP.Dynamics.Solver;
         
-        if iCP.adjoint.dynamics.lineal
-            [~,P] = solve(iCP.adjoint.dynamics);
+        if iCP.Adjoint.Dynamics.lineal
+            [~,P] = solve(iCP.Adjoint.Dynamics);
         else
             Control = [Y U];
             Control = flipud(Control);
-            [~,P] = solve(iCP.adjoint.dynamics,'Control',Control);
+            [~,P] = solve(iCP.Adjoint.Dynamics,'Control',Control);
         end
         P = flipud(P);
 

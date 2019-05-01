@@ -1,16 +1,30 @@
-function [Jfuntional, varargout ] = Control2Functional(iCP,U)
+function varargout  = Control2Functional(iCP,Control)
     % Give the Control Problem this function give a control U(t) you obtain
     % the functional value
     %%
-    [~,Y] = solve(iCP.dynamics,'Control',U);
-    Jfuntional = GetNumericalFunctional(iCP,Y,U);
+    StateVector = GetNumericalDynamics(iCP,Control);
+    J = GetNumericalFunctional(iCP,StateVector,Control);
     %%
-    if nargout > 1
-        T = iCP.dynamics.FinalTime;
-        
-        iCP.adjoint.dynamics.InitialCondition = iCP.adjoint.FinalCondition.Numeric(T,Y(end,:)');
-        P = GetNumericalAdjoint(iCP,U,Y);
-        varargout{1} = 0.01*GetNumericalControlGradient(iCP,U,Y,P);
+    if nargout > 1        
+        AdjointVector = GetNumericalAdjoint(iCP,Control,StateVector);
+        dJ            = GetNumericalControlGradient(iCP,Control,StateVector,AdjointVector);
+    end
+    
+    switch nargout
+        case 1
+            varargout{1} = J;
+        case 2
+            varargout{1} = J;
+            varargout{2} = dJ;
+        case 3
+            varargout{1} = J;
+            varargout{2} = dJ;
+            varargout{3} = StateVector;
+        case 4
+            varargout{1} = J;
+            varargout{2} = dJ;
+            varargout{3} = StateVector;
+            varargout{4} = AdjointVector;
     end
     
 end

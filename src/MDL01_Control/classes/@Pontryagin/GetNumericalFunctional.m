@@ -28,7 +28,7 @@ function Jvalue = GetNumericalFunctional(iCP,Y,U)
     %addRequired(p,'iCP')
     
     
-    tspan   = iCP.dynamics.tspan;
+    tspan   = iCP.Dynamics.tspan;
     L       = iCP.Functional.L.Numeric;
     Psi     = iCP.Functional.Psi.Numeric;
 

@@ -10,16 +10,18 @@ classdef OptimalLsNorm < AbstractOptimalControl
     end
     
     methods
-        function obj = OptimalLsNorm(dynamics)
+        function obj = OptimalLsNorm(Dynamics)
 
-            if ~dynamics.lineal
+            if ~Dynamics.lineal
                error('No lineal dynamics no implemented') 
             end
             
-            obj.dynamics = dynamics;
+            obj.Dynamics = copy(Dynamics);
             
-            Target  = zeros(length(obj.dynamics.StateVector.Symbolic),1);
+            obj.Target  = zeros(length(obj.Dynamics.StateVector.Symbolic),1);
 
+            %% Adjoint 
+            obj.Adjoint.Dynamics = pde('A',Dynamics.A);
             
         end
         

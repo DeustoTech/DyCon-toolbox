@@ -101,15 +101,15 @@ end
             obj.Functional.L.Symbolic        = symfun(symL,[t,symY.',symU.']);
             obj.Functional.L.Numeric         = matlabFunction(symL,'Vars',{t,symY,symU});
             %% Dynamics Definition                   
-            obj.dynamics                 = copy(iode);
+            obj.Dynamics                 = copy(iode);
             %% Hamiltonian
             
             symP  =  sym('p', [length(symY),1]);
             
-            if obj.dynamics.lineal   
-                obj.hamiltonian = symL + symP.'*(obj.dynamics.A* obj.dynamics.StateVector.Symbolic + obj.dynamics.B*obj.dynamics.Control.Symbolic);
+            if obj.Dynamics.lineal   
+                obj.Hamiltonian = symL + symP.'*(obj.Dynamics.A* obj.Dynamics.StateVector.Symbolic + obj.Dynamics.B*obj.Dynamics.Control.Symbolic);
             else
-                obj.hamiltonian = symL + symP.'*formula(obj.dynamics.DynamicEquation.Symbolic);
+                obj.Hamiltonian = symL + symP.'*formula(obj.Dynamics.DynamicEquation.Symbolic);
             end
             
             %% Direccion del Gradiente
@@ -132,13 +132,13 @@ end
             if isempty(Adjoint)
                 GetSymbolicalAdjointProblem(obj);
             else
-                obj.adjoint.dynamics = Adjoint;
+                obj.Adjoint.Dynamics = Adjoint;
             end
             %% Calculate Adjoint of Dynamics
             if isempty(AdjointFinalCondition)
                 GetSymbolicalAdjointFinalCondition(obj);
             else
-                obj.adjoint.FinalCondition.Numeric = AdjointFinalCondition;
+                obj.Adjoint.FinalCondition.Numeric = AdjointFinalCondition;
             end
         end
         

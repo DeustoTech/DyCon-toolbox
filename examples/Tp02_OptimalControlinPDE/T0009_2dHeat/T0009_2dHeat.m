@@ -1,25 +1,28 @@
-clear all
+clear;
+
+Nx = 10;    Ny = 15;
+%
+xline = linspace(-1,1,Nx+2); xline = xline(2:end-1); dx = xline(2) - xline(1);
+yline = linspace(-1,1,Ny+2); yline = yline(2:end-1); dy = yline(2) - yline(1);
+% 
+[~,~,A] = laplacian([Nx,Ny],{'NN' 'NN'});
+
+A = (1/(dx*dy)^2)*A;
+
 %% Dynamics
 
-N = 100;
-
-xline =linspace(-12,12,N);
-A = FDLaplacian(xline);
-
 dynamics = pde('A',A);
-dynamics.mesh = xline;
+dynamics.mesh = {xline,yline};
 dynamics.FinalTime = 2;
+% time points
 Nt = 30;
 dynamics.dt = dynamics.FinalTime/Nt;
 
 %% Select Initial Condition
-dynamics.InitialCondition    =   -(10/12)*sign(xline).*xline + 10;
-%dynamics.InitialCondition   =   -(10/144)*xline.^2 + 10;
-dynamics.InitialCondition    =   0*xline;
-dynamics.InitialCondition(10) = 3;
-dynamics.InitialCondition(20:36) = 5;
-dynamics.InitialCondition(80) = 8;
-dynamics.InitialCondition(3) = 50;
+[Xms,Yms] = meshgrid(xline,yline);
+Initms = Xms.^2 + Yms.^2;
+
+dynamics.InitialCondition    =  reshape(Initms,Nx*Ny,1);
 
 %% Compute Target
 solve(dynamics)
@@ -39,4 +42,4 @@ InitControl = FinalState*0;
 GradientMethod(InvP,InitControl,'display','all','tol',1e-9,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','JDiff'})
 
 %InitControl = FinalState*0;
-%GradientMethod(InvP,InitControl,'display','all','tol',1e-9,'DescentAlgorithm',@ClassicalDescent,'DescentParameters',{'FixedLengthStep',false})
+%GradientMethod(InvP,InitControl,'display','all','tol',1e-9,'DescentAlg

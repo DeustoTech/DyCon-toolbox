@@ -1,4 +1,4 @@
-function  [Y0new,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,varargin)
+function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine
 %               in order to get one update of the control in each iteration. In the case of choosing AdaptativeDescent 
 %               this function updates the control of the following way
@@ -65,59 +65,57 @@ function  [Y0new,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
     addRequired(p,'iCP')
     addRequired(p,'tol')
     addOptional(p,'StopCriteria','relative')
-    addOptional(p,'norm','L1')
+    addOptional(p,'TypeNorm','L1')
     addOptional(p,'InitialLengthStep',0.1)
     addOptional(p,'MinLengthStep',1e-15)
     
     parse(p,iCP,tol,varargin{:})
     
     StopCriteria = p.Results.StopCriteria;
-    Norm = p.Results.norm;
+    TypeNorm = p.Results.TypeNorm;
 
     persistent Iter
     
     if isempty(Iter)
-        Y0new = iCP.solution.Y0history{1};
+        ControlNew = iCP.Solution.ControlHistory{1};
         %
-        iCP.dynamics.InitialCondition = Y0new;
-        [~ , Ynew] =  solve(iCP.dynamics);
-        %
-        Pnew = GetNumericalAdjoint(iCP,Ynew);
-
-        dJnew = GetNumericalInitGradient(iCP,Ynew,Pnew);
+        [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
+        % 
         Iter = 1;
         error = 0;
         stop = false;
-        Jnew = GetNumericalFunctional(iCP,Ynew);
+
     else
         Iter = Iter + 1;
         
-        Pold  = iCP.solution.Phistory{Iter-1};
-        Y0old  = iCP.solution.Y0history{Iter-1};
-        Yold  = iCP.solution.Yhistory{Iter-1};
-        Jold  = iCP.solution.Jhistory(Iter-1);
+        ControlOld  = iCP.Solution.ControlHistory{Iter-1};
+        Yold        = iCP.Solution.Yhistory{Iter-1};
+        Pold        = iCP.Solution.Phistory{Iter-1};
+        dJold       = iCP.Solution.dJhistory{Iter-1};
+        Jold        = iCP.Solution.Jhistory(Iter-1);
         
-        [Y0new,Ynew,Pnew,Jnew,dJnew] = MiddleControlFcn(iCP,Y0old,Yold,Pold,Jold,varargin{:});
+        [ControlNew,Ynew,Pnew,Jnew,dJnew] = MiddleControlFcn(iCP,ControlOld,Yold,Pold,Jold,dJold,varargin{:});
         
+        %% Stop Criteria 
         
-        switch Norm
+        switch TypeNorm
             case 'L1'
-                AdJnew = trapz(iCP.dynamics.mesh,abs(dJnew));
+                AdJnew = norm(dJnew,1);
             case 'L2'
-                AdJnew = sqrt(trapz(iCP.dynamics.mesh,dJnew.^2));
+                AdJnew = norm(dJnew,2);
         end
-        %% 
+        %%%
         switch StopCriteria
             case 'absolute'
                 error = AdJnew;
             case 'relative'
-                AUnew = trapz(iCP.dynamics.mesh,abs(Y0new));
+                AUnew = norm(ControlNew);
                 error = AdJnew/AUnew;
             case {'Jdiff','jdiff','JDiff'}
                 error = (Jold-Jnew)/(Jold+tol);    % Stop when the difference of J is smaller than tol^2 + Jold*tol.
         end
-        %%
-        if error < tol || norm(Y0new - Y0old) == 0
+        %%%
+        if error < tol || norm(ControlNew - ControlOld) == 0
             stop = true;
         else 
             stop = false;
@@ -127,24 +125,26 @@ function  [Y0new,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,va
    
 end
 %%
-function [Y0new,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Y0old,Yold,Pold,Jold,varargin)
+function [Unew,Ynew,Pnew,Jnew,dJnew] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,dJold,varargin)
 
     p = inputParser;
     addRequired(p,'iCP')
-    addRequired(p,'Y0new')
+    addRequired(p,'Uold')
     addRequired(p,'Yold')
     addRequired(p,'Jold')
+    addRequired(p,'dJold')
+
     addOptional(p,'StopCriteria','relative')
     addOptional(p,'InitialLengthStep',0.5)
     addOptional(p,'MinLengthStep',1e-10)
-    addOptional(p,'norm','L1')
+    addOptional(p,'TypeNorm','L1')
 
     
-    parse(p,iCP,Y0old,Yold,Jold,varargin{:})
+    parse(p,iCP,Uold,Yold,Jold,dJold,varargin{:})
     
     InitialLengthStep   = p.Results.InitialLengthStep;
     MinLengthStep       = p.Results.MinLengthStep;
-    norm                = p.Results.norm;
+    TypeNorm            = p.Results.TypeNorm;
     %%
     persistent LengthMemory
      
@@ -157,45 +157,40 @@ function [Y0new,Ynew,Pnew,Jnew,dJold] = MiddleControlFcn(iCP,Y0old,Yold,Pold,Jol
     %% Empezamos con un LengthStep
     LengthStep =2*InitialLengthStep;
     
-    mesh = iCP.dynamics.mesh;
-    dJold = GetNumericalInitGradient(iCP,Yold,Pold);
-    switch norm
-        case 'L1'
-            normdJold = trapz(mesh,abs(dJold));
-        case 'L2'
-            normdJold = sqrt(trapz(mesh,dJold.^2));
-    end
-
     while true 
         % en cada iteracion dividimos el LengthStep
         LengthStep = LengthStep/2;
         %% Actualizamos  Control
-
-        Y0try = Y0old - LengthStep*dJold/normdJold;
-        Y0try = UpdateControlWithConstraints(iCP.constraints,Y0try);
+        switch TypeNorm
+            case 'L1'
+                normdJold =norm(dJold,1);
+            case 'L2'
+                normdJold =norm(dJold,2);
+        end
+        ControlTry = Uold - LengthStep*dJold/normdJold;
+        ControlTry = UpdateControlWithConstraints(iCP.Constraints,ControlTry);
         %% Resolvemos el problem primal
-        iCP.dynamics.InitialCondition = Y0try;
-        [~ , YTry] = solve(iCP.dynamics);
-        % Calculate functional value
-        JTry = GetNumericalFunctional(iCP,YTry);
+        [JTry,dJTry,YTry,PTry] = Control2Functional(iCP,ControlTry);
      
         if ((JTry - Jold) <= 0)
-            %
-            Pnew = GetNumericalAdjoint(iCP,YTry);
-            %
-            Y0new = Y0try;
+            %%
+            Pnew  = PTry;
+            Unew = ControlTry;
             Ynew = YTry;
             Jnew = JTry;
+            dJnew = dJTry;
             %
             LengthMemory = 2*LengthStep;
             return
         end
         if (LengthStep <= MinLengthStep)
             %%
-            Pnew  = Pold;
-            Y0new = Y0old;
-            Ynew  = Yold;
-            Jnew  = Jold;
+            Pnew = Pold;
+            Unew = Uold;
+            Ynew = Yold;
+            Jnew = Jold;
+            dJnew = dJold;
+
             warning(" Length Step ="+LengthStep+newline+" The Min Length Step of the Adaptative Descent has been achieve")
             return
         end

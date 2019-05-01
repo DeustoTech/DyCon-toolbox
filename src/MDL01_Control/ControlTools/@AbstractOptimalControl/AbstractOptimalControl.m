@@ -1,4 +1,4 @@
-classdef AbstractOptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
+classdef (Abstract) AbstractOptimalControl  < handle & matlab.mixin.SetGet & matlab.mixin.Copyable
 % description: "This class is able to solve optimization problems of a function restricted to an ordinary equation.
 %               This scheme is used to solve optimal control problems in which the functional derivative is calculated. 
 %               <strong>OptimalControl</strong> class has methods that help us find optimal control as well as obtaining 
@@ -26,42 +26,51 @@ classdef AbstractOptimalControl < handle & matlab.mixin.SetGet & matlab.mixin.Co
 %               u(t)\in\mathcal {U},\quad t\in [0,T]. \end{equation*}$$
 %               Moreover, the class permits to choose among different methods for solving the minimization problem. At the present stage, the methods available are
 %                 <ul>
-%                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/ClassicalDescent'>Classical gradient method</a></li>
-%                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/AdaptativeDescent'>Gradient method with adaptive descend step</a></li>
-%                   <li>  <a href='https://deustotech.github.io/dycon-platform-documentation/documentation/mdl01/optimalcontrol/ConjugateGradientDescent'>Conjugate gradient method</a></li>
+%                   <li>  <a href='https://deustotech.github.io/dycon-toolbox-documentation/documentation/mdl01/optimalcontrol/ClassicalDescent'>Classical gradient method</a></li>
+%                   <li>  <a href='https://deustotech.github.io/dycon-toolbox-documentation/documentation/mdl01/optimalcontrol/AdaptativeDescent'>Gradient method with adaptive descend step</a></li>
+%                   <li>  <a href='https://deustotech.github.io/dycon-toolbox-documentation/documentation/mdl01/optimalcontrol/ConjugateGradientDescent'>Conjugate gradient method</a></li>
 %                 </ul>
     properties 
-        % type: "Functional"
+        % type: "Functional"methods (Abstract)
+
         % default: "none"
         % description: "This property represent the cost of optimal control"
         Functional        
         % type: ode
         % default: none
         % description: This property represented ordinary differential equation
-        dynamics        
+        Dynamics        
         % type: double
         % default: function_handle
         % description: The derivative of the Hamiltonian with respect to the control u 
-        adjoint        
+        Adjoint        
         % type: double
         % default: function_handle
         % description: The derivative of the Hamiltonian with respect to the control u 
-        hamiltonian     
+        Hamiltonian     
         % type: struct
         % default: none
         % description: The adjoint propertir contain the numerical function that represents the adjoint problem this struct have a two properties. The first is dP_dt and the second is P0.   
-        ControlGradient             SymNumFun = SymNumFun
-        AdjointFinalGradient        SymNumFun = SymNumFun
-        InitialConditionGradient    SymNumFun = SymNumFun
-        hessian         SymNumFun = SymNumFun
+        ControlGradient             SymNumFun       = SymNumFun
+        % type: struct
+        % default: none
+        % description: The adjoint propertir contain the numerical function that represents the adjoint problem this struct have a two properties. The first is dP_dt and the second is P0. 
+        Hessian                     SymNumFun       = SymNumFun
         % type: double
         % default: none
         % description: It is an array that contains the different functional values during the execution of the optimization algorithm that has been used.
-        solution
+        Solution
         %
-        constraints         constraints  = constraints
+        Constraints                 constraints     = constraints
     end
     
+    methods (Abstract)
+         Y  = GetNumericalDynamics(iCP,Control)
+         dJ = GetNumericalControlGradient(iCP,U,Y,P)
+         P  = GetNumericalAdjoint(iCP,U,Y)
+         J  = GetNumericalFunctional(iCP,Y,U)
+         PT = GetNumericalAdjointFinalCondition(iCP,Y)
+    end
      
 end
 

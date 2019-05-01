@@ -39,18 +39,18 @@ function plot(iCP,varargin)
     SaveGif     = p.Results.SaveGif;
     TypeGraphs  = p.Results.TypeGraphs;
     
-    nY = length(iCP.dynamics.InitialCondition);
-    nU = length(iCP.solution.UOptimal(1,:));
+    nY = length(iCP.Dynamics.InitialCondition);
+    nU = length(iCP.Solution.UOptimal(1,:));
     
     
-    TypeGraphs = class(iCP.dynamics); 
+    TypeGraphs = class(iCP.Dynamics); 
     [axY,axU,axJ] = init_graphs_gradientmethod(TypeGraphs,nY,nU,SaveGif);
     
-    Jhistory = iCP.solution.Jhistory;
-    tspan = iCP.dynamics.tspan;
-    for iter = 2:iCP.solution.iter
-        Ynew = iCP.solution.Yhistory{iter};
-        Unew = iCP.solution.Uhistory{iter};
+    Jhistory = iCP.Solution.Jhistory;
+    tspan = iCP.Dynamics.tspan;
+    for iter = 2:iCP.Solution.iter
+        Ynew = iCP.Solution.Yhistory{iter};
+        Unew = iCP.Solution.ControlHistory{iter};
         bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif,false)
     end
 end
@@ -58,7 +58,7 @@ end
 
 
 function iCP_valid(iCP)
-    if isempty(iCP.solution)
+    if isempty(iCP.Solution)
         error('The Control proble must be solve before to plot graphs.')
     end
 end

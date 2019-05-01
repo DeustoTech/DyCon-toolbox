@@ -1,3 +1,0 @@
-T0001_ControlProblemODE
-T0002_OptimalControlKuramotoAdaptative
-T0005_spin

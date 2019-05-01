@@ -1,8 +1,8 @@
 function U = UpdateControlWithConstraints(iconstraints,U)
 %UPDATECONTROLWITHCONSTRAINTS changes U into a subset to fit it with constraints.
 %   It does nothing when isempty(iCP.constraints).
-    Umax        = iconstraints.Umax;
-    Umin        = iconstraints.Umin;
+    Umax        = iconstraints.MaxControl;
+    Umin        = iconstraints.MinControl;
     Projector  = iconstraints.Projector;
 
     if ~isempty(Umax)

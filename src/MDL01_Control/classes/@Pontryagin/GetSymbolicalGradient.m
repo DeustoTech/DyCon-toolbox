@@ -14,7 +14,7 @@ function GetSymbolicalGradient(iP)
 %    dimension: [1x1]
     syms t
     %%
-    idynamics   = iP.dynamics;
+    idynamics   = iP.Dynamics;
     L   = iP.Functional.L.Symbolic; 
     %% Creamos las variables simbolica 
     symU   = idynamics.Control.Symbolic;
@@ -23,11 +23,11 @@ function GetSymbolicalGradient(iP)
     % Creamos el vector Symbolico   P = [p1 p2 p3 ...]
     
     symP  =  sym('p', [length(symY),1]);
-    if iP.dynamics.lineal    
+    if iP.Dynamics.lineal    
         dH_du =(idynamics.B.'*symP).' + gradient(formula(L),symU).';
         dH_du = dH_du.';
     else
-        dH_du = gradient(formula(iP.hamiltonian),symU).';
+        dH_du = gradient(formula(iP.Hamiltonian),symU).';
     end
     %
     iP.ControlGradient.Symbolical = symfun(dH_du,[t symY.' symP.' symU.']);

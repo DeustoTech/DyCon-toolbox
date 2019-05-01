@@ -124,7 +124,7 @@ function CoGradientMethod(iCP,varargin)
     iCP.solution = CPSolution;
 
     iCP.solution.Yhistory = cell(1,MaxIter);
-    iCP.solution.Uhistory = cell(1,MaxIter);
+    iCP.solution.ControlHistory = cell(1,MaxIter);
     iCP.solution.dJhistory = cell(1,MaxIter);
 
     iCP.solution.Jhistory = zeros(1,MaxIter);
@@ -146,7 +146,7 @@ function CoGradientMethod(iCP,varargin)
         [fnew,dfnew,Unew, Ynew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
 
         % Save history of optimization
-        iCP.solution.Uhistory{iter}  = Unew;
+        iCP.solution.ControlHistory{iter}  = Unew;
         iCP.solution.fhistory{iter}  = fnew;
         iCP.solution.dfhistory{iter}  = dfnew;
         iCP.solution.Yhistory{iter}  = Ynew;
@@ -174,7 +174,7 @@ function CoGradientMethod(iCP,varargin)
     end
     
     iCP.solution.precision = error;
-    iCP.solution.Uhistory = iCP.solution.Uhistory(1:iter);
+    iCP.solution.ControlHistory = iCP.solution.ControlHistory(1:iter);
     iCP.solution.Jhistory = iCP.solution.Jhistory(1:iter);
     iCP.solution.dJhistory = iCP.solution.dJhistory(1:iter);
     iCP.solution.Yhistory = iCP.solution.Yhistory(1:iter);

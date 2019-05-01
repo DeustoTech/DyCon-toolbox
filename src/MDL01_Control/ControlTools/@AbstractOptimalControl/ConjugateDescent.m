@@ -1,4 +1,4 @@
-function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP,tol,varargin)
+function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,tol,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine in order to get 
 %               one update of the control in each iteration. In the case of choosing ConjugateGradientDescent this function updates the
 %               control of the following way
@@ -75,47 +75,34 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
     persistent Iter
     persistent s
     persistent SeedLengthStep
-    persistent HistoryOptimalLength
 
-    tspan = iCP.dynamics.tspan;
 
     if isempty(Iter)
         %% First Iteration
+        ControlNew = iCP.Solution.ControlHistory{1};
+        %
+        [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
+        % 
         Iter = 1;
-        % Get First Control
-        Unew = iCP.solution.Uhistory{1};
-        % Solve Dynamics with this control
-        [~, Ynew] = solve(iCP.dynamics,'Control',Unew);
-        % Calculate de Functional numerical Value
-        Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
-        % Calculate de Gradient numerical Value
-        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);
-        dJnew = GetNumericalControlGradient(iCP,Unew,Ynew,Pnew);
-        % Then set s variable equal minus gradient
-        s = -dJnew;
-        SeedLengthStep = 0.01; 
-        %
-        error = 0;       
+        error = 0;
         stop = false;
-        HistoryOptimalLength = [];
-        %
+        SeedLengthStep = 0.01;
+        s = -dJnew;
     else
         %% Others Iterations
         Iter = Iter + 1;
         %
-        Uold  = iCP.solution.Uhistory{Iter-1};
-        dJold = iCP.solution.dJhistory{Iter-1};
-        Jold = iCP.solution.Jhistory(Iter-1);
+        ControlOld  = iCP.Solution.ControlHistory{Iter-1};
+        dJold       = iCP.Solution.dJhistory{Iter-1};
+        Jold        = iCP.Solution.Jhistory(Iter-1);
          
-        options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'Display','none','Algorithm','trust-region');
-        %options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off','Algorithm','quasi-newton');
-        %options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','none','Algorithm','quasi-newton','CheckGradients',false);
+        options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','none','Algorithm','quasi-newton','CheckGradients',false);
 
         if Iter > 2
-            options.FunctionTolerance = 0.1*abs(Jold -iCP.solution.Jhistory(Iter-2));
+            options.FunctionTolerance = 0.1*abs(Jold -iCP.Solution.Jhistory(Iter-2));
         end
         %% Search Optimal Length Step
-        Jnew = Jold + 1;
+        Jnew = Jold + 1e5;
         while Jold < Jnew 
             [OptimalLenght,Jnew] = fminunc(@SearchLenght,SeedLengthStep,options);
             SeedLengthStep = 0.5*SeedLengthStep;
@@ -128,74 +115,49 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
 
         SeedLengthStep = OptimalLenght;
         %% Update Control with Optimal Length Step
-        Unew = Uold + OptimalLenght*s; 
-        Unew = UpdateControlWithConstraints(iCP.constraints,Unew);
+        ControlNew = ControlOld + OptimalLenght*s; 
+        ControlNew = UpdateControlWithConstraints(iCP.Constraints,ControlNew);
         
-        [~ , Ynew] = solve(iCP.dynamics,'Control',Unew);
-        % Get Gradient. DirectionParameter works here to find a proper
-        % conjugate direction.
-        Pnew  = GetNumericalAdjoint(iCP,Unew,Ynew);   
-        dJnew = GetNumericalControlGradient(iCP,Unew,Ynew,Pnew);
-        %diffdJ = dJnew - dJold;
+        %% Calculate new functional, adjoint, state, gradient
+        [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
+        %% Update Beta 
         diffdJ = dJnew - dJold;
         switch DirectionParameter
           case 'FR' % Fletcher-Reeves method
-            nume = arrayfun(@(indextime) dJnew(indextime,:)*dJnew(indextime,:).',1:length(tspan));
-            nume = trapz(tspan,nume);
-            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
-            deno = trapz(tspan,deno);
-            beta  = nume/deno;
+            beta  = norm(dot(dJnew,dJnew))/norm(dot(dJold,dJold));
           case 'PPR' %Positive Polak-Ribi\'ere.
-            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
-            nume = trapz(tspan,nume);
-            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
-            deno = trapz(tspan,deno);
-            beta  = max(0,nume/deno);
+            beta0 = norm(dot(dJnew,diffdJ))/norm(dot(dJold,dJold));
+            beta  = max(0,beta0);
           case 'PR' % Polak-Ribi\'ere method
-            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
-            nume = trapz(tspan,nume);
-            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
-            deno = trapz(tspan,deno);
-            beta  = nume/deno;
+            beta  = norm(dot(dJnew,diffdJ))/norm(dot(dJold,dJold));
           case 'HS' % Hestenes-Stiefel method
-            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
-            nume = trapz(tspan,nume);
-            deno = arrayfun(@(indextime) s(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
-            deno = trapz(tspan,deno);
-            beta  = nume/deno;
+            beta  = norm(dot(dJnew,diffdJ))/norm(dot(s,diffdJ));
           case 'DY' % Dai-Yuan method
-            nume = arrayfun(@(indextime) dJnew(indextime,:)*dJnew(indextime,:).',1:length(tspan));
-            nume = trapz(tspan,nume);
-            deno = arrayfun(@(indextime) s(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
-            deno = trapz(tspan,deno);
-            beta  = nume/deno;
+            beta  = norm(dot(dJnew,dJnew))/norm(dot(s,diffdJ));
           otherwise %'Popular choice': Positive Polak-Ribi\'ere.
-            nume = arrayfun(@(indextime) dJnew(indextime,:)*diffdJ(indextime,:).',1:length(tspan));
-            nume = trapz(tspan,nume);
-            deno = arrayfun(@(indextime) dJold(indextime,:)*dJold(indextime,:).',1:length(tspan));
-            deno = trapz(tspan,deno);
-            beta  = max(0,nume/deno);
+            beta0  = norm(dot(dJnew,diffdJ))/norm(dot(dJold,dJold));
+            beta  = max(0,beta0);
         end
-
-        %
+        beta = sqrt(beta);
+        %% Update Direction
         s = - dJnew + beta*s;
-
+        %%
         % Possible stopping criterion for constrainted control problems.
         % Call it using GradientMethod(...,'DescentParameters',{'StopCriteria','Jdiff'}).
         switch StopCriteria
           case 'relative'
-            AdJnew = mean(abs(trapz(tspan,dJnew)));
-            AUnew = mean(abs(trapz(tspan,Unew)));
+            AdJnew = norm(dJnew);
+            AUnew =  norm(ControlNew);
             error = AdJnew/AUnew;
           case {'JDiff','Jdiff','jdiff'}
             % Stop when the difference of J is smaller than tol^2 + Jold*tol.
             error = (Jold-Jnew)/(Jold+tol);
           case 'absolute'
-            error = AdJnew;
+            error =  norm(dJnew);
           otherwise
-            AdJnew = mean(abs(trapz(tspan,dJnew)));
-            AUnew = mean(abs(trapz(tspan,Unew)));
-            error = AdJnew/AUnew;
+            AdJnew =  norm(dJnew);
+            AUnew  =  norm(ControlNew);
+            error  = AdJnew/AUnew;
         end
         
         if error < tol || OptimalLenght == 0 || abs(Jnew-Jold) < 1e-12
@@ -206,24 +168,12 @@ function  [Unew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateGradientDescent(iCP
     end
    
 
-    function [Jsl ,varargout] = SearchLenght(LengthStep)
+    function Jsl = SearchLenght(LengthStep)
         
-        Usl = Uold + LengthStep*s; 
-        Usl = UpdateControlWithConstraints(iCP.constraints,Usl);
-        %% Resolvemos el problem primal
-        [~ , Ysl] = solve(iCP.dynamics,'Control',Usl);
-        Jsl = GetNumericalFunctional(iCP,Ysl,Usl);
+        Usl = ControlOld + LengthStep*s; 
+        Usl = UpdateControlWithConstraints(iCP.Constraints,Usl);
 
-        if nargout > 1
-           Psl  = GetNumericalAdjoint(iCP,Usl,Ysl);
-           dJsl = GetNumericalControlGradient(iCP,Usl,Ysl,Psl);
-           %
-        
-           dJda = arrayfun(@(indextime) dJsl(indextime,:)*dJsl(indextime,:).',1:length(tspan));
-           dJda = -trapz(tspan,dJda);
-
-           varargout{1} = dJda;
-        end
+        Jsl = Control2Functional(iCP,Usl);
     end
 end
 

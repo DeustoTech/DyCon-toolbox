@@ -23,7 +23,7 @@ classdef solution < handle
         % type: double
         % default: none
         % description: It is an cell that contains the different control, $U$, values during the execution of the optimization algorithm that has been used.
-        Uhistory
+        ControlHistory
         % type: double
         % default: none
         % description: number of iterations that the algorithm has made
@@ -47,8 +47,8 @@ classdef solution < handle
     methods
 
         function UOptimal = get.UOptimal(obj)
-            if ~isempty(obj.Uhistory{end})
-                UOptimal = obj.Uhistory{end};
+            if ~isempty(obj.ControlHistory{end})
+                UOptimal = obj.ControlHistory{end};
             else
                 UOptimal = [];
             end

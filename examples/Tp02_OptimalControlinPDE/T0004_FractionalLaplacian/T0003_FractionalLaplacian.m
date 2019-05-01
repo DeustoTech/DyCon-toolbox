@@ -93,7 +93,7 @@ YT = 0.0*xline';
 epsilon = dx^4;
 symPsi  = dx*(YT - Y).'*(YT - Y);
 symL    = 1e-6*dx*(U.'*U);
-iCP1 = OptimalControl(dynamics,symPsi,symL);
+iCP1 = Pontryagin(dynamics,symPsi,symL);
 
 %% Solution of the minimization problem
 % As a final step, we use the gradient method we developed for solving the
@@ -101,7 +101,8 @@ iCP1 = OptimalControl(dynamics,symPsi,symL);
 % to use the **Adaptive Gradient Descent** algorithm.
 tol = 1e-3;
 %%
-GradientMethod(iCP1,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'Graphs',true,'MaxIter',1000)
+U0 = dynamics.Control.Numeric;
+GradientMethod(iCP1,U0,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'Graphs',true,'MaxIter',1000)
 %%
 % As we see, the algorithm has stopped since it has reached the maximum
 % number of iterations allowed, and not because it has encountered a 
@@ -121,7 +122,7 @@ plot(iCP1,'TypeGraphs','pde')
 % uniqueness method*. This will be the scope of a future post.
 solve(dynamics)
 dynamics.label = 'Free';
-iCP1.ode.label = 'Control';
+iCP1.Dynamics.label = 'Control';
 %%
 %  ```
 % animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)

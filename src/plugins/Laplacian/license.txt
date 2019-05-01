@@ -1,4 +1,4 @@
-Copyright (c) 2009, Xuezhong Wang
+Copyright (c) 2015, Bryan C. Smith and Andrew V. Knyazev
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

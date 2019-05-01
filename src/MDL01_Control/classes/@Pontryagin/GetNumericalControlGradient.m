@@ -59,7 +59,7 @@ function dJnew = GetNumericalGradient(iCP,U,Y,P)
 %% Recupereamos las variables para empezar el problema 
     dH_du               = iCP.ControlGradient.Numerical;
     %
-    tspan   =  iCP.dynamics.tspan;
+    tspan   =  iCP.Dynamics.tspan;
     %% Calculo del descenso   
     % Obtenemos du(t)
     du_tDepend = @(index) dH_du(tspan(index),Y(index,:)',P(index,:)',U(index,:)');

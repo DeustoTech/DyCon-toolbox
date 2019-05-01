@@ -3,8 +3,8 @@ classdef constraints
     %   Detailed explanation goes here
     
     properties
-        Umax        double              =   []
-        Umin        double              =   []
+        MaxControl        double              =   []
+        MinControl        double              =   []
         Projector   function_handle
     end
     

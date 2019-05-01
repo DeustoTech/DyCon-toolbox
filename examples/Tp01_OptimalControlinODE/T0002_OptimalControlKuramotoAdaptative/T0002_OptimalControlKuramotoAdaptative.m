@@ -78,9 +78,11 @@ symPsi = norm(sin(symThth.' - symThth),'fro');      % Sine distance for the peri
 symL_1 = 0.001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
 %
 iCP_1 = Pontryagin(odeEqn,symPsi,symL_1);
+%
+U0 = zeros(length(iCP_1.Dynamics.tspan),iCP_1.Dynamics.Udim);
 %% Solve Gradient descent
 tic
-GradientMethod(iCP_1,'Graphs',true,'DescentAlgorithm',@ClassicalDescent)
+GradientMethod(iCP_1,U0)
 toc
 %% Visualization
 % First, we present the dynamics without control,
@@ -93,7 +95,7 @@ xlabel('Time [sec]')
 title('The dynamics without control (incoherence)')
 %%
 % and see the controled dynamics.
-odec_1 = iCP_1.dynamics;
+odec_1 = iCP_1.Dynamics;
 figure
 plot(odec_1.tspan',odec_1.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])
@@ -104,7 +106,7 @@ title('The dynamics under control')
 %%
 % We also can plot the control function along time.
 figure
-Ufinal_1 = iCP_1.solution.UOptimal;
+Ufinal_1 = iCP_1.Solution.UOptimal;
 plot(odec_1.tspan',Ufinal_1)
 legend("norm(u(t)) = "+norm(Ufinal_1))
 ylabel('u(t)')
@@ -118,10 +120,10 @@ symL_2 = 0.001*abs(symU);
 iCP_2 = Pontryagin(odeEqn,symPsi,symL_2);
 % 
 tic
-GradientMethod(iCP_2,'Graphs',true,'DescentAlgorithm',@ClassicalDescent)
+GradientMethod(iCP_2,U0)
 toc
 %%
-odec_2 = iCP_2.dynamics;
+odec_2 = iCP_2.Dynamics;
 figure
 plot(odec_2.tspan',odec_2.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])
@@ -130,7 +132,7 @@ xlabel('Time [sec]')
 title('The dynamics under control with different regularization')
 
 %% 
-Ufinal_2 = iCP_2.solution.UOptimal;
+Ufinal_2 = iCP_2.Solution.UOptimal;
 figure
 plot(odec_1.tspan',Ufinal_1)
 line(odec_2.tspan',Ufinal_2,'Color','red')

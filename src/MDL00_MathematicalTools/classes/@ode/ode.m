@@ -107,6 +107,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % default: "none"
         % description: "Dimension of Control Vector"
         Udim
+        Ydim
     end
     
     
@@ -251,6 +252,10 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %%
         function Udim = get.Udim(obj)
             Udim =  length(obj.Control.Symbolic);
+        end
+        %%
+        function Ydim = get.Ydim(obj)
+            Ydim =  length(obj.StateVector.Symbolic);
         end
         %% ================================================================================
         function set.dt(obj,dt)

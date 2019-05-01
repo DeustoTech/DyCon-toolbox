@@ -42,4 +42,5 @@ fminunc(@(U)Control2Functional(iCP,U),U0,options)
 %iCP.constraints.Umax = 0.2;
 %iCP.constraints.Umin = -0.2;
 
-GradientMethod(iCP,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','functional')
+
+GradientMethod(iCP,U0,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','functional')

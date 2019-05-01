@@ -1,4 +1,4 @@
-  function GetSymbolicalAdjointFinalCondition(obj)
+  function PT = GetNumericalAdjointFinalCondition(iCP,Y)
 % description: This method adds the problem adjoint to the Control Problem object, since we have
 %               $$ \\dot{\\textbf{Y}} = f(\\textbf{Y},t) $$ 
 %               and the functional
@@ -21,25 +21,9 @@
 %        class: ControlProblem
 %        dimension: [1x1]
 
-    Jfun   = obj.Functional;
-    idynamics   = obj.Dynamics;
-    symPsi = Jfun.Psi.Symbolic;
-    %% Creamos las variables simbolica 
-    symY   = idynamics.StateVector.Symbolic;
-    t      = idynamics.symt;
-    symP  =  sym('p', [1 length(symY)]);
-    
-    %% Condicion inicial del problema adjunto
-    % Para cada cordenada de X, calculamos la derivada de dPsi/dx_i
-    PT = gradient(formula(symPsi),symY.').';
-    % Convertimos la expresion a una funcion simbolica
-    % P0(t,  y1,...,yn)
-    obj.Adjoint.FinalCondition.Symbolic  = symfun(PT,[t symY.']);
-    % Pasamos esta funcion a una function_handle
-    obj.Adjoint.FinalCondition.Numeric = matlabFunction(PT,'Vars',{t,symY});
-  
-    obj.Adjoint.P = symP;
-
+    T = iCP.Dynamics.FinalTime;
+    PT = iCP.Adjoint.FinalCondition.Numeric(T,Y(end,:)');
+        
   end
   
   

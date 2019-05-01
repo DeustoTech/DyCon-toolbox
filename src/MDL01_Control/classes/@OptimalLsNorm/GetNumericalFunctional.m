@@ -1,4 +1,4 @@
-function Jvalue = GetNumericalFunctional(iCP,Y,U)
+function J = GetNumericalFunctional(iCP,Y,U)
 % description: Method capable of calculating the value of the functional defined in the control problem.
 % little_description: Method capable of calculating the value of the functional defined in the control problem.
 % autor: JOroya
@@ -24,17 +24,19 @@ function Jvalue = GetNumericalFunctional(iCP,Y,U)
 %    class: double
 %    dimension: [1x1]
 
-    xline = iCP.dynamics.xline;
-    tspan = iCP.dynamics.tspan;
+    xline = iCP.Dynamics.mesh;
+    tspan = iCP.Dynamics.tspan;
+    dt    = iCP.Dynamics.dt;
+    dx    = xline(2) - xline(1); 
     s     = iCP.s;
     k     = iCP.kappa;
-    YT    = iCP.YT;
+    YT    = iCP.Target;
     
     if s == Inf
         dY = Y(end,:).'-YT;
         dY_norm_L2 = trapz(xline,abs(dY.').^2);
         
-         J = 0.5*max(max(U))^2 + 0.5*k*dY_norm_L2;
+         J = 0.5*dx*dt*max(max(U))^2 + 0.5*k*dY_norm_L2;
     else
         
         U_norm_Ls = trapz(tspan,trapz(xline,abs(U.').^s));

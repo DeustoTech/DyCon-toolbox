@@ -4,8 +4,8 @@
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
 
 %FinalTimes = linspace(0.05,0.5,4);
-FinalTimes = linspace(0.7,1.0,4);
-%FinalTimes = 0.8;
+FinalTimes = linspace(0.8,1.0,4);
+
 %FinalTimes = 0.1531;
 %FinalTimes = 0.0438;
 %FinalTimes = linspace(0.03,0.05,2);
@@ -46,7 +46,7 @@ colorbar
 view(0,90)
     
 function iOCP = FinalTime2OCP(FinalTime)
-    Nx = 100;
+    Nx = 20;
     xi = -1; xf = 1;
     xline = linspace(xi,xf,Nx+2);
     %xline = linspace(0,1,Nx+2);
@@ -74,7 +74,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     Y0 = 2.0*cos(0.5*pi*xline');
     %Y0 = 0*xline' + 5;
     %Y0 = 0*xline' + 1;
-    Nt = 100;
+    Nt = 50;
     dt = FinalTime/Nt;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
     dynamics.MassMatrix = M;
@@ -84,7 +84,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     Y0_other = cos(0.5*pi*xline');
     TargetDynamics = copy(dynamics);
     TargetDynamics.InitialCondition = Y0_other;
-    U00 = TargetDynamics.Control.Numeric*0 + 1;
+    U00 = TargetDynamics.Control.Numeric*0 + 0.5;
     %U00 = cos(3*pi*xline')*cos(20*pi*dynamics.tspan);
     [~ ,YT] = solve(TargetDynamics,'Control',U00);
     
@@ -121,11 +121,11 @@ function iOCP = FinalTime2OCP(FinalTime)
     %fmincon(@(U) Control2Functional(iOCP,U),0*U00,[],[],[],[],0*U00,[],[],options)
     %%
     % Solver L1
-    Parameters = {'DescentAlgorithm',@AdaptativeDescent, ...
+    Parameters = {'DescentAlgorithm',@ClassicalDescent, ...
                  'tol',1e-5,                                    ...
                  'Graphs',false,                               ...
                  'MaxIter',5000,                               ...
-                 'display','functional',};
+                 'display','all',};
     %%
     U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
     GradientMethod(iOCP,U0,Parameters{:})
