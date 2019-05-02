@@ -209,27 +209,29 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 
             else
                 %% Han entrado matrices A y B 
-                [nrow,~ ] = size(obj.A);
+                %[nrow,~ ] = size(obj.A);
                 
                 % Creamos la estructura para el vector de estado 
-                obj.StateVector.Symbolic = sym('y',[nrow 1]);
-                Y = obj.StateVector.Symbolic;
+                %obj.StateVector.Symbolic = sym('y',[nrow 1]);
+                obj.StateVector.Symbolic =[];
+
+                %Y = obj.StateVector.Symbolic;
                 
                 obj.StateVector.Numeric     = [];
                 % Creamos la estructura para el control
-                [~ ,ncol] = size(obj.B);
-                U = sym('u',[ncol 1]) ;
-                obj.Control.Symbolic        = U;
+                %[~ ,ncol] = size(obj.B);
+                %U = sym('u',[ncol 1]) ;
+                %obj.Control.Symbolic        = U;
                 obj.Control.Numeric         = [];
-                
+                obj.Control.Symbolic =[];
                %
-                if ~isempty(U)
-                    DynamicEquation = obj.A*Y + obj.B*U;
-                    obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
+                if ~isempty(obj.B)
+                    %DynamicEquation = obj.A*Y + obj.B*U;
+                    %obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
                     obj.DynamicEquation.Numeric   = @(t,Y,U) obj.A*Y + obj.B*U;
                 else
-                    DynamicEquation = obj.A*Y;
-                    obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.']);
+                    %DynamicEquation = obj.A*Y;
+                    %obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.']);
                     obj.DynamicEquation.Numeric   = @(t,Y,U) obj.A*Y;
                 end
                 % Por defecto 
@@ -237,9 +239,11 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             end
              
             obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
-            obj.MassMatrix      = eye(length(obj.StateVector.Symbolic));
+            obj.MassMatrix      = eye(obj.Ydim);
             if isempty(obj.InitialCondition)
-                obj.InitialCondition =  zeros(length(Y),1);
+
+                obj.InitialCondition =  zeros(obj.Ydim,1);
+                
             end
 
         end
@@ -251,11 +255,21 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         end
         %%
         function Udim = get.Udim(obj)
-            Udim =  length(obj.Control.Symbolic);
+            if ~isempty(obj.Control.Symbolic)
+               Udim =  length(obj.Control.Symbolic);
+            elseif ~isempty(obj.B) 
+               [Udim, ~ ] =  size(obj.B);
+            else
+                Udim = 0;
+            end
         end
         %%
         function Ydim = get.Ydim(obj)
-            Ydim =  length(obj.StateVector.Symbolic);
+            if obj.lineal
+                [Ydim, ~] = size(obj.A);
+            else
+                Ydim =  length(obj.StateVector.Symbolic);
+            end
         end
         %% ================================================================================
         function set.dt(obj,dt)
