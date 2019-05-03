@@ -30,8 +30,8 @@ idyn = pde('A',C);
 
 idyn.mesh = {xline,yline};
 
-Nt = 50;
-idyn.FinalTime  = 0.1;
+Nt = 100;
+idyn.FinalTime  = 0.3;
 idyn.dt         = idyn.FinalTime/Nt;
 
 

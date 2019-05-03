@@ -25,7 +25,7 @@ h.StateVectorSolution = Y;
 %%
 
 
-hold on
+hold(h.axes.EvolutionGraphs,'on')
 line([Sources.x0],[Sources.y0],'Marker','.','LineStyle','none','MarkerSize',8,'Color','k','Parent',h.axes.EvolutionGraphs)
 line([Sources.x0],[Sources.y0],'Marker','o','LineStyle','none','MarkerSize',10,'Color','k','Parent',h.axes.EvolutionGraphs)
 
@@ -36,9 +36,17 @@ yline_100 = linspace(ymin,ymax,100);
 
 [xms_100 ,yms_100] = meshgrid(xline_100,yline_100);
 Ysh_100 = griddata(xms,yms,Ysh,xms_100,yms_100);
+
+
+delete(h.axes.EvolutionGraphs.Children)
 isurf = surf(xms_100,yms_100,Ysh_100,'Parent',h.axes.EvolutionGraphs);
+
+u = xms;
+v = yms;
+%quiver(h.axes.EvolutionGraphs,xms,yms,u,v)
+
 shading interp;colormap jet
-caxis(h.axes.EvolutionGraphs[0 0.5*kmax])
+caxis(h.axes.EvolutionGraphs,[0 50])
 view(h.axes.EvolutionGraphs , 0,-90)
 colorbar(h.axes.EvolutionGraphs)
 axis('off')

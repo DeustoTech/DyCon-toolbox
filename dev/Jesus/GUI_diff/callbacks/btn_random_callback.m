@@ -15,15 +15,14 @@ Ny    = h.grid.Ny;
 
 [xms,yms] = meshgrid(xline,yline);
 
-alpha = 0.75*dx;
+alpha = 2*dx;
 
 Y0 = 0*xms;
-Nsource = 10;
 
-km = 10;
 
 xminSource =  xmin; xmaxSource = xmax;
 yminSource =  ymin; ymaxSource = ymax;
+Nsource = 15;
 
 for is = 1:Nsource
     y0 =  xminSource + (xmaxSource-xminSource).*rand(1,1);
@@ -43,27 +42,31 @@ h.InitialCondition = Y0;
 Y0ms = reshape(Y0,Nx*Ny,1); 
 idyn.InitialCondition = Y0ms;
 
-%%
+%% Graphs 
+delete(h.axes.InitialGraphs.Children)
+line([Sources.x0],[Sources.y0],'Marker','.','LineStyle','none','MarkerSize',8,'Color','k','Parent',h.axes.InitialGraphs)
+line([Sources.x0],[Sources.y0],'Marker','o','LineStyle','none','MarkerSize',10,'Color','k','Parent',h.axes.InitialGraphs)
 
-figure
-hold on
-line([Sources.x0],[Sources.y0],'Marker','.','LineStyle','none','MarkerSize',8,'Color','k')
-line([BadSources.x0],[BadSources.y0],'Marker','o','LineStyle','none','MarkerSize',10,'Color','k')
-
-Ysh = reshape(Y(1,:)',Nx,Ny);
+Ysh = reshape(Y0ms,Nx,Ny);
 
 xline_100 = linspace(xmin,xmax,100);
 yline_100 = linspace(ymin,ymax,100);
 
 [xms_100 ,yms_100] = meshgrid(xline_100,yline_100);
 Ysh_100 = griddata(xms,yms,Ysh,xms_100,yms_100);
-isurf = surf(xms_100,yms_100,Ysh_100);
-shading interp;colormap jet
-caxis([0 0.05*kmax])
-view(0,-90)
-colorbar
-axis('off')
-title('Initial Condition')
+hold(h.axes.InitialGraphs,'on')
+isurf = surf(xms_100,yms_100,Ysh_100,'Parent',h.axes.InitialGraphs);
+shading(h.axes.InitialGraphs,'interp')
+colormap(h.axes.InitialGraphs,'jet')
+caxis(h.axes.InitialGraphs,[0 50])
+view(h.axes.InitialGraphs, 0,-90)
+colorbar(h.axes.InitialGraphs)
+
+%%
+h.grid.xms = xms;
+h.grid.yms = yms;
+h.kmax   = k;
+
 
 end
 

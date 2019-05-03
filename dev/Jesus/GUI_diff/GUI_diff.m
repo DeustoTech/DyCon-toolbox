@@ -1,7 +1,7 @@
 
 clear
 h = GUI_diff_handle;
-h.figure = figure('Unit','norm','Position',[0 0 1 1]); 
+h.figure = figure('Unit','norm','Position',[0.1 0.1 0.8 0.7],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Inverse Problem'); 
 
 %% 
 wd = 1.0;
@@ -24,6 +24,7 @@ generate_dynamics(h)
 %%
 btn_random = uicontrol('Parent',iControl,'String','Ramdon Sources','Unit','norm','Position',[0.1 0.1 0.1 0.4],'Callback',{@btn_random_callback,h});
 btn_dyn    = uicontrol('Parent',iControl,'String','Solve Dynamics ','Unit','norm','Position',[0.3 0.1 0.1 0.4],'Callback',{@btn_solve_dyn_callback,h});
+btn_gm    = uicontrol('Parent',iControl,'String','Gradient Method','Unit','norm','Position',[0.5 0.1 0.1 0.4],'Callback',{@btn_gm_callback,h});
 
 
 
