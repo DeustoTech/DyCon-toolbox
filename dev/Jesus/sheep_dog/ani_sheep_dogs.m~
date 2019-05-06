@@ -4,25 +4,25 @@ function ani_sheep_dogs(ax,file)
 
 load(file)
 
+plot_target = plot_target_sd(ax,file);
+
+
+ax.XLim = [-12 12];
+ax.YLim = [-12 12];
+
 blue = [0 0 1];
-sblue = 0.1*blue + 0.9*[1 1 1]; 
+sblue = 0.2*blue + 0.8*[1 1 1]; 
 
 red = [1 0 0];
-sred = 0.1*red + 0.9*[1 1 1]; 
+sred = 0.2*red + 0.8*[1 1 1]; 
+
 
 %%
 for k = 1:M_d
-	line(ud(1,:,k),ud(2,:,k),'LineStyle','-','LineWidth',0.1,'Parent',ax,'Color',[1 1 1]);
+	line(ud(1,1,k),ud(2,1,k),'LineStyle','none','Marker','o','LineWidth',0.1,'Parent',ax,'Color',sblue);
 end
 for k = 1:M_e
-	line(ue(1,:,k),ue(2,:,k),'LineStyle','-','LineWidth',0.1,'Parent',ax,'Color',[1 1 1]);
-end
-%%
-for k = 1:M_d
-	line(ud(1,:,k),ud(2,1,k),'LineStyle','none','LineWidth',0.1,'Parent',ax,'Color',[1 1 1]);
-end
-for k = 1:M_e
-	line(ue(1,:,k),ue(2,1,k),'LineStyle','none','','LineWidth',0.1,'Parent',ax,'Color',[1 1 1]);
+	line(ue(1,1,k),ue(2,1,k),'LineStyle','none','Marker','o','LineWidth',0.1,'Parent',ax,'Color',sred);
 end
 
 
@@ -35,16 +35,16 @@ for k = 1:M_e
 end
 
 for k = 1:M_d
-	point_dog(k) = line(ud(1,1,k),ud(2,1,k),'LineStyle','none','Marker','.','MarkerSize',20,'Parent',ax,'Color',blue);
+	point_dog(k) = line(ud(1,1,k),ud(2,1,k),'LineStyle','none','Marker','.','MarkerSize',17,'Parent',ax,'Color',blue);
 end
 
 for k = 1:M_e
-	point_sheep(k) = line(ue(1,1,k),ue(2,1,k),'LineStyle','none','Marker','.','MarkerSize',20,'Parent',ax,'Color',red);
+	point_sheep(k) = line(ue(1,1,k),ue(2,1,k),'LineStyle','none','Marker','.','MarkerSize',17,'Parent',ax,'Color',red);
 end
 
-legend(ax,[point_sheep(1) point_dog(1)],'Sheep','Dogs')
+legend(ax,[point_sheep(1) point_dog(1) plot_target],'Sheep','Dogs','Target')
 
-for it = 1:2:Nt
+for it = 1:2:(Nt-1)
    
     for k = 1:M_d
         point_dog(k).XData = ud(1,it,k);

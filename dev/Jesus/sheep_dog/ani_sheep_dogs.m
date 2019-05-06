@@ -6,9 +6,8 @@ load(file)
 
 plot_target = plot_target_sd(ax,file);
 
-
-ax.XLim = [-15 15];
-ax.YLim = [-15 15];
+ax.XLim = [-10 10];
+ax.YLim = [-10 10];
 
 blue = [0 0 1];
 sblue = 0.2*blue + 0.8*[1 1 1]; 
@@ -35,16 +34,16 @@ for k = 1:M_e
 end
 
 for k = 1:M_d
-	point_dog(k) = line(ud(1,1,k),ud(2,1,k),'LineStyle','none','Marker','.','MarkerSize',15,'Parent',ax,'Color',blue);
+	point_dog(k) = line(ud(1,1,k),ud(2,1,k),'LineStyle','none','Marker','.','MarkerSize',17,'Parent',ax,'Color',blue);
 end
 
 for k = 1:M_e
-	point_sheep(k) = line(ue(1,1,k),ue(2,1,k),'LineStyle','none','Marker','.','MarkerSize',15,'Parent',ax,'Color',red);
+	point_sheep(k) = line(ue(1,1,k),ue(2,1,k),'LineStyle','none','Marker','.','MarkerSize',17,'Parent',ax,'Color',red);
 end
 
 legend(ax,[point_sheep(1) point_dog(1) plot_target],'Sheep','Dogs','Target')
 
-for it = 1:2:Nt
+for it = 1:2:(Nt-1)
    
     for k = 1:M_d
         point_dog(k).XData = ud(1,it,k);

@@ -1,17 +1,17 @@
 close all
 
 h = sheep_dog_class;
-h.figure = figure('Unit','norm','Position',[0.15 0.05 0.7 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Sheep vs Dogs'); 
+h.figure = figure('Unit','norm','Position',[0.05 0.05 0.9 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Sheep vs Dogs'); 
 
 set(h.figure,'DefaultuipanelFontSize',14)
 set(h.figure,'DefaultuicontrolFontSize',14)
 
-panel_graphs = uipanel('unit','norm','pos',[0.0 0.0 0.8 1.0],'Parent',h.figure);
+panel_graphs = uipanel('unit','norm','pos',[0.0 0.0 0.85 1.0],'Parent',h.figure);
 
-h.ax = axes('Parent',panel_graphs);
+h.ax = axes('Parent',panel_graphs,'unit','norm','pos',[0 0 1 1]);
 axis(h.ax,'off');
 
-panel_options = uipanel('unit','norm','pos',[0.8 0.0 0.2 1.0],'Parent',h.figure);
+panel_options = uipanel('unit','norm','pos',[0.85 0.0 0.15 1.0],'Parent',h.figure);
 
 cases = {'Case 1','Case 2','Case 3'};
 %%
