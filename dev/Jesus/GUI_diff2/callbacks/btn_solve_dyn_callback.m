@@ -23,17 +23,31 @@ Y0 = 0*xms;
 xminSource =  xmin; xmaxSource = xmax;
 yminSource =  ymin; ymaxSource = ymax;
 
-Nsource = floor(normrnd(10,2));
+Nsource = floor(normrnd(10,5));
 if isempty(Nsource)
     Nsource = 10;
     h.parameters.NSource.String = '10';
 end
 for is = 1:Nsource
-    y0 =  xminSource + (xmaxSource-xminSource).*rand(1,1);
-    x0 =  yminSource + (ymaxSource-yminSource).*rand(1,1);
-
-    k = normrnd(80,20);
-
+    
+    nopass = true;
+    while nopass
+        y0 =  xminSource + (xmaxSource-xminSource).*rand(1,1);
+        x0 =  yminSource + (ymaxSource-yminSource).*rand(1,1);
+        if is > 1
+            dist = sqrt((y0 - [Sources.y0]).^2 + (x0 - [Sources.x0]).^2);
+            mindist = min(dist);
+            if mindist < 5*dx
+                nopass = true;
+            else
+                nopass = false;
+            end
+        else
+            nopass = false;
+        end
+    end
+    k = normrnd(50,10);
+    
     Y0   = Y0 + k*exp(-((xms-x0).^2  + (yms-y0).^2)/alpha^2);
     % save Soruces
     Sources(is).x0 = x0;
@@ -87,7 +101,7 @@ surf([0 0;0 0],'Parent',h.axes.EstimationGraphs )
 view(0,90);axis(h.axes.EstimationGraphs ,'off')
 
 surf(xms,yms,Ysh,'Parent',h.axes.EvolutionGraphs);
-caxis(h.axes.EvolutionGraphs,[0 kmax])
+caxis(h.axes.EvolutionGraphs,[0 0.5*kmax])
 view(h.axes.EvolutionGraphs , 0,-90)
 axis(h.axes.EvolutionGraphs,'off')
 shading(h.axes.EvolutionGraphs,'interp')

@@ -34,11 +34,11 @@ for k = 1:M_e
 end
 
 for k = 1:M_d
-	point_dog(k) = line(ud(1,1,k),ud(2,1,k),'LineStyle','none','Marker','.','MarkerSize',17,'Parent',ax,'Color',blue);
+	point_dog(k) = line(ud(1,1,k),ud(2,1,k),'LineStyle','none','Marker','o','MarkerSize',8,'Parent',ax,'Color',blue,'MarkerFaceColor',sblue);
 end
 
 for k = 1:M_e
-	point_sheep(k) = line(ue(1,1,k),ue(2,1,k),'LineStyle','none','Marker','.','MarkerSize',17,'Parent',ax,'Color',red);
+	point_sheep(k) = line(ue(1,1,k),ue(2,1,k),'LineStyle','none','Marker','o','MarkerSize',8,'Parent',ax,'Color',red,'MarkerFaceColor',sred);
 end
 
 legend(ax,[point_sheep(1) point_dog(1) plot_target],'Sheep','Dogs','Target')

@@ -1,8 +1,7 @@
 function generate_dynamics(h)
 %GENERATE_DYNAMICS Summary of this function goes here
 %   Detailed explanation goes here
-Nx = 30; Ny = 30;
-
+Nx = 25; Ny = 25;
 [~,~,A] = laplacian([Nx,Ny],{'NN' 'NN'});
 
 xmin = -1; xmax = 1;
@@ -35,7 +34,7 @@ idyn = pde('A',C);
 idyn.mesh = {xline,yline};
 
 Nt = 5;
-idyn.FinalTime  = 0.15;
+idyn.FinalTime  = 0.14;
 idyn.dt         = idyn.FinalTime/Nt;
 
 

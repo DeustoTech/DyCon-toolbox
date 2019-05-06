@@ -1,10 +1,17 @@
-close all
+
+
+if ismac 
+    fd = 14;
+else
+    fd = 11;
+end
+    
 
 h = sheep_dog_class;
 h.figure = figure('Unit','norm','Position',[0.05 0.05 0.9 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Sheep vs Dogs'); 
-
-set(h.figure,'DefaultuipanelFontSize',14)
-set(h.figure,'DefaultuicontrolFontSize',14)
+h.figure.Color
+set(h.figure,'DefaultuipanelFontSize',fd)
+set(h.figure,'DefaultuicontrolFontSize',fd)
 
 panel_graphs = uipanel('unit','norm','pos',[0.0 0.0 0.85 1.0],'Parent',h.figure);
 

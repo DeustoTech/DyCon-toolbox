@@ -34,7 +34,7 @@ h.stop_gm = false;
     isurf = surf(xms,yms,Y0_iter_ms,'Parent',h.axes.EstimationGraphs);
     shading(h.axes.EstimationGraphs,'interp');
     colormap jet
-    caxis(h.axes.EstimationGraphs,[0 kmax])
+    caxis(h.axes.EstimationGraphs,[0 0.5*kmax])
     view(0,-90)
     %colorbar
     axis(h.axes.EstimationGraphs,'off')
@@ -84,7 +84,7 @@ h.stop_gm = false;
         [~ , Piter ] = solve(adjoint);
         Piter = flipud(Piter);   
         
-        Y0_iter = 0.9*Y0_iter + 0.1*Y(1,:)';
+        Y0_iter = 0.95*Y0_iter + 0.05*Y(1,:)';
         %Y0_iter = 1*Y0_iter + 0*Y(1,:)';
 
         %Y0_iter(Y0_iter < 0.05*max(max(Y0_iter))) = 0;
