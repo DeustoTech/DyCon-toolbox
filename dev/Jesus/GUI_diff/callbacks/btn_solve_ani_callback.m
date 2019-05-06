@@ -1,4 +1,4 @@
-function btn_solve_dyn_callback(obj,eve,h)
+function btn_solve_ani_callback(obj,eve,h)
 %BTN_SOLVE_DYN_CALLBACK Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -14,13 +14,11 @@ ymax = h.grid.ymax;
 xms = h.grid.xms;
 yms = h.grid.yms;
 kmax = h.kmax;
-
+Y = h.StateVectorSolution;
 Y0ms = reshape(Y0,Nx*Ny,1); 
 idyn.InitialCondition = Y0ms;
 
-[~ ,Y] = solve(idyn);
 
-h.StateVectorSolution = Y;
 
 %%
 

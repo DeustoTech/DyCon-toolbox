@@ -11,12 +11,12 @@ ymin = -1; ymax = 1;
 xline = linspace(xmin,xmax,Nx);
 yline = linspace(ymin,ymax,Ny);
 
-v1 = 5;v2 = 2;
+v1 = 2.5;v2 = 1;
 
 dx = xline(2) - xline(1);
 dy = yline(2) - yline(1);
 
-CoefDiff = 0.1;
+CoefDiff = 0.2;
 %A = -(CoefDiff/(dx*dy))*A;
 A = -diffusion_matrices(xline,yline,CoefDiff);
 V = -advection_matrices(xline,yline,v1,v2);
@@ -34,8 +34,8 @@ idyn = pde('A',C);
 
 idyn.mesh = {xline,yline};
 
-Nt = 15;
-idyn.FinalTime  = 0.04;
+Nt = 5;
+idyn.FinalTime  = 0.15;
 idyn.dt         = idyn.FinalTime/Nt;
 
 

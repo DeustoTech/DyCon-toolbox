@@ -15,20 +15,24 @@ Ny    = h.grid.Ny;
 
 [xms,yms] = meshgrid(xline,yline);
 
-alpha = 2*dx;
+alpha = 1.5*dx;
 
 Y0 = 0*xms;
 
 
 xminSource =  xmin; xmaxSource = xmax;
 yminSource =  ymin; ymaxSource = ymax;
-Nsource = 15;
 
+Nsource = str2num(h.parameters.NSource.String);
+if isempty(Nsource)
+    Nsource = 10;
+    h.parameters.NSource.String = '10';
+end
 for is = 1:Nsource
     y0 =  xminSource + (xmaxSource-xminSource).*rand(1,1);
     x0 =  yminSource + (ymaxSource-yminSource).*rand(1,1);
 
-    k = 50;
+    k = 100;
 
     Y0   = Y0 + k*exp(-((xms-x0).^2  + (yms-y0).^2)/alpha^2);
     % save Soruces
@@ -60,8 +64,8 @@ shading(h.axes.InitialGraphs,'interp')
 colormap(h.axes.InitialGraphs,'jet')
 caxis(h.axes.InitialGraphs,[0 50])
 view(h.axes.InitialGraphs, 0,-90)
-colorbar(h.axes.InitialGraphs)
-
+%colorbar(h.axes.InitialGraphs)
+axis(h.axes.InitialGraphs,'off')
 %%
 h.grid.xms = xms;
 h.grid.yms = yms;
