@@ -10,10 +10,10 @@ ax.XLim = [-10 10];
 ax.YLim = [-10 10];
 
 blue = [0 0 1];
-sblue = 0.2*blue + 0.8*[1 1 1]; 
+sblue = 0.8*blue + 0.2*[1 1 1]; 
 
 red = [1 0 0];
-sred = 0.2*red + 0.8*[1 1 1]; 
+sred = 0.8*red + 0.2*[1 1 1]; 
 
 
 %%
@@ -51,7 +51,10 @@ for it = 1:2:(Nt-1)
         
         line_dog(k).XData = [ line_dog(k).XData ud(1,it,k)];
         line_dog(k).YData = [ line_dog(k).YData ud(2,it,k)];
-
+%         if it > 20
+%             line_dog(k).YData(1) = [];
+%             line_dog(k).XData(1) = [];
+%         end
     end
 
     for k = 1:M_e
@@ -60,7 +63,10 @@ for it = 1:2:(Nt-1)
         
         line_sheep(k).XData = [ line_sheep(k).XData ue(1,it,k)];
         line_sheep(k).YData = [ line_sheep(k).YData ue(2,it,k)];
-        
+%         if it > 20
+%             line_sheep(k).YData(1) = [];
+%             line_sheep(k).XData(1) = [];
+%         end
     end
     
     pause(0.1)
