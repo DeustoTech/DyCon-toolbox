@@ -36,7 +36,7 @@ h.openning_box.setVisible(0)
 N = 20;
 h.N = N;
 
-h.figure = figure('Unit','norm','Position',[0.15 0.05 0.7 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Inverse Problem'); 
+h.figure = figure('Unit','norm','Position',[0.15 0.05 0.7 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Pollution Source Identification'); 
 
 set(h.figure,'DefaultuipanelFontSize',FontDefault)
 set(h.figure,'DefaultuicontrolFontSize',FontDefault)
@@ -50,7 +50,7 @@ wd = 1.0;
 ht = 0.2;
 
 ht_control = 0.15;
-ht_des     = 0.1;
+ht_des     = 0.15;
 ht_graphs  = 0.75;
 
 iPanelEvol = uipanel('Parent',h.figure,'Title','','Unit','norm','Position', [0  0.0 1/2 0.85]);
@@ -65,10 +65,10 @@ iPanelEsti = uipanel('Parent',h.figure,'Title','','Unit','norm','Position', [1/2
 %% Text 
 FontDefault2 = 15;
 text = 'Pollution measurements';
-uicontrol('style','text','string',text,'Parent',IPEv_text,'unit','norm','pos',[0.2 0.05 0.6 0.5],'Fontsize',FontDefault2)
+uicontrol('style','text','string',text,'Parent',IPEv_text,'unit','norm','pos',[0.2 0.05 0.6 0.4],'Fontsize',FontDefault2)
 
 text = 'Location of the pollution sources and their intensities';
-uicontrol('style','text','string',text,'Parent',IPEs_text,'unit','norm','pos',[0.1 0.05 0.8 0.5],'Fontsize',FontDefault2)
+uicontrol('style','text','string',text,'Parent',IPEs_text,'unit','norm','pos',[0.1 0.05 0.8 0.4],'Fontsize',FontDefault2)
 %%
 generate_dynamics(h)
 

@@ -29,8 +29,8 @@ else
     fd = 11;
 end
     
-
-h.figure = figure('Unit','norm','Position',[0.05 0.05 0.9 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Sheep vs Dogs'); 
+Name = 'Guidance by repulsion';
+h.figure = figure('Unit','norm','Position',[0.05 0.05 0.9 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name',Name); 
 h.figure.Color
 set(h.figure,'DefaultuipanelFontSize',fd)
 set(h.figure,'DefaultuicontrolFontSize',fd)
