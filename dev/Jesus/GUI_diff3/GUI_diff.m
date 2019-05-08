@@ -10,6 +10,29 @@ else
 end
 %%
 h = GUI_diff_handle;
+h.path  = replace(which('sheep_dog.m'),'sheep_dog.m','');
+
+h.openning_box = javax.swing.JFrame;
+h.openning_box.setSize(382,128);
+h.openning_box.setLocationRelativeTo([]);
+h.openning_box.setUndecorated(true);
+h.openning_box.setOpacity(0.9);
+
+JLabel = javax.swing.JLabel;
+
+logo_path = fullfile(h.path,'imgs','LogoDyconERC-1.png');
+
+[X,map] = imread(logo_path,'Background',[0.7 0.7 0.7]);
+
+JLabel.setIcon(javax.swing.ImageIcon(im2java(X)));
+h.openning_box.add(JLabel);
+h.openning_box.setVisible(true);
+
+pause(3)
+h.openning_box.setVisible(0)
+
+%%
+
 N = 20;
 h.N = N;
 
@@ -27,8 +50,8 @@ wd = 1.0;
 ht = 0.2;
 
 ht_control = 0.15;
-ht_des     = 0.15;
-ht_graphs  = 0.7;
+ht_des     = 0.1;
+ht_graphs  = 0.75;
 
 iPanelEvol = uipanel('Parent',h.figure,'Title','','Unit','norm','Position', [0  0.0 1/2 0.85]);
     IPEv_text    = uipanel('Parent',iPanelEvol,'Unit','norm','Pos',[0.0 ht_graphs+ht_control 1.0 ht_des]);
@@ -40,12 +63,12 @@ iPanelEsti = uipanel('Parent',h.figure,'Title','','Unit','norm','Position', [1/2
     IPEs_control = uipanel('Parent',iPanelEsti,'Unit','norm','Pos',[0.0 0.0 1.0 ht_control]);
 
 %% Text 
-
-text = 'Random generated swimming pool pollution distribution';
-uicontrol('style','text','string',text,'Parent',IPEv_text,'unit','norm','pos',[0.1 0.05 0.8 0.7],'Fontsize',FontDefault)
+FontDefault2 = 15;
+text = 'Pollution measurements';
+uicontrol('style','text','string',text,'Parent',IPEv_text,'unit','norm','pos',[0.2 0.05 0.6 0.5],'Fontsize',FontDefault2)
 
 text = 'Location of the pollution sources and their intensities';
-uicontrol('style','text','string',text,'Parent',IPEs_text,'unit','norm','pos',[0.1 0.05 0.8 0.6],'Fontsize',FontDefault)
+uicontrol('style','text','string',text,'Parent',IPEs_text,'unit','norm','pos',[0.1 0.05 0.8 0.5],'Fontsize',FontDefault2)
 %%
 generate_dynamics(h)
 
@@ -53,7 +76,7 @@ generate_dynamics(h)
 h.axes.EvolutionGraphs = axes('Parent',IPEv_graphs);
 [xms,yms] = meshgrid(h.grid.xline,h.grid.yline);
 h.surf_evolution = surf(xms,yms,zeros(N,N),'Parent',h.axes.EvolutionGraphs );
-caxis(h.axes.EvolutionGraphs,[0 4])
+caxis(h.axes.EvolutionGraphs,[0 10])
 shading(h.axes.EvolutionGraphs,'interp')
 colormap(h.axes.EvolutionGraphs,'jet')
 
@@ -71,7 +94,7 @@ h.surf_estimation = surf(xms,yms,zeros(N,N),'Parent',h.axes.EstimationGraphs );
 view(h.axes.EstimationGraphs,0,90);
 shading(h.axes.EstimationGraphs,'interp')
 axis(h.axes.EstimationGraphs ,'off')
-caxis(h.axes.EstimationGraphs,[0 4])
+caxis(h.axes.EstimationGraphs,[0 10])
 colormap(h.axes.EstimationGraphs,'jet')
 
 
@@ -84,18 +107,19 @@ h.grid.yms = yms;
 
 if ismac
     pos = [0.15 0.3 0.3 0.4];
-    pos_rest = [0.5 0.3 0.3 0.4];
+    pos_rest = [0.4 0.3 0.3 0.4];
 else
     pos = [0.3 0.3 0.4 0.4];
-    pos_rest = [0.5 0.3 0.4 0.4];
+    pos_rest = [0.3 0.3 0.4 0.4];
 
 end
 
-btn_dyn    = uicontrol('Parent',IPEv_control,'String','Random Distribution','Unit','norm','Position',pos,'Callback',{@btn_random_distribution,h});
-btn_rest    = uicontrol('Parent',IPEv_control,'String','Reset Distribution','Unit','norm','Position',pos_rest,'Callback',{@btn_reset_distribution,h});
+%btn_dyn    = uicontrol('Parent',IPEv_control,'String','Random Distribution','Unit','norm','Position',pos,'Callback',{@btn_random_distribution,h});
+btn_rest    = uicontrol('Parent',IPEv_control,'String','Clear','Unit','norm','Position',pos_rest,'Callback',{@btn_reset_distribution,h});
 
 %%
-btn_gm    = uicontrol('Parent',IPEs_control,'String','Find Sources','Unit','norm','Position',[0.18 0.3 0.3 0.4],'Callback',{@btn_gm_callback,h});
+h.btn_gm    = uicontrol('Parent',IPEs_control,'String','Find Sources','Unit','norm','Position',[0.18 0.3 0.3 0.4],'Callback',{@btn_gm_callback,h});
+
 %btn_gm_stop    = uicontrol('Parent',IPEs_control,'String','Stop Gradient Method','Unit','norm','Position',[0.375 0.3 0.3 0.3],'Callback',{@btn_gm_stop_callback,h});
 btn_gm_see    = uicontrol('Parent',IPEs_control,'String','See Evolution','Unit','norm','Position',[0.55 0.3 0.3 0.4],'Callback',{@btn_gm_see_callback,h});
 

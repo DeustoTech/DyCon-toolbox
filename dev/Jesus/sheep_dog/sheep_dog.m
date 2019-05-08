@@ -1,4 +1,27 @@
 
+h = sheep_dog_class;
+
+
+h.path  = replace(which('sheep_dog.m'),'sheep_dog.m','');
+
+h.openning_box = javax.swing.JFrame;
+h.openning_box.setSize(382,128);
+h.openning_box.setLocationRelativeTo([]);
+h.openning_box.setUndecorated(true);
+h.openning_box.setOpacity(0.8);
+
+JLabel = javax.swing.JLabel;
+
+logo_path = fullfile(h.path,'imgs','LogoDyconERC-1.png');
+
+[X,map] = imread(logo_path,'Background',[0.7 0.7 0.7]);
+
+JLabel.setIcon(javax.swing.ImageIcon(im2java(X)));
+h.openning_box.add(JLabel);
+h.openning_box.setVisible(true);
+
+pause(3)
+h.openning_box.setVisible(0)
 
 if ismac 
     fd = 14;
@@ -7,7 +30,6 @@ else
 end
     
 
-h = sheep_dog_class;
 h.figure = figure('Unit','norm','Position',[0.05 0.05 0.9 0.9],'Toolbar','none','MenuBar','none','NumberTitle','off','Name','Sheep vs Dogs'); 
 h.figure.Color
 set(h.figure,'DefaultuipanelFontSize',fd)

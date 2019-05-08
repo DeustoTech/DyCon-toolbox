@@ -4,7 +4,15 @@ function btn_gm_callback(obj,event,h)
 
 Nx    = h.grid.Nx;
 Ny    = h.grid.Ny;
+xline = h.grid.xline;
+yline = h.grid.yline;
+gamma = 1e-8;
+
 YT     = h.FinalCondition;
+if isempty(YT)
+   errordlg('Need a Final Condition. Click in Random Distribution or Click in Left Axis') 
+end
+
 idyn = h.dynamics;
 A = h.matrix.A;
 V = h.matrix.V;
@@ -30,7 +38,7 @@ h.surf_estimation.ZData = Y0_iter_ms;
     
     hd = waitbar(0,'Loading ...');
     
-    MaxiIter = 200;
+    MaxiIter = 1000;
     for iter = 1:MaxiIter
  
         newY0_iter = Y0_iter - LengthStep*dJ;
@@ -39,7 +47,7 @@ h.surf_estimation.ZData = Y0_iter_ms;
         [newPnorm,newY_iter] = U2norm(Y0_iter);
         
         while newPnorm >= Pnorm 
-            LengthStep = 0.5*LengthStep;
+            LengthStep = 0.25*LengthStep;
             % Update Y0
             newY0_iter = Y0_iter - LengthStep*dJ;
             %newY0_iter(newY0_iter<0) = 0; 
@@ -56,20 +64,19 @@ h.surf_estimation.ZData = Y0_iter_ms;
         Y0_iter     = newY0_iter;
         Y_iter      = newY_iter;
 
+        
         dJ = U2gradient(Y_iter);
 
-        %
-
         % Graphs Options
-        if mod(iter,10) == 0        
+        if mod(iter,20) == 0        
             waitbar(iter/MaxiIter,hd)
 
             Y0_iter_ms = reshape(Y0_iter,Nx,Ny);
             h.surf_estimation.ZData =  Y0_iter_ms;
-            pause(0.05)
+            pause(0.01)
         end
         
-        if Pnorm < 0.5
+        if Pnorm < 1e-8
             break
         end 
     end
@@ -86,20 +93,35 @@ h.surf_estimation.ZData = Y0_iter_ms;
     function varargout = U2norm(iY0)
         
         idyn.InitialCondition = iY0;
-        [~ , iY0iter ] = solve(idyn);
+        [~ , iYiter ] = solve(idyn);
 
-        varargout{1} = norm(iY0iter(end,:)' - YT);
-        varargout{2} = iY0iter;
+        F = (YT - iYiter(end,:)').^2;
+        Fms             = reshape(      F           ,Nx,Ny);
+
+        Regularization  = reshape( abs(iYiter(1,:)) ,Nx,Ny);
+
+        J =   0.5* trapz(xline,trapz(yline,Fms,2))      ...
+            + gamma*trapz(xline,trapz(yline,Regularization,2)) ; 
+        
+        %figure(3)   
+        %surf(Fms)
+        %zlim([0 1.5])
+        varargout{1} = J;
+        varargout{2} = iYiter;
 
     end
 
-    function varargout = U2gradient(iY0iter)
-            adjoint.InitialCondition = iY0iter(end,:)' - YT;
+    function varargout = U2gradient(iYiter)
+            adjoint.InitialCondition = iYiter(end,:)' - YT;
             [~,P]   = solve(adjoint);
-            varargout{1}    = 1e-5*sign(iY0iter(1,:)') + P(end,:)';
+            varargout{1}    = gamma*sign(iYiter(1,:)') + P(end,:)';
 
     end
     
+    function iPnorm = LengthStep2norm(iLengthStep)
+                    newY0_iter = Y0_iter - LengthStep*dJ;
+
+    end
 end
 
 

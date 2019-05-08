@@ -3,6 +3,16 @@ function btn_gm_see_callback(obj,event,h)
 %   Detailed explanation goes here
 %%
 Y0 = h.EstimationInitialCondition;
+
+if isempty(h.FinalCondition)
+   errordlg('Need Draw SomeThing!') 
+   return
+end
+if isempty(h.EstimationInitialCondition)
+   errordlg('Click in Find Sources!') 
+   return
+end
+
 idyn = h.dynamics;
 Nx = h.grid.Nx;
 Ny = h.grid.Ny;
@@ -51,12 +61,17 @@ for it = 2:length(newtspan)
     isurf.ZData =  Ysh;
     isurf.Parent.Title.String = "time = " + num2str((1/newtspan(end))*newtspan(it),'%.2f') ;
     pause(0.1) 
+    if isempty(h.EstimationSolution)
+        break
+    end
+
 end
 
 pause(3.5)
-Ysh = reshape(Y(1,:)',Nx,Ny);
-isurf.ZData =  Ysh;
-isurf.Parent.Title.String = "time = " + num2str(10*newtspan(1),'%.2f') ;
-
+if ~isempty(h.EstimationSolution)
+    Ysh = reshape(Y(1,:)',Nx,Ny);
+    isurf.ZData =  Ysh;
+    isurf.Parent.Title.String = "time = " + num2str(10*newtspan(1),'%.2f') ;
+end
 end
 

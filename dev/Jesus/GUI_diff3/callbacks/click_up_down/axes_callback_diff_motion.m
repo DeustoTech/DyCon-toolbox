@@ -9,8 +9,8 @@ xms = h.grid.xms;
 yms = h.grid.yms;
 
 h.click = true;
-k = 0.1;
-alpha = 0.275;
+k = 0.3;
+alpha = 0.2;
 
 
 CP = h.axes.EvolutionGraphs.CurrentPoint(1,1:2);

@@ -22,6 +22,9 @@ classdef GUI_diff_handle < handle
        SourcePlot
        % 
        N
+       btn_gm
+       openning_box
+       path
     end
 end
 

@@ -8,6 +8,8 @@ classdef sheep_dog_class < handle
         listbox_sheep
         listbox_dogs
         ax
+        path
+        openning_box
     end
     
 

@@ -8,7 +8,7 @@ xmin = -1; xmax = 1;
 ymin = -1; ymax = 1;
 
 
-v1 = 5;v2 = 3;
+v1 = 5;v2 = 5;
 
 
 xline = linspace(xmin,xmax,Nx);
@@ -18,7 +18,7 @@ yline = linspace(ymin,ymax,Ny);
 dx = xline(2) - xline(1);
 dy = yline(2) - yline(1);
 
-CoefDiff = 0.5;
+CoefDiff = 0.1;
 %A = -(CoefDiff/(dx*dy))*A;
 A = -diffusion_matrices(xline,yline,CoefDiff);
 V = -advection_matrices(xline,yline,v1,v2);
@@ -37,9 +37,9 @@ idyn = pde('A',C);
 
 idyn.mesh = {xline,yline};
 
-Nt = 5;
+Nt = 4;
 %Nt = 50;
-idyn.FinalTime  = 0.1;
+idyn.FinalTime  = 0.15;
 idyn.dt         = idyn.FinalTime/Nt;
 
 
