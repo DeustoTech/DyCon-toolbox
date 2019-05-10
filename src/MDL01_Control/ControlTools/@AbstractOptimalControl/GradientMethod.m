@@ -162,7 +162,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
         iCP.Solution.dJhistory{iter} = dJnew;
         iCP.Solution.Ehistory(iter)     = error;
         
-        if  mod(iter,50) == 1
+        if  mod(iter,20) == 1 || stop
             switch display_parameter
                 case 'all'
                 display(     "error = "        + num2str(error,'%d')        + ...
@@ -175,15 +175,16 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
                          " | Functional = "    + num2str(Jnew,'%d')         + ...
                          " | iter = "          + iter)
             end
-        end
-        % Stopping Criteria
+                             % Stopping Criteria
             if Graphs   
                 % plot the graphical convergence 
                 bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,iCP.Solution.Jhistory,iCP.Dynamics.tspan,iter,TypeGraphs,SaveGif,true)
             end
-            if stop
-                  break 
-            end
+
+        end
+        if stop
+              break 
+        end
     end
     
     

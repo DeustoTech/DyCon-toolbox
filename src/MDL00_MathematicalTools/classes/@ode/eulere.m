@@ -1,10 +1,11 @@
-function [tline,yline] = eulere(odefun,tspan,y0,options)
-    tline = tspan;
-    yline = zeros(length(tspan),length(y0));
-    yline(1,:) = y0;
-
-    for i=1:length(tspan)-1
-        vector = odefun(tline(i),yline(i,:)')';
+function [tline,yline] = eulere(iode)
+    tline = iode.tspan;
+    yline = zeros(length(tline),length(iode.StateVector.Symbolic));
+    yline(1,:) = iode.InitialCondition;
+    u0    = iode.Control.Numeric;
+    odefun = iode.DynamicEquation.Numeric;
+    for i=1:length(tline)-1
+        vector = odefun(tline(i),yline(i,:)',u0(i,:)')';
         yline(i+1,:) = yline(i,:) + vector*(tline(i+1)-tline(i));
     end        
 end

@@ -209,21 +209,21 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 
             else
                 %% Han entrado matrices A y B 
-                %[nrow,~ ] = size(obj.A);
+                [nrow,~ ] = size(obj.A);
                 
                 % Creamos la estructura para el vector de estado 
-                %obj.StateVector.Symbolic = sym('y',[nrow 1]);
-                obj.StateVector.Symbolic =[];
+                obj.StateVector.Symbolic = sym('y',[nrow 1]);
+                %obj.StateVector.Symbolic =[];
 
                 %Y = obj.StateVector.Symbolic;
                 
                 obj.StateVector.Numeric     = [];
                 % Creamos la estructura para el control
-                %[~ ,ncol] = size(obj.B);
-                %U = sym('u',[ncol 1]) ;
-                %obj.Control.Symbolic        = U;
+                [~ ,ncol] = size(obj.B);
+                U = sym('u',[ncol 1]) ;
+                obj.Control.Symbolic        = U;
                 obj.Control.Numeric         = [];
-                obj.Control.Symbolic =[];
+                %obj.Control.Symbolic =[];
                %
                 if ~isempty(obj.B)
                     %DynamicEquation = obj.A*Y + obj.B*U;

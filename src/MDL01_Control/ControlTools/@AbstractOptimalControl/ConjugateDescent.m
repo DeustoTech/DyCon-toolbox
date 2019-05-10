@@ -124,22 +124,22 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
         diffdJ = dJnew - dJold;
         switch DirectionParameter
           case 'FR' % Fletcher-Reeves method
-            beta  = norm(dot(dJnew,dJnew))/norm(dot(dJold,dJold));
+            beta  = dot(iCP,dJnew,dJnew)/dot(iCP,dJold,dJold);
           case 'PPR' %Positive Polak-Ribi\'ere.
-            beta0 = norm(dot(dJnew,diffdJ))/norm(dot(dJold,dJold));
+            beta0 = dot(iCP,dJnew,diffdJ)/dot(iCP,dJold,dJold);
             beta  = max(0,beta0);
           case 'PR' % Polak-Ribi\'ere method
-            beta  = norm(dot(dJnew,diffdJ))/norm(dot(dJold,dJold));
+            beta  = dot(iCP,dJnew,diffdJ)/dot(iCP,dJold,dJold);
           case 'HS' % Hestenes-Stiefel method
-            beta  = norm(dot(dJnew,diffdJ))/norm(dot(s,diffdJ));
+            beta  = dot(iCP,dJnew,diffdJ)/dot(iCP,s,diffdJ);
           case 'DY' % Dai-Yuan method
-            beta  = norm(dot(dJnew,dJnew))/norm(dot(s,diffdJ));
+            beta  = dot(iCP,dJnew,dJnew)/dot(iCP,s,diffdJ);
           otherwise %'Popular choice': Positive Polak-Ribi\'ere.
-            beta0  = norm(dot(dJnew,diffdJ))/norm(dot(dJold,dJold));
+            beta0  = dot(iCP,dJnew,diffdJ)/dot(iCP,dJold,dJold);
             beta  = max(0,beta0);
         end
         beta = sqrt(beta);
-        %% Update Direction
+        %%% Update Direction
         s = - dJnew + beta*s;
         %%
         % Possible stopping criterion for constrainted control problems.

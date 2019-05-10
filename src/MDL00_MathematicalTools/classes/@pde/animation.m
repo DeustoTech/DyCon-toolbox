@@ -72,15 +72,31 @@ function animation(iode,varargin)
    
    axY.XLabel.String = 'State';
    
+   legend_string = {};
+   int_ls = 0;
    if ~isempty(InitCondition)
       line(iode(1).mesh,InitCondition,'Parent',axY,'Color','blue','LineWidth',1.5) 
+      int_ls = int_ls + 1;
+      legend_string{int_ls} = 'Initial datum';
    end
    
    if ~isempty(Target)
       line(iode(1).mesh,Target,'Parent',axY,'Color',[1 0.9 0.9],'LineWidth',1.5) 
+      int_ls = int_ls + 1;
+      legend_string{int_ls} = 'Target';
    end
    
-   
+   int_ode = 0;
+   for iiode = iode
+       int_ode = int_ode + 1;
+       int_ls = int_ls + 1;
+       if isempty(iiode.label)
+            legend_string{int_ls} = "dynamics - "+ int_ode;      
+       else
+            legend_string{int_ls} = iiode.label;
+       end
+   end
+
    axU.XLabel.String = 'Control';
    
    
@@ -114,7 +130,8 @@ function animation(iode,varargin)
                 luu(index) = line(1:iode(1).Udim,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
             end
         end
-        legend(axY,{'Initial datum','Target','State'})
+        
+        legend(axY,legend_string)
         %legend(axU,{iode.label})
         pause(0.1)
         
