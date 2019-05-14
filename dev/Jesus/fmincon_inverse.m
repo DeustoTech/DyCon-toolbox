@@ -43,8 +43,8 @@ function p = Method_SingleStep_fun
     %% Dynamics 
     p.T  = 0.02;
     %%
-    p.Nx = 40;
-    p.Nt = 60; p.dt = p.T/(p.Nt-1);
+    p.Nx = 20;
+    p.Nt = 80; p.dt = p.T/(p.Nt-1);
     %%
     p.xline = linspace(-1,1,p.Nx);
     p.tline = linspace( 0,p.T,p.Nt);
@@ -92,13 +92,15 @@ function p = Method_SingleStep_fun
     function f = objective(x,p)
         x = reshape(x , p.Nt , p.Nx);
         %f = trapz(p.xline,(x(end,:).^2)); % calculate objective
-        f = trapz(p.tline,trapz(p.xline,(x.^2),2)); % calculate objective
+        f = trapz(p.tline,trapz(p.xline,(abs(x)),2)); % calculate objective
 
     end
     % constraint function
     function [c,ceq] = constraints(x,p)
         
         y = x(1:p.Nx*p.Nt); % extract
+        c = y';
+        %c = [];
         y = reshape(y,p.Nt,p.Nx);
         % 
         F = p.A*y';
@@ -112,7 +114,6 @@ function p = Method_SingleStep_fun
         end
         ceqDyn = reshape(ceqDyn,1,p.Nx*(p.Nt-1));
         ceq = [ceqFinal;ceqDyn']; % combine constraints
-        c = [];
     end
 
 end

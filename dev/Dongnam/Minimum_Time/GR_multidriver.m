@@ -60,17 +60,6 @@ solve(dynamics);
 tline = dynamics.tspan;
 Y_tline = dynamics.StateVector.Numeric;
 
-plot(Y_tline(:,1),Y_tline(:,2),'b-');
-hold on
-plot(Y_tline(:,9),Y_tline(:,10),'b-');
-
-plot(Y_tline(:,3),Y_tline(:,4),'r-');
-j=1;
-plot(Y_tline(j,1),Y_tline(j,2),'bs');
-plot(Y_tline(j,3),Y_tline(j,4),'rs');
-
-plot(Y_tline(end,1),Y_tline(end,2),'bo');
-plot(Y_tline(end,3),Y_tline(end,4),'ro');
 
 %%
 Y_e = [Y(3);Y(4)];
@@ -82,6 +71,8 @@ Psi = 100*(Y_e-Y_f).'*(Y_e-Y_f);
 L   = 0.1*(U.'*U);%+0.000*(Y.'*Y)+00*(Y_e-Y_f).'*(Y_e-Y_f) ;
 
 iP = Pontryagin(dynamics,Psi,L);
+
+
 %iP.ode.Control.Numeric = ones(51,1);
 %iP.constraints.Umax = 1.7;
 %iP.constraints.Umin = -1.7;
@@ -92,7 +83,10 @@ tline = dynamics.tspan;
 %%
 U0_tline = 1.5662*ones([length(tline),2]);
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-3,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
+                  'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'}, ...
+                  'tol',1e-3, ...
+                  'Graphs',true,'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
 
 %iP.solution
 %plot(iP)

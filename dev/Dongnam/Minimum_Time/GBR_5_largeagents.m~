@@ -1,6 +1,6 @@
 %% Two drivers, Flexible time
 
-N_sqrt = 3;
+N_sqrt = 5;
 M = 6; N = N_sqrt^2;
 
 Y = sym('y',[4*(M+N) 1]);
@@ -74,11 +74,11 @@ U0_tline = [2*ones([length(tline),M]),5*ones([length(tline),1])];
 u_f = [0;0];
 
 dynamics.Control.Numeric = U0_tline;
-options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-dynamics.Solver=@ode23tb;
-%dynamics.SolverParameters={options};
-%dynamics.Solver=@eulere;
-%dynamics.SolverParameters={};
+% options = odeset('RelTol',1e-6,'AbsTol',1e-6);
+% dynamics.Solver=@ode45;
+% dynamics.SolverParameters={options};
+dynamics.Solver=@eulere;
+dynamics.SolverParameters={};
 
 solve(dynamics);
 %plot(dynamics)
@@ -164,8 +164,8 @@ L   = 0.001*(kappa.'*kappa);
 
 iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
-iP.Constraints.MaxControl= 5;
-iP.Constraints.MinControl = -5;
+%iP.constraints.Umax = 1.7;
+%iP.constraints.Umin = -1.7;
 %%
 tline = dynamics.tspan;
 %temp = interp1(tline1,temp1,tline);
@@ -175,13 +175,7 @@ U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
 U0_tline = ones(length(iP.Dynamics.tspan),iP.Dynamics.Udim)
 
 GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
-                           'tol',1e-7,'display','all','EachIter',1,'Graphs',true, ...
-                           'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
-                       
-
-GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
-                           'tol',1e-7,'display','all','EachIter',5,'Graphs',true, ...
-                           'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
+                           'tol',1e-7,'display','all','EachIter',2);
                        
 GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
                            'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'}, ...

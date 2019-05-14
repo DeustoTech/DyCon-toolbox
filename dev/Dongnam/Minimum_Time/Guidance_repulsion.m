@@ -109,7 +109,7 @@ L   = 0.1*T + 0.001*(kappa.'*kappa)*T;
 iP = Pontryagin(dynamics,Psi,L);
 
 %Constraints on the control : Time should be nonnegative
-iP.constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];
+iP.Constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];
 %%
 figure(2);
 %GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);

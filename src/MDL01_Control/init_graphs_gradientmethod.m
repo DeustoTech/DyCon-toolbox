@@ -1,4 +1,10 @@
-function [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif)
+function axes = init_graphs_gradientmethod(iCP)
+
+    InitialControl = iCP.Solution.ControlHistory{1};
+    nY = length(iCP.Dynamics.InitialCondition);
+    nU = length(InitialControl(1,:));
+    TypeGraphs =  class(iCP.Dynamics);
+        
    f = figure;
    FontSize  = 11;
    set(f,'defaultuipanelFontSize',FontSize)
@@ -53,10 +59,14 @@ function [axY,axU,axJ] = init_graphs(TypeGraphs,nY,nU,SaveGif)
    axJ{2}.Title.String = 'J';
    axJ{2}.XLabel.String = 'iter';
    
-   
-   if SaveGif
-      numbernd =  num2str(floor(100000*rand),'%.6d');
-      gif([numbernd,'.gif'],'frame',f,'DelayTime',1/2)  
-   end
+   %%
+   axes.axJ = axJ;
+   axes.axU = axU;
+   axes.axY = axY;
+
+%    if SaveGif
+%       numbernd =  num2str(floor(100000*rand),'%.6d');
+%       gif([numbernd,'.gif'],'frame',f,'DelayTime',1/2)  
+%    end
 
 end

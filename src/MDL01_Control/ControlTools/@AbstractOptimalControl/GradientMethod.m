@@ -82,7 +82,10 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     % ------------------------------------------------------------------------------------------------------
     % |             | Name     | Default   |            Validator                                          | 
     % ------------------------------------------------------------------------------------------------------
+    addOptional(pinp,'GraphsFcn'   ,{@init_graphs_gradientmethod,@bucle_graphs_gradientmethod} )
     addOptional(pinp,'Graphs'   ,false )
+    addOptional(pinp,'EachIter' ,5 )
+
     addOptional(pinp,'display'  ,'none'     ,@(display)mustBeMember(display,{'none','all','functional'}))
     addOptional(pinp,'SaveGif'  ,false )
     addOptional(pinp,'restart'  ,false )
@@ -95,11 +98,13 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     MaxIter             = pinp.Results.MaxIter;    
     tol                 = pinp.Results.tol;
     Graphs              = pinp.Results.Graphs;
+    GraphsFcn           = pinp.Results.GraphsFcn;
     restart             = pinp.Results.restart;
     SaveGif             = pinp.Results.SaveGif;
     DescentAlgorithm    = pinp.Results.DescentAlgorithm;
     DescentParameters   = pinp.Results.DescentParameters;
     display_parameter   = pinp.Results.display;
+    EachIter            = pinp.Results.EachIter;
     % ======================================================
     % ======================================================
     %                   INIT PROGRAM
@@ -110,6 +115,22 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     iCP.Adjoint.Dynamics.dt        = iCP.Dynamics.dt;
     iCP.Adjoint.Dynamics.FinalTime = iCP.Dynamics.FinalTime;
     iCP.Adjoint.Dynamics.Solver    = iCP.Dynamics.Solver;
+
+   
+    %% Creamos un solucion vacia
+    iCP.Solution = solution;
+
+    iCP.Solution.Yhistory = cell(1,MaxIter);
+    iCP.Solution.ControlHistory = cell(1,MaxIter);
+    iCP.Solution.dJhistory = cell(1,MaxIter);
+
+    iCP.Solution.Jhistory = zeros(1,MaxIter);
+    %
+    iCP.Solution.ControlHistory{1} = InitialControl;
+    
+    %%
+    InitGraphsFcn = GraphsFcn{1};
+    IterGraphsFcn = GraphsFcn{2};
 
     %%
     if restart
@@ -125,22 +146,11 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     
     if Graphs 
         % initial axes 
-        nY = length(iCP.Dynamics.InitialCondition);
-        nU = length(InitialControl(1,:));
-        TypeGraphs =  class(iCP.Dynamics);
-        [axY,axU,axJ] = init_graphs_gradientmethod(TypeGraphs,nY,nU,SaveGif);
+
+        axes = InitGraphsFcn(iCP);
     end
     
-    %% Creamos un solucion vacia
-    iCP.Solution = solution;
 
-    iCP.Solution.Yhistory = cell(1,MaxIter);
-    iCP.Solution.ControlHistory = cell(1,MaxIter);
-    iCP.Solution.dJhistory = cell(1,MaxIter);
-
-    iCP.Solution.Jhistory = zeros(1,MaxIter);
-    %
-    iCP.Solution.ControlHistory{1} = InitialControl;
 
         
     %% Clean the persiten variable LengthStepMemory
@@ -162,7 +172,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
         iCP.Solution.dJhistory{iter} = dJnew;
         iCP.Solution.Ehistory(iter)     = error;
         
-        if  mod(iter,20) == 1 || stop
+        if  1+mod(iter,EachIter) == 1 || stop
             switch display_parameter
                 case 'all'
                 display(     "error = "        + num2str(error,'%d')        + ...
@@ -178,7 +188,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
                              % Stopping Criteria
             if Graphs   
                 % plot the graphical convergence 
-                bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,iCP.Solution.Jhistory,iCP.Dynamics.tspan,iter,TypeGraphs,SaveGif,true)
+                IterGraphsFcn(axes,iCP,iter)
             end
 
         end

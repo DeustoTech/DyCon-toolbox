@@ -1,4 +1,20 @@
-function bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif,live)
+function bucle_graphs_gradientmethod(axes,iCP,iter)
+    
+    axY = axes.axY;
+    axU = axes.axU;
+    axJ = axes.axJ;
+
+    Ynew = iCP.Solution.Yhistory{iter};
+    Unew = iCP.Solution.ControlHistory{iter};
+    tspan = iCP.Dynamics.tspan;
+    
+    Jhistory = iCP.Solution.Jhistory(1:iter);
+
+    TypeGraphs = class(iCP.Dynamics);
+    live = true;
+    SaveGif = false;
+    %axY,axU,axJ,
+    % Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif,live
 
     Color = {'r','g','b','y','k','c'};
     

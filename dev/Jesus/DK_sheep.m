@@ -54,7 +54,7 @@ end
 Y0 = [ue_zero(:);ve_zero(:);ud_zero(:);vd_zero(:)];
 
 %%
-a
+
 % T=5.1725, kappa = 1.5662 -> [-1,1]
 dt = 0.1;
 dynamics = ode(F,Y,U,'FinalTime',10,'dt',dt);
