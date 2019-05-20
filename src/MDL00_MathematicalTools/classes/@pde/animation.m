@@ -81,7 +81,7 @@ function animation(iode,varargin)
    end
    
    if ~isempty(Target)
-      line(iode(1).mesh,Target,'Parent',axY,'Color',[1 0.9 0.9],'LineWidth',1.5) 
+      line(iode(1).mesh,Target,'Parent',axY,'Color',[1 0.6 0.6],'LineWidth',1.5) 
       int_ls = int_ls + 1;
       legend_string{int_ls} = 'Target';
    end

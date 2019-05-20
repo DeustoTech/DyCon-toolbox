@@ -168,6 +168,18 @@ OptimalLenght = 1e-15;
 % animation([Params.dynamics],'xx',0.1,'YLim',[0,2.5],'Target',Params.YT)
 % surf(U)
 
+%%
+clf
+figure
+hold on
+
+newU = Params.dynamics.Control.Numeric*0;
+newU(20,40) = 10;
+surf((newU))
+surf(0*((Params.B*(0.*Params.dynamics.Control.Numeric' + 1)).^(-1))','FaceColor','k')
+
+shading interp
+
 function dY_norm_L2 = FinalTime2Psi(FinalTime,Params,Nt)
 
     dt        = FinalTime/Nt;
