@@ -3,9 +3,9 @@
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
 
-FinalTimes = linspace(0.05,0.5,3);
+FinalTimes = linspace(0.1,0.5,4);
 %FinalTimes = linspace(0.7,1.0,4);
-FinalTimes = 0.2;
+%FinalTimes = 0.2;
 %FinalTimes = 0.1531;
 %FinalTimes = 0.0438;
 %FinalTimes = linspace(0.03,0.05,2);
@@ -14,15 +14,17 @@ iOCPs = arrayfun(@(FinalTime) FinalTime2OCP(FinalTime),FinalTimes);
 
 ncol = 3;
 nft  = length(FinalTimes);
-
+%%
 figure;
 
 iter = 0;
 for iOCP = iOCPs
     iter = iter + 1;
     subplot(ceil(nft/ncol),ncol,iter)
-    surf(iOCP.Solution.UOptimal)
+    surf(iOCP.Dynamics.Control.Numeric)
     title("T_f = "+FinalTimes(iter)+ "& |.| = "+sqrt(iOCP.Solution.JOptimal))
+    %title("T_f = "+FinalTimes(iter))
+
     shading interp;colormap jet
     %caxis([0 40])
     colorbar
@@ -64,15 +66,14 @@ function iOCP = FinalTime2OCP(FinalTime)
     % Moreover, we build the matrix $B$ defining the action of the control, by
     % using the program "construction_matrix_B" (see below).
     a = -0.3; b = 0.8;
-    B = construction_matrix_B(xline,a,b);
+    B = BInterior(xline,a,b,'min');
     
     %%
     % We can then define a final time and an initial datum
     Y0 = 0.5*cos(0.5*pi*xline');
 
-    Nt = 100;
-    dt = FinalTime/Nt;
-    dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
+    Nt = 50;
+    dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
     dynamics.MassMatrix = M;
     dynamics.mesh = xline;
 
@@ -90,7 +91,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     % Take simbolic vars
     Y = dynamics.StateVector.Symbolic;
     U = dynamics.Control.Symbolic;
-    beta = dx^2;
+    beta = 0*dx^2;
     %% Construction of the control problem 
     %%
     % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
@@ -100,7 +101,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     %L    = 0.5*beta*dx*(U.'*U);
     %%
     % Optional Parameters to go faster
-    Gradient                =  @(t,Y,P,U) beta*sign(U) + B*P;
+    Gradient                =  @(t,Y,P,U) beta*sign(U) + B'*P;
     %Gradient                =  @(t,Y,P,U) beta*U + B*P;
     Hessian                 =  @(t,Y,P,U) 0;
     AdjointFinalCondition   =  @(t,Y) (1/2)* (Y-YT);
@@ -113,18 +114,26 @@ function iOCP = FinalTime2OCP(FinalTime)
     %iOCP.constraints.Umax =  300;
     iOCP.Constraints.MinControl =  0;
 
-    %options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',true)
-    %fmincon(@(U) Control2Functional(iOCP,U),0*U00,[],[],[],[],0*U00,[],[],options)
-    %%
+    options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',true);
+    [Uopt , JOpt] = fmincon(@(U) Control2Functional(iOCP,U),0*U00, ...
+                                            []    ,  [] , ... % eq constraints
+                                            []    ,  [] , ... % ieq cons
+                                            0*U00 ,  [] , ...
+                                            []          , ...
+                                            options);
+    
+    iOCP.Solution = solution;
+    iOCP.Solution.Jhistory = JOpt;
+                                        %%
     % Solver L1
-    Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
-                 'tol',1e-8,                                    ...
-                 'Graphs',true,                               ...
-                 'MaxIter',5000,                               ...
-                 'display','functional',};
-    %%
-    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
-    GradientMethod(iOCP,U0,Parameters{:})
+%     Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
+%                  'tol',1e-8,                                    ...
+%                  'Graphs',true,                               ...
+%                  'MaxIter',5000,                               ...
+%                  'display','functional',};
+%     %%
+%     U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
+%     GradientMethod(iOCP,U0,Parameters{:})
 end
 %%
 function [B] = construction_matrix_B(mesh,a,b)

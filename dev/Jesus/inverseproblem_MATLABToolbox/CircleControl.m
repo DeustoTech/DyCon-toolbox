@@ -45,7 +45,7 @@ reptspan = reptspan(:);
 repspace = repmat(UControl.XYData,length(tspan),1);
 
 UControl.XYtData        = [repspace reptspan UControl.Data(:)];
-UControl.fcn            =  scatteredInterpolant(UControl.XYtData(:,1),UControl.XYtData(:,2),UControl.XYtData(:,3),UControl.XYtData(:,4));
+UControl.fcn            =  scatteredInterpolant(UControl.XYtData(:,1),UControl.XYtData(:,2),UControl.XYtData(:,3),UControl.XYtData(:,4),'nearest');
 
 
 
@@ -74,7 +74,9 @@ for iter = 1:100
         newUControl.Data = UControl.Data - LengthStep*gradientU';
         [newDistance2Target,newstate] = Control2Value(newUControl);
     end
-    LengthStep      = 2*LengthStep;
+    if LengthStep < 5
+        LengthStep      = 2*LengthStep;
+    end
     Distance2Target = newDistance2Target;
     state           = newstate;
     UControl        = newUControl;
@@ -90,7 +92,7 @@ end
 function [Distance2Target,uu] = Control2Value(UControl)
 
     UControl.XYtData        = [repspace reptspan UControl.Data(:)];
-    UControl.fcn            =  scatteredInterpolant(UControl.XYtData(:,1),UControl.XYtData(:,2),UControl.XYtData(:,3),UControl.XYtData(:,4));
+    UControl.fcn            =  scatteredInterpolant(UControl.XYtData(:,1),UControl.XYtData(:,2),UControl.XYtData(:,3),UControl.XYtData(:,4),'nearest');
 
     delete(dynamics.EquationCoefficients.CoefficientAssignments)
 
@@ -111,17 +113,17 @@ function animation(istate,Ucontrol)
     for it = 1:length(newtspan)
     subplot(1,2,1)
     pdeplot(dynamics,'XYData',newstate(:,it),'Zdata',newstate(:,it))
-    view(0,90);caxis([0 5])
+    view(0,90);caxis([0 4])
     subplot(1,2,2)
     pdeplot(dynamics,'XYData',newstate(:,it),'Zdata',newstate(:,it))
-    view(0,0);caxis([0 5]);zlim([-3 3])
+    view(0,0);caxis([0 4]);zlim([-3 3])
     pause(0.1)
     end
 
 end
 function gradientU = dynamics2gradient(u)
     AdjointFinalCondition = u(:,end) - YTarget;
-    InterpAdjoint = scatteredInterpolant(Nodes(:,1),Nodes(:,2),AdjointFinalCondition);
+    InterpAdjoint = scatteredInterpolant(Nodes(:,1),Nodes(:,2),AdjointFinalCondition,'nearest');
     u0fun = @(location) InterpAdjoint(location.x,location.y);
 
     delete(adjoint.InitialConditions.InitialConditionAssignments)

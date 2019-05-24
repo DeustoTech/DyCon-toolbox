@@ -112,7 +112,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     % ======================================================
     %
     % Set dynamics <---> adjoint 
-    iCP.Adjoint.Dynamics.dt        = iCP.Dynamics.dt;
+    iCP.Adjoint.Dynamics.Nt        = iCP.Dynamics.Nt;
     iCP.Adjoint.Dynamics.FinalTime = iCP.Dynamics.FinalTime;
     iCP.Adjoint.Dynamics.Solver    = iCP.Dynamics.Solver;
 

@@ -72,5 +72,4 @@ function dJnew = GetNumericalGradient(iCP,U,Y,P)
         index = index + 1;
         dJnew(index,:) = du_tDepend(index);
     end
-    
 end

@@ -1,7 +1,10 @@
-function varargout  = Control2Functional(iCP,Control)
+function varargout  = Control2Functional(iCP,Control,Time)
     % Give the Control Problem this function give a control U(t) you obtain
     % the functional value
     %%
+    if nargin > 2
+        iCP.Dynamics.FinalTime = Time;
+    end
     StateVector = GetNumericalDynamics(iCP,Control);
     J = GetNumericalFunctional(iCP,StateVector,Control);
     %%

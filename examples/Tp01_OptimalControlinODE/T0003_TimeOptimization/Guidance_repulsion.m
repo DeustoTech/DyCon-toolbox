@@ -58,7 +58,7 @@ T = U(2); % Time-scaling from s to t
 F = [dot_ud;dot_ue;dot_vd;dot_ve]*T; % Multiply original velocities with time-scaling T(s).
 
 dt = 0.1; % Numerical time discretization
-dynamics = ode(F,Y,U,'FinalTime',1,'dt',dt);
+dynamics = ode(F,Y,U,'FinalTime',1,'Nt',30);
 
 % ud = (-3,0), ue = (0,0), and zero velocities initially.
 dynamics.InitialCondition = [-3;0;0;0;0;0;0;0]; 
@@ -72,8 +72,9 @@ uf = [-1;1];
 dynamics.Control.Numeric = U0_tline;
 
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-dynamics.Solver=@ode45;
-dynamics.SolverParameters={options};
+% dynamics.Solver=@ode45;
+% dynamics.SolverParameters={options};
+dynamics.Solver=@eulere;
 
 %% Trajectories from initial guess
 % Test the initial guess on the control, 'U0_tline'.
@@ -106,16 +107,16 @@ ylabel('ordinate')
 Psi = 1*(ue-uf).'*(ue-uf);
 L   = 0.1*T + 0.001*(kappa.'*kappa)*T;
 
-iP = OptimalControl(dynamics,Psi,L);
+iP = Pontryagin(dynamics,Psi,L);
 
 %Constraints on the control : Time should be nonnegative
-iP.constraints.Projection = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];
+iP.Constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];
 %%
 figure(2);
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true);
 %GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
 
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-4,'Graphs',true,'U0',temp);
 
 %% Visualization
@@ -123,10 +124,10 @@ temp = iP.solution.UOptimal;
 % 1. The time should be calculated in terms of t, not s.
 % 2. We need to know the cost components separately.
 
-UO_tline = iP.solution.UOptimal;    % Controls
-YO_tline = iP.solution.Yhistory(end);
+UO_tline = iP.Solution.UOptimal;    % Controls
+YO_tline = iP.Solution.Yhistory(end);
 YO_tline = YO_tline{1};   % Trajectories
-JO = iP.solution.JOptimal;    % Cost
+JO = iP.Solution.JOptimal;    % Cost
 zz = YO_tline;
 tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on the values of t, which is the integration of T(s)ds.
 

@@ -30,6 +30,7 @@ function GetSymbolicalGradient(iP)
         dH_du = gradient(formula(iP.Hamiltonian),symU).';
     end
     %
+    dH_du = iP.Dynamics.dt*dH_du;
     iP.ControlGradient.Symbolical = symfun(dH_du,[t symY.' symP.' symU.']);
     % Pasamos esta funcion a una function_handle
     iP.ControlGradient.Numerical = matlabFunction(dH_du,'Vars',{t,symY,symP,symU});

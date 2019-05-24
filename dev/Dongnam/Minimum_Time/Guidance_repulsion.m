@@ -113,9 +113,9 @@ iP.Constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(
 %%
 figure(2);
 %GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
-GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true);
 
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-4,'Graphs',true,'U0',temp);
 
 %% Visualization
@@ -123,10 +123,10 @@ temp = iP.solution.UOptimal;
 % 1. The time should be calculated in terms of t, not s.
 % 2. We need to know the cost components separately.
 
-UO_tline = iP.solution.UOptimal;    % Controls
-YO_tline = iP.solution.Yhistory(end);
+UO_tline = iP.Solution.UOptimal;    % Controls
+YO_tline = iP.Solution.Yhistory(end);
 YO_tline = YO_tline{1};   % Trajectories
-JO = iP.solution.JOptimal;    % Cost
+JO = iP.Solution.JOptimal;    % Cost
 zz = YO_tline;
 tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on the values of t, which is the integration of T(s)ds.
 

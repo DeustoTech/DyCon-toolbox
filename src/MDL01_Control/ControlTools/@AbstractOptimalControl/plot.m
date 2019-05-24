@@ -44,14 +44,13 @@ function plot(iCP,varargin)
     
     
     TypeGraphs = class(iCP.Dynamics); 
-    [axY,axU,axJ] = init_graphs_gradientmethod(TypeGraphs,nY,nU,SaveGif);
+    [axes] = init_graphs_gradientmethod(iCP);
     
     Jhistory = iCP.Solution.Jhistory;
     tspan = iCP.Dynamics.tspan;
     for iter = 2:iCP.Solution.iter
-        Ynew = iCP.Solution.Yhistory{iter};
-        Unew = iCP.Solution.ControlHistory{iter};
-        bucle_graphs_gradientmethod(axY,axU,axJ,Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif,false)
+
+        bucle_graphs_gradientmethod(axes,iCP,iter)
     end
 end
 

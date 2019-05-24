@@ -63,7 +63,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % dimension: [1x1]
         % default: "none"
         % description: "Time interval of plots. ATTENTION - the solution of ode is obtain by ode45, with adatative step"
-        dt                                          (1,1)                           double  
+        Nt                                          (1,1)                           double  
         MassMatrix
         label = '' 
         Solver = @ode45
@@ -108,6 +108,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % description: "Dimension of Control Vector"
         Udim
         Ydim
+        dt
     end
     
     
@@ -155,7 +156,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             addOptional(p,'B',[])
 
             
-            addOptional(p,'dt',0.1)
+            addOptional(p,'Nt',10)
             addOptional(p,'FinalTime',1)
             addOptional(p,'InitialCondition',[])
 
@@ -168,7 +169,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             obj.A              = p.Results.A;
             obj.B              = p.Results.B;
 
-            obj.dt              = p.Results.dt;
+            obj.Nt              = p.Results.Nt;
             obj.FinalTime       = p.Results.FinalTime;
             obj.InitialCondition       = p.Results.InitialCondition;
             
@@ -250,6 +251,10 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %% ================================================================================
         %
         %% ================================================================================
+        function dt = get.dt(obj)
+                dt = obj.FinalTime/(obj.Nt-1);
+        end
+        
         function tspan = get.tspan(obj)
                 tspan = 0:obj.dt:obj.FinalTime;
         end
@@ -272,16 +277,18 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             end
         end
         %% ================================================================================
-        function set.dt(obj,dt)
-            obj.dt = dt;
-            if ~ isempty(obj.Control)
-                obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
-            end
-        end
+
         function set.FinalTime(obj,FinalTime)
             obj.FinalTime = FinalTime;
             if ~ isempty(obj.Control)
                 obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
+            end
+        end
+        
+        function set.Nt(obj,Nt)
+            obj.Nt = Nt;
+            if ~isempty(obj.Control)
+                obj.Control.Numeric = zeros(obj.Nt,obj.Udim);
             end
         end
         %% ================================================================================

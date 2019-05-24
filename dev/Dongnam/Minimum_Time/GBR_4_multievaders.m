@@ -55,8 +55,9 @@ u_f = [2;0];
 
 dynamics.Control.Numeric = U0_tline;
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-dynamics.Solver=@ode45;
-dynamics.SolverParameters={options};
+dynamics.Solver=@eulere;
+% dynamics.SolverParameters={options};
+%dynamics.Solver=@eulere;
 solve(dynamics);
 %plot(dynamics)
 
@@ -102,27 +103,27 @@ iP = Pontryagin(dynamics,Psi,L);
 %iP.constraints.Umin = -1.7;
 %%
 tline = dynamics.tspan;
-temp = interp1(tline1,temp1,tline);
+%temp = interp1(tline1,temp1,tline);
 %%
 %U0_tline = 1.5662*ones([length(tline),2]);
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-7,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-7,'Graphs',true,'display','all');
 
 %iP.solution
 %plot(iP)
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %%
 %temp = temp3;
 %temp = try1;
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'DirectionParameter','PPR'},'tol',1e-10,'Graphs',true,'U0',temp);
+%%%%GradientMethod(iP,temp,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'DirectionParameter','PPR'},'tol',1e-10,'Graphs',true);
 %GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'Graphs',true,'U0',temp);
 %plot(iP)
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %%
-UO_tline = iP.solution.UOptimal;    % Controls
-YO_tline = iP.solution.Yhistory(end);
+UO_tline = iP.Solution.UOptimal;    % Controls
+YO_tline = iP.Solution.Yhistory(end);
 YO_tline = YO_tline{1};   % Trajectories
-JO = iP.solution.JOptimal;    % Cost
+JO = iP.Solution.JOptimal;    % Cost
 zz = YO_tline;
 tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on the values of t, which is the integration of T(s)ds.
 % Cost calcultaion
@@ -216,27 +217,27 @@ iP = Pontryagin(dynamics,Psi,L);
 %iP.constraints.Umin = -1.7;
 %%
 tline = dynamics.tspan;
-temp = interp1(tline1,temp1,tline);
+%temp = interp1(tline1,temp1,tline);
 %%
 %U0_tline = 1.5662*ones([length(tline),2]);
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-7,'Graphs',true,'U0',U0_tline);
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-7,'Graphs',true);
 
 %iP.solution
 %plot(iP)
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %%
 %temp = temp3;
 %temp = try1;
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-10,'Graphs',true,'U0',temp);
+GradientMethod(iP,temp,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-10,'Graphs',true);
 %GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'Graphs',true,'U0',temp);
 %plot(iP)
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %%
-UO_tline = iP.solution.UOptimal;    % Controls
-YO_tline = iP.solution.Yhistory(end);
+UO_tline = iP.Solution.UOptimal;    % Controls
+YO_tline = iP.Solution.Yhistory(end);
 YO_tline = YO_tline{1};   % Trajectories
-JO = iP.solution.JOptimal;    % Cost
+JO = iP.Solution.JOptimal;    % Cost
 zz = YO_tline;
 tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on the values of t, which is the integration of T(s)ds.
 % Cost calcultaion

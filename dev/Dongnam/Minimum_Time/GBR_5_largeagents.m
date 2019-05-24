@@ -1,7 +1,7 @@
 %% Two drivers, Flexible time
 
-N_sqrt = 3;
-M = 6; N = N_sqrt^2;
+N_sqrt = 5;
+M = 3; N = N_sqrt^2;
 
 Y = sym('y',[4*(M+N) 1]);
 U = sym('u',[M+1 1]);
@@ -65,17 +65,17 @@ plot(ud_zero(1,:),ud_zero(2,:),'bo');
 
 % T=5.1725, kappa = 1.5662 -> [-1,1]
 dt = 0.01;
-dynamics = ode(F,Y,U,'FinalTime',1,'dt',dt);
+dynamics = ode(F,Y,U,'FinalTime',1,'Nt',100);
 dynamics.InitialCondition = Y0;
 %%
 tline = dynamics.tspan;
 U0_tline = [2*ones([length(tline),M]),5*ones([length(tline),1])];
 %U0_tline = [UO_tline,1*ones([length(tline),1])];
-u_f = [0;0];
+u_f = [0;-1];
 
 dynamics.Control.Numeric = U0_tline;
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
-dynamics.Solver=@ode23tb;
+dynamics.Solver=@eulere;
 %dynamics.SolverParameters={options};
 %dynamics.Solver=@eulere;
 %dynamics.SolverParameters={};
@@ -164,44 +164,96 @@ L   = 0.001*(kappa.'*kappa);
 
 iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
-iP.Constraints.MaxControl= 5;
-iP.Constraints.MinControl = -5;
+iP.Constraints.MaxControl= 20;
+iP.Constraints.MinControl = -20;
 %%
 tline = dynamics.tspan;
 %temp = interp1(tline1,temp1,tline);
 %%
 %U0_tline = 1.5662*ones([length(tline),2]);
-U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-U0_tline = ones(length(iP.Dynamics.tspan),iP.Dynamics.Udim)
+%U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
+U0_tline = 2 + zeros(length(iP.Dynamics.tspan),iP.Dynamics.Udim);
+% 
+% GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
+%                            'tol',1e-7,'display','all','EachIter',20,'Graphs',false, ...
+%                            'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
+%                        
+% U0_tline = iP.Solution.UOptimal;
+% 
+% GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
+%                            'tol',1e-7,'display','all','EachIter',10,'Graphs',false, ...
+%                            'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog},'MaxIter',5000);
+% %             
+%U0_tline = iP.Solution.UOptimal;
+% GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
+%                            'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'}, ...
+%                            'tol',1e-7,'Graphs',false,'EachIter',10,'display','all');
 
-GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
-                           'tol',1e-7,'display','all','EachIter',1,'Graphs',true, ...
-                           'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
-                       
+options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter','StepTolerance',1e-9,'MaxIterations',1e5)
+%temp = fminunc(@(U) Control2Functional(iP,U),U0_tline,options);
 
-GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
-                           'tol',1e-7,'display','all','EachIter',5,'Graphs',true, ...
-                           'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
-                       
-GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
-                           'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'}, ...
-                           'tol',1e-7,'Graphs',true,'EachIter',2);
+temp = fmincon(@(U) Control2Functional(iP,U),U0_tline, [],[], ... 
+                                                       [],[], ...
+                                                       U0_tline*0 - 5,U0_tline*0 + 5, ...
+                                                       [],    ...
+                                                       options);
 
+
+[~ ,YO_tline] = solve(iP.Dynamics,'Control',temp);
 %iP.solution
 %plot(iP)
-temp = iP.Solution.UOptimal;
+%temp = iP.Solution.UOptimal;
 %%
 %temp = temp3;
 %temp = try1;
-GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'DirectionParameter','PPR'},'tol',1e-10,'Graphs',true,'U0',temp);
+%GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'DirectionParameter','PPR'},'tol',1e-10,'Graphs',true,'U0',temp);
 %GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'Graphs',true,'U0',temp);
 %plot(iP)
-temp = iP.solution.UOptimal;
+%temp = iteP.Solution.UOptimal;
+
+%% Jesus Plot
+%figure
+
+
+% YO_tline = iP.Solution.Yhistory(end);
+% YO_tline = YO_tline{1};   % Trajectories
+% zz = YO_tline;
+zz = YO_tline;
+
+uePlot = zz(:,1:2*N);
+
+uePx = uePlot(:,1:2:2*N);
+uePy = uePlot(:,2:2:2*N);
+ plot(uePx,uePy,'r-')
+ hold on
+% 
+vePlot = zz(:,4*N+1:4*N+2*M);
+% 
+vePx = vePlot(:,1:2:2*M);
+vePy = vePlot(:,2:2:2*M);
+% 
+plot(vePx,vePy,'b-')
+
+
+figure
+lv = plot(vePx(1,:),vePy(1,:),'b*');
+hold on
+lu = plot(uePx(1,:),uePy(1,:),'r*');
+xlim([-5 5])
+ylim([-5 5])
+
+
+for it = 1:TN-1
+    lv.XData = vePx(it,:);lv.YData = vePy(it,:);
+    lu.XData = uePx(it,:);lu.YData = uePy(it,:);
+    pause(0.1)
+end
+
 %%
-UO_tline = iP.solution.UOptimal;    % Controls
-YO_tline = iP.solution.Yhistory(end);
-YO_tline = YO_tline{1};   % Trajectories
-JO = iP.solution.JOptimal;    % Cost
+%UO_tline = iP.Solution.UOptimal;    % Controls
+%YO_tline = iP.Solution.Yhistory(end);
+%YO_tline = YO_tline{1};   % Trajectories
+JO = iP.Solution.JOptimal;    % Cost
 zz = YO_tline;
 tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on the values of t, which is the integration of T(s)ds.
 % Cost calcultaion
@@ -303,19 +355,19 @@ GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'Sto
 
 %iP.solution
 %plot(iP)
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %%
 %temp = temp3;
 %temp = try1;
 GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-10,'Graphs',true,'U0',temp);
 %GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent,'Graphs',true,'U0',temp);
 %plot(iP)
-temp = iP.solution.UOptimal;
+temp = iP.Solution.UOptimal;
 %%
-UO_tline = iP.solution.UOptimal;    % Controls
-YO_tline = iP.solution.Yhistory(end);
+UO_tline = iP.Solution.UOptimal;    % Controls
+YO_tline = iP.Solution.Yhistory(end);
 YO_tline = YO_tline{1};   % Trajectories
-JO = iP.solution.JOptimal;    % Cost
+JO = iP.Solution.JOptimal;    % Cost
 zz = YO_tline;
 tline_UO = dt*cumtrapz(UO_tline(:,end)); % timeline based on the values of t, which is the integration of T(s)ds.
 % Cost calcultaion

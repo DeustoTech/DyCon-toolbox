@@ -117,7 +117,8 @@ T = 1;
 % certain time steps that will hide part of the dynamics.
 %%
 odeEqn = pde(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
-odeEqn.dt=0.01;
+odeEqn.Nt=50;
+odeEqn.Solver = @ode23tb;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
@@ -138,26 +139,28 @@ xlabel('Time')
 iCP1 = Pontryagin(odeEqn,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
-GradientMethod(iCP1,'display','all')
-
+U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim);
+%GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@AdaptativeDescent)
+options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
+fminunc(@(U) Control2Functional(iCP1,U),U0,options)
 %%
 figure;
-SIZ=size(iCP1.dynamics.StateVector.Numeric);
+SIZ=size(iCP1.Dynamics.StateVector.Numeric);
 time=linspace(0,T,SIZ(1));
 space=linspace(1,N,N);
 [TIME,SPACE]=meshgrid(time,space);
-surf(TIME',SPACE',iCP1.dynamics.StateVector.Numeric,'EdgeColor','none')
+surf(TIME',SPACE',iCP1.Dynamics.StateVector.Numeric,'EdgeColor','none')
 title('Controlled Dynamics')
 ylabel('space discretization')
 xlabel('Time')
 %%
 % The control function inside the control region
 figure;
-SIZ=size(iCP1.solution.UOptimal);
+SIZ=size(iCP1.Dynamics.Control.Numeric);
 time=linspace(0,T,SIZ(1));
 space=linspace(1,SIZ(2)-1,SIZ(2)-1);
 [TIME,SPACE]=meshgrid(time,space);
-surf(TIME',SPACE',iCP1.solution.UOptimal(:,1:SIZ(2)-1),'EdgeColor','none')
+surf(TIME',SPACE',iCP1.Dynamics.Control.Numeric(:,1:SIZ(2)-1),'EdgeColor','none')
 title('Control')
 ylabel('space discretization')
 xlabel('Time')
@@ -165,7 +168,7 @@ xlabel('Time')
 figure;
 line(xline,YT,'Color','red')
 line(xline,odeEqn.StateVector.Numeric(end,:),'Color','blue')
-line(xline,iCP1.dynamics.StateVector.Numeric(end,:),'Color','green')
+line(xline,iCP1.Dynamics.StateVector.Numeric(end,:),'Color','green')
 legend('Target','Free Dynamics','controlled dynamics')
 %%
 % Now we apply the same procedure for the collective
@@ -185,7 +188,7 @@ syms DG(x);
 U(x)=-5*exp(-x^2);
 G(x)=diff(U,x);
 T=1;
-N=11;
+N=50;
 %%
 % For the simulation of the model in collective behavior we will employ a
 % diffusivity $D=\frac{1}{N^3}$.
@@ -210,6 +213,7 @@ title('Control')
 ylabel('space discretization')
 xlabel('Time')
 %%
+xline = linspace(xi,xf,N);
 figure;
 line(xline,d.y1,'Color','red')
 line(xline,d.y2,'Color','blue')
@@ -222,25 +226,30 @@ legend('Target','Free Dynamics','controlled dynamics')
 %%
 [a,b,c,d]=SLSD1doptimalnullcontrol_T007_semilinear(N,1/(N^2),G/(N^2),N^2*T,beta,[0.5,0.8],y0);
 %%
+
 figure;
 surf(a.time,a.space,a.value,'EdgeColor','none');
+shading interp; colormap jet
 title('Free Dynamics')
 ylabel('space discretization')
 xlabel('Time')
 %%
 figure;
 surf(b.time,b.space,b.value,'EdgeColor','none')
+shading interp; colormap jet
 title('Controlled Dynamics')
 ylabel('space discretization')
 xlabel('Time')
 %%
 figure;
-surf(c.time(:,1:SIZ(2)-1),c.space(:,1:SIZ(2)-1),c.value(:,1:SIZ(2)-1),'EdgeColor','none')
+surf(c.time,c.space,c.value,'EdgeColor','none')
+shading interp; colormap jet
 title('Control')
 ylabel('space discretization')
 xlabel('Time')
 %%
 figure;
+xline = linspace(xi,xf,N);
 line(xline,d.y1,'Color','red')
 line(xline,d.y2,'Color','blue')
 line(xline,d.y3,'Color','green')

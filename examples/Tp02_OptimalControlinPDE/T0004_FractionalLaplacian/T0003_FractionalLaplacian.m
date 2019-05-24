@@ -43,7 +43,7 @@ a = -0.3; b = 0.5;
 B = construction_matrix_B(xline,a,b);
 %%
 % We can then define a final time and an initial datum
-FinalTime = 0.5;
+FinalTime = 0.3;
 Y0 =sin(pi*xline)';
 %%
 % and construct the system
@@ -58,7 +58,9 @@ Y0 =sin(pi*xline)';
 % $$
 C = -(A);
 B =  (B);
-dynamics = pde('A',C,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',0.05);
+
+dynamics = pde('A',C,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',100);
+dynamics.mesh = xline;
 dynamics.MassMatrix = M;
 solve(dynamics);
 %%
@@ -102,7 +104,9 @@ iCP1 = Pontryagin(dynamics,symPsi,symL);
 tol = 1e-3;
 %%
 U0 = dynamics.Control.Numeric;
-GradientMethod(iCP1,U0,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'Graphs',true,'MaxIter',1000)
+options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
+fminunc(@(U) Control2Functional(iCP1,U),U0,options)
+%GradientMethod(iCP1,U0,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'Graphs',true,'MaxIter',1000)
 %%
 % As we see, the algorithm has stopped since it has reached the maximum
 % number of iterations allowed, and not because it has encountered a 
@@ -110,7 +114,7 @@ GradientMethod(iCP1,U0,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'Graphs',t
 %%
 % Actually, we can see in the figure below that the final state is not
 % controlled to zero.
-plot(iCP1,'TypeGraphs','pde')
+%plot(iCP1)
 %%
 % This is because the HUM functional $J$ we chose to minimize is not suitable
 % for numerical implementation. Indeed, as it has been pointed out in [2], 

@@ -9,7 +9,7 @@ function result = fminconfractionalPlotFcnControl(p,x,optimvalues,init,varargin)
         u = reshape(u,p.Nu,p.Nt);
         
         
-        surf(u)
+        surf(p.B*u)
         result = false;
 end
 
