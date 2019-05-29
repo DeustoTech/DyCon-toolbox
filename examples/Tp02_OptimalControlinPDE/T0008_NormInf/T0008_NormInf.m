@@ -10,7 +10,7 @@ B = BInterior(xline,-0.3,0.5);
 dynamics = pde('A',A,'B',B);
 dynamics.mesh = xline;
 dynamics.FinalTime = 0.2;
-dynamics.dt = 0.01;
+dynamics.Nt = 100;
 dynamics.InitialCondition = sin(pi*xline');
 
 
@@ -24,11 +24,19 @@ iOC.Target = sin(pi*xline');
 
 iOC.s = 2;
 iOC.sp = 2;
-iOC.Constraints.MinControl = 0;
+%iOC.Constraints.MinControl = 0;
 
 U0 = zeros(length(dynamics.tspan),dynamics.Udim) + 0.01;
-GradientMethod(iOC,U0,'display','all','DescentParameters',{'FixedLengthStep',false,'LengthStep',1e-5},'Graphs',false)
+GradientMethod(iOC,U0,'display','all')
+DynamicsDyCon = copy(iOC.Dynamics);
+DynamicsDyCon.label = 'DyCon';
+options   = optimoptions(@fminunc,'display','iter','SpecifyObjectiveGradient',true);
+fminunc(@(U)Control2Functional(iOC,U),U0,options);
+
+DynamicsFmincon = copy(iOC.Dynamics);
+DynamicsFmincon.label = 'FminCon';
 
 
-solve(dynamics)
-animation([iOC.Dynamics,dynamics],'xx',0.1,'Target',iOC.Target,'YLim',[-1 1])
+solve(dynamics);
+dynamics.label = 'Free';
+animation([dynamics,DynamicsDyCon,DynamicsFmincon],'xx',0.01,'Target',iOC.Target,'YLim',[-1 1])

@@ -34,9 +34,8 @@ plot(dynamics_linear)
 % It does not affact the 'ode45' function which takes adaptive time method.
 % They produce basically the same graph, and the tolerance of 'ode45' is
 % fixed for any time-descritization. 
-
-dt = 0.01;
-dynamics_linear_fine = ode('A',A,'B',B,'dt',dt);
+Nt = 10;
+dynamics_linear_fine = ode('A',A,'B',B,'Nt',Nt);
 dynamics_linear_fine.InitialCondition = [1,2];
 solve(dynamics_linear_fine)
 Y_ode45 = dynamics_linear_fine.StateVector.Numeric;
@@ -58,7 +57,7 @@ legend('Y_1','Y_2','Y_1','Y_2')
 % 'odeset' class to set the parameters.
 
 odefun = @(t,y) A*y;
-tspan = 0:dt:1;
+tspan = linspace(0,1,Nt);
 y0 = [1,2];
 
 options = odeset('RelTol',1e-5,'AbsTol',1e-5);
@@ -88,7 +87,7 @@ legend('Y_1','Y_2')
 % the same numerical methods.
 %%
 % We can use other built-in functions, such as 'ode23'.
-dynamics_linear_23 = ode('A',A,'B',B,'dt',dt);
+dynamics_linear_23 = ode('A',A,'B',B,'Nt',Nt);
 dynamics_linear_23.InitialCondition = [1,2];
 dynamics_linear_23.Solver = @ode23;
 solve(dynamics_linear_23)
@@ -105,7 +104,7 @@ legend('Y_1','Y_2')
 % In the same way, we may implement a customized function. Here, we may
 % define the first-order Euler method and use it for solving 'ode' classes.
 
-dynamics_linear_Euler = ode('A',A,'B',B,'dt',dt);
+dynamics_linear_Euler = ode('A',A,'B',B,'Nt',Nt);
 dynamics_linear_Euler.InitialCondition = [1,2];
 dynamics_linear_Euler.Solver = @Euler;
 solve(dynamics_linear_Euler)

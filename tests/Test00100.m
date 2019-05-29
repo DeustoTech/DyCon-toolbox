@@ -18,8 +18,7 @@ idyn = ode('DynamicEquation',dXdt,'StateVector',X,'Control',u);
 idyn.InitialCondition = [0.05;0];
 idyn.FinalTime = 0.78;
 
-Nt = 100;
-idyn.dt = idyn.FinalTime/(Nt -1);
+idyn.Nt = 100;
 % Functional 
 
 L = x1^2 + x2^2 + 0.1*u^2;
@@ -32,7 +31,6 @@ warning('Off')
 [UOpt{2}, JOpt(2)] = GradientMethod(iCP,U0,'DescentAlgorithm',@ClassicalDescent,'display','none');
 
 [UOpt{3}, JOpt(3)] = GradientMethod(iCP,U0,'DescentAlgorithm',@ConjugateDescent,'display','none');
-
 
 
 JOpt(4) = JBook;

@@ -5,7 +5,7 @@ function result = fminconfractionalPlotFcnControl(p,x,optimvalues,init,varargin)
         if init
            title('Control') 
         end
-        u = x(1+p.Nx*p.Nt:end); % extract
+        u = x(1+p.Nx*p.Nt:p.Nx*p.Nt+p.Nu*p.Nt); % extract
         u = reshape(u,p.Nu,p.Nt);
         
         

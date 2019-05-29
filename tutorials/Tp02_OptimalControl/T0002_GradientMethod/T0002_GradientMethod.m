@@ -67,13 +67,14 @@ F = [ Y(2)             ; ...
 
 dynamics = ode(F,Y,U); % Define 'ode' class
 dynamics.InitialCondition = [0;-1];
-dynamics.dt = 0.01;
+dynamics.Nt = 100;
 
 YT = [2;4];
 Psi = sym(0);
-L   =0.005*(U.'*U) + (Y-YT).'*(Y-YT);
+L   =5e-7*(U.'*U) + (Y-YT).'*(Y-YT);
 
-iP = OptimalControl(dynamics,Psi,L); % Define 'OptimalControl' class
+iP = Pontryagin(dynamics,Psi,L); % Define 'OptimalControl' class
+U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.Udim);
 
 %%
 % 'GradientMethod' solves the optimal control problem of 'OptimalControl'
@@ -81,25 +82,29 @@ iP = OptimalControl(dynamics,Psi,L); % Define 'OptimalControl' class
 % order to specify a descent algorithm, we use 'DescentAlgorithm' parameter
 % of 'GradientMethod' function: 
 %%
-GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent) % Same as default
+GradientMethod(iP,U0,'DescentAlgorithm',@ConjugateDescent) % Same as default
 plot(iP)
 
-tspan = iP.ode.tspan;
-U1_tspan = iP.solution.UOptimal;
-Cost1 = iP.solution.JOptimal;
+U1_tspan = iP.Solution.UOptimal;
+Cost1 = iP.Solution.JOptimal;
 %%
-GradientMethod(iP,'DescentAlgorithm',@ClassicalDescent)
+GradientMethod(iP,U0,'DescentAlgorithm',@ClassicalDescent)
 plot(iP)
 
-U2_tspan = iP.solution.UOptimal;
+Cost2 = iP.Solution.JOptimal;
+U2_tspan = iP.Solution.UOptimal;
 %%
-GradientMethod(iP,'DescentAlgorithm',@AdaptativeDescent)
+GradientMethod(iP,U0,'DescentAlgorithm',@AdaptativeDescent)
 plot(iP)
-
-U3_tspan = iP.solution.UOptimal;
+Cost3 = iP.Solution.JOptimal;
+U3_tspan = iP.Solution.UOptimal;
 %%
 figure();
-plot(tspan,[U1_tspan U2_tspan U3_tspan]);
+tspan = iP.Dynamics.tspan;
+plot(tspan,[U1_tspan],'r.--');
+line(tspan,[U2_tspan],'Color','green','Marker','.');
+line(tspan,[U3_tspan],'LineStyle','-','Color','blue','Marker','.');
+
 legend('ConjugateGradientDescent','ClassicalDescent','AdaptiveDescent')
 xlabel('Time')
 ylabel('Control')
@@ -108,4 +113,4 @@ ylabel('Control')
 % We may use the options of 'GradientMethod', such as 'Graphs' or 'U0',
 % where we may plot the figures during the calculation and provide initial
 % guess on the control function by 'U0'. 
-GradientMethod(iP,'Graphs',true,'U0',U3_tspan);
+GradientMethod(iP,U3_tspan,'Graphs',true);

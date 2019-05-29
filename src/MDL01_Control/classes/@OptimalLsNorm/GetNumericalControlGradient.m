@@ -1,4 +1,3 @@
-
 function dJ = GetNumericalControlGradient(iCP,~,U,P)
 %GETNUMERICALINITGRADIENT Summary of this function goes here
 %   Detailed explanation goes here
@@ -16,5 +15,7 @@ function dJ = GetNumericalControlGradient(iCP,~,U,P)
         U_norm_Ls = U_norm_Ls^(2-s);        
         dJ = U_norm_Ls*(U.*abs(U).^(s-2)) + P*B;
     end
+    
+    dJ = iCP.Dynamics.dt*dJ;
 end
 

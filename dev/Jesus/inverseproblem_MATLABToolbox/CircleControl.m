@@ -62,7 +62,7 @@ pdeplot(dynamics,'XYData',YTarget,'Zdata',YTarget)
 view(0,90); caxis([-0.5 4])
 
 subplot(1,2,2)
-for iter = 1:100
+for iter = 1:5
     % solve direct dynamics
     newUControl = UControl;
     
@@ -92,7 +92,7 @@ end
 function [Distance2Target,uu] = Control2Value(UControl)
 
     UControl.XYtData        = [repspace reptspan UControl.Data(:)];
-    UControl.fcn            =  scatteredInterpolant(UControl.XYtData(:,1),UControl.XYtData(:,2),UControl.XYtData(:,3),UControl.XYtData(:,4),'nearest');
+    UControl.fcn            =  scatteredInterpolant(UControl.XYtData(:,1),UControl.XYtData(:,2),UControl.XYtData(:,3),UControl.XYtData(:,4),'linear');
 
     delete(dynamics.EquationCoefficients.CoefficientAssignments)
 
@@ -123,7 +123,7 @@ function animation(istate,Ucontrol)
 end
 function gradientU = dynamics2gradient(u)
     AdjointFinalCondition = u(:,end) - YTarget;
-    InterpAdjoint = scatteredInterpolant(Nodes(:,1),Nodes(:,2),AdjointFinalCondition,'nearest');
+    InterpAdjoint = scatteredInterpolant(Nodes(:,1),Nodes(:,2),AdjointFinalCondition,'linear');
     u0fun = @(location) InterpAdjoint(location.x,location.y);
 
     delete(adjoint.InitialConditions.InitialConditionAssignments)

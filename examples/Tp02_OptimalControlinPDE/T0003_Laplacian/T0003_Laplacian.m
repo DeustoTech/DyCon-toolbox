@@ -32,14 +32,25 @@ iCP1 = Pontryagin(dynamics,symPsi,symL);
 tol = 1e-6;
 %
 U0 = zeros(iCP1.Dynamics.Nt,iCP1.Dynamics.Udim);
-GradientMethod(iCP1,U0,'tol',tol,'Graphs',false,'DescentAlgorithm',@ConjugateDescent,'MaxIter',200,'display','all')
+[UOptDyCon,JOptDycon] = GradientMethod(iCP1,U0,'tol',tol,'Graphs',false,'DescentAlgorithm',@ConjugateDescent,'MaxIter',200,'display','all')
 %% fmincon
 options = optimoptions(@fminunc,'display','iter','SpecifyObjectiveGradient',true);
-Uopt = fminunc(@(U) Control2Functional(iCP1,U),U0,options)
+UoptFminCon = fminunc(@(U) Control2Functional(iCP1,U),U0,options)
 
 %%
+DynFminCon = copy(iCP1.Dynamics);
+DynFminCon.label = 'Dycon';
+solve(DynFminCon,'Control',UoptFminCon)
+%%
+DynDyCon = copy(iCP1.Dynamics);
+solve(DynDyCon,'Control',UOptDyCon)
+DynDyCon.label = 'fmincon';
+%%
+solve(iCP1.Dynamics,'Control',U0)
+iCP1.Dynamics.label = 'free';
 
-solve(iCP1.Dynamics,'Control',Uopt)
+%%
+animation([DynFminCon DynDyCon, iCP1.Dynamics])
 %%
 dynamics.label = 'Free';
 iCP1.Dynamics.label = 'with Control';
@@ -47,7 +58,6 @@ solve(dynamics)
 
 plotT([iCP1.Dynamics dynamics])
 hold on 
-plot()
 % animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
 % Several ways to run
 % GradientMethod(iCP1)

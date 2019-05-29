@@ -56,7 +56,7 @@ dynamics = ode(F,Y,U)
 % $ but also to represent the control vector $ U $ and cost $ J $ in
 % 'OptimalControl' class. 
 dynamics.InitialCondition = [0;-1];
-dynamics.dt = 0.01;
+dynamics.Nt = 10;
 %%
 % Next we need to define the functional $ J $ we want to minimize.
 % Following the form presented in [1], we define the expressions of $ \ Psi $
@@ -78,12 +78,13 @@ iP
 % Pontryagin principle.
 %%
 % To solve the problem using the default gradient method, we simply write:
-GradientMethod(iP)
+U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.Udim);
+GradientMethod(iP,U0);
 %% 
 % This command generates 'solution' in the 'OptimalControl' class, which
 % contains the optimal control vector 'UOptimal' and its information, such as the
 % cost, precision and time of computations.
-iP.solution
+iP.Solution
 %%
 % This structure is independent of the solver, and we can see the results
 % through visualization functions we want. One of the examples is 'plot'

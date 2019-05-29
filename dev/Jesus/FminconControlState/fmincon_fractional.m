@@ -1,4 +1,7 @@
 
+
+
+
 p = Method_SingleStep_fun;
 
 [p.xms ,p.tms] = meshgrid(p.xline,p.tline);
@@ -36,7 +39,7 @@ function p = Method_SingleStep_fun
     p.T  = 0.2;
     %%
     p.Nx = 15;
-    p.Nt = 30; p.dt = p.T/(p.Nt-1);
+    p.Nt = 60; p.dt = p.T/(p.Nt-1);
     %%
     p.xline = linspace(-1,1,p.Nx);
     p.dx =  p.xline(2) - p.xline(1);
@@ -44,9 +47,8 @@ function p = Method_SingleStep_fun
     %%
     
     p.A = -FEFractionalLaplacian(0.8,1,p.Nx);
-    p.A =  FDLaplacian(p.xline);
     
-    a = -0.7;b = 0.5;
+    a = -0.3;b = 0.5;
     newcontrol = (p.xline>=a).*(p.xline<=b);
     control = newcontrol;
     control(control == 0) = [];
@@ -69,26 +71,19 @@ function p = Method_SingleStep_fun
     p.dynamics.Solver = @eulere;
 
     p.dynamics.FinalTime = p.T;
-    p.dynamics.dt = p.T/(p.Nt-1);
+    p.dynamics.Nt = p.Nt;
     
     p.dynamics.InitialCondition = 6*cos(0.5*p.xline');
     U0 = zeros(p.Nt,p.Nu) + 1;
     [~ , ytarget ] = solve(p.dynamics,'Control',U0);
     
     p.yf =  ytarget(end,:)';
+    p.beta  = 0.01;
     %% Initial Guess.
     p.dynamics.InitialCondition = p.y0;
     uguess = U0*0; uguess(1:floor(p.Nt/5),:) = 100;
     %uguess = uguess*p.B;
     
-    [~ , yguess ] = solve(p.dynamics,'Control',uguess);
-    yguess = reshape(yguess',p.Nt*p.Nx,1);
-    uguess = reshape(uguess',p.Nt*p.Nu,1);
-    
-    p.Umin = 0;
-    
-    x0 = [yguess; uguess];
-
     
     %%
     options = optimoptions(@fmincon,'display','iter', ...
@@ -97,66 +92,16 @@ function p = Method_SingleStep_fun
                                     'CheckGradients',false, ...
                                     'SpecifyObjectiveGradient',true,        ...
                                     'SpecifyConstraintGradient',true,        ...
-                                    'UseParallel',true); %,             ...
-%                                     'PlotFcn',{@(x,optimvalues,init) fminconfractionalPlotFcnState(p,x,optimvalues,init)    ...
-%                                                @(x,optimvalues,init) fminconfractionalPlotFcnControl(p,x,optimvalues,init)  ...
-%                                                @(x,optimvalues,init) fminconfractionalPlotFcnInitial(p,x,optimvalues,init)  ...
-%                                                @(x,optimvalues,init) fminconfractionalPlotFcnFinal(p,x,optimvalues,init)  ...
-%                                                }); % options
-
-
-    % solve the problem
-    
-    % Initial - Final Condition Matrix
-    Aif = diag([ones(1,p.Nx), zeros(1,p.Nx*(p.Nt-2))  , ones(1,p.Nx)  , zeros(1,p.Nu*p.Nt)]);
-    bif =      [    p.y0'    , zeros(1,p.Nx*(p.Nt-2)) ,     p.yf'     , zeros(1,p.Nu*p.Nt)]';
-    %
-    %load('xseed');
-    %x0 = x;
+                                    'UseParallel',true); % options
     
     %%
-    xx= sym('x',[1 p.Nt*(p.Nx + p.Nu)]).';
-    
-    
-    funxx = objective(xx,p);
-    funxxFcn = @(x) objective(x,p);
-    %funxxFcn = matlabFunction(funxx,'Vars',{xx});
-    dfunxx = gradient(funxx,xx);
-    dfunxxFcn = matlabFunction(dfunxx,'Vars',{xx});
-    
-    [~,ceqDynxx] = constraints(xx,p);
-    ceqDynxxFcn = @(x) constraints(x,p);
-    %ceqDynxxFcn = matlabFunction(ceqDynxx,'Vars',{xx});
-    %dceqDynxx = jacobian(ceqDynxx,xx);
-    %[~ ,preceqDynxx] = preconstraints(xx,p);
-    yjaco = jacobian(ceqDynxx(1:p.Nx),xx(1:2*p.Nx));
-    %yjaco = yjaco(1:p.Nx,1:2*p.Nx);
-    ujaco = jacobian(ceqDynxx(1:p.Nu),xx(p.Nx*p.Nt+1:p.Nx*p.Nt+p.Nu));
-    %ujaco = jacobian(ceqDynxx,xx(p.Nx*p.Nt+1:end));
-
-    %ujaco = ujaco(1:p.Nu,1:p.Nu);
-    
-    rowjaco = [yjaco,zeros(p.Nx,(p.Nt-2)*p.Nx,'sym'),ujaco,ujaco,zeros(p.Nx,(p.Nt-2)*p.Nu,'sym')];
-    
-    [nrow,ncol] = size(rowjaco);
-    fulljaco = zeros(nrow*(p.Nt-1),ncol,'sym');
-    for iter = 1:p.Nt-1
-        fulljaco(1+(iter-1)*p.Nx:iter*p.Nx,1+(iter-1)*p.Nx:end) = rowjaco(:,1:end-(1+(iter-1)*p.Nx-1));
-    end
-    fulljaco = fulljaco';
-    
-    dceqDynxxFcn = matlabFunction(fulljaco,'Vars',{xx},'Sparse',true);
-    
-    
-    %%
-    [x ,J] = fmincon(@(x) numeric_objective(x,funxxFcn,dfunxxFcn) ,x0,                                          ...
-                                         [],[],                                       ...   % lineal ieq
-                                         Aif,bif,                                       ... % lineal eq
-                                         zeros(1,2*p.Nu*p.Nt), ...  %[-Inf*ones(1,p.Nx*p.Nt),zeros(1,p.Nu*p.Nt)], ...   % low boundaries
-                                         [],                                          ...   % up boundaries
-                                         @(x) numeric_costraint(x,ceqDynxxFcn,dceqDynxxFcn),                       ...   % nolineal constraints
+    [x ,J] = fmincon(@(u) OBJFminconOC(u,p) ,uguess,             ...
+                                         [],[],                  ...   % lineal ieq
+                                         [],[],                  ...   % lineal eq
+                                         zeros(1,p.Nu*p.Nt),     ...   % low boundaries
+                                         [],                     ...   % up boundaries
+                                         @(u) CONFminconOC(u,p), ...   % nolineal constraints
                                          options);
-    %x = fmincon(@(x) objective(x,p),x0,[],[],[],[],[],[],[],options);
     % obtain the optimal solution
     yopt = x(1:p.Nx*p.Nt); % extract
     yopt = reshape(yopt,p.Nx,p.Nt);
@@ -170,30 +115,7 @@ function p = Method_SingleStep_fun
     p.solution.Jopt = J;
     %%
     % objective function
-    
-    function [J,dJ] = numeric_objective(x,fun,dfun)
-        J = fun(x);
-        dJ = dfun(x);
-    end
-
-    function [c,ceqDyn,dc,dceqDyn] = numeric_costraint(x,fun,dfun)
-        dc=[];
-        [c ,ceqDyn] = fun(x);
-        %ceqDyn = fun(x); c = [];
-        ceqDyn = double(ceqDyn);
-        dceqDyn = dfun(x);
-     end
-    
-    function varargout = objective(x,p)
-                
-        uvector = x(1+p.Nx*p.Nt:end); % extract
-        u = reshape(uvector,p.Nt,p.Nu);
-        beta = 1;
-        L = beta*abs(u); % integrand
-        %
-        varargout{1} = p.dx*p.dt*sum(sum(L));
-        %
-    end
+   
     % constraint function
     function [c,ceqDyn] = constraints(x,p)
         

@@ -13,6 +13,11 @@ function varargout  = Control2Functional(iCP,Control,Time)
         dJ            = GetNumericalControlGradient(iCP,Control,StateVector,AdjointVector);
     end
     
+    
+%     if nargout > 2        
+%         Hess = GetNumericalHessian(iCP,Control,StateVector,AdjointVector);
+%     end
+    
     switch nargout
         case 1
             varargout{1} = J;

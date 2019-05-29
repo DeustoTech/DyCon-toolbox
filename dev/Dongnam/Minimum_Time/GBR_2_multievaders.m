@@ -50,8 +50,8 @@ dot_vd2= -f_d2(rr2)*ur2 - nu_e*vd2 + kappa2*urperp2;
 F = [dot_ud;dot_ue;dot_vd;dot_ve;dot_ud2;dot_vd2]*T;
 
 % T=5.1725, kappa = 1.5662 -> [-1,1]
-dt = 0.01;
-dynamics = ode(F,Y,U,'FinalTime',1,'dt',dt);
+Nt = 100;
+dynamics = ode(F,Y,U,'FinalTime',1,'Nt',Nt);
 dynamics.InitialCondition = [-3;0.5;0;0;0;0;0;0;-3;-0.5;0;0];
 %dynamics.InitialCondition = [-2;-2;0;0;0;0;0;0;2;-2;0;0];
 %dynamics.InitialCondition = [-2;-2;0;0;0;0;0;0;2;-2;0;0];

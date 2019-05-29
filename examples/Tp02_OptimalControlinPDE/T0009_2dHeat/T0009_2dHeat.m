@@ -16,7 +16,7 @@ dynamics.mesh = {xline,yline};
 dynamics.FinalTime = 2;
 % time points
 Nt = 30;
-dynamics.dt = dynamics.FinalTime/Nt;
+dynamics.Nt =Nt;
 
 %% Select Initial Condition
 [Xms,Yms] = meshgrid(xline,yline);

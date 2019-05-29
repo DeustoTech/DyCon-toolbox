@@ -65,7 +65,7 @@ plot(ud_zero(1,:),ud_zero(2,:),'bo');
 
 % T=5.1725, kappa = 1.5662 -> [-1,1]
 dt = 0.01;
-dynamics = ode(F,Y,U,'FinalTime',1,'Nt',100);
+dynamics = ode(F,Y,U,'FinalTime',1,'Nt',70);
 dynamics.InitialCondition = Y0;
 %%
 tline = dynamics.tspan;

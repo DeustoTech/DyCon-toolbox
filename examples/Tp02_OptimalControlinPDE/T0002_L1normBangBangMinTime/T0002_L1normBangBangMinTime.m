@@ -25,7 +25,7 @@ B = BInterior(xline,a,b);
 Y0 = 1+cos(pi*xline');
 %%
 dt = FinalTime/Nt;
-dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'dt',dt);
+dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
 dynamics.MassMatrix = M;
 dynamics.mesh = xline;
 %% Target 
@@ -46,7 +46,7 @@ Psi  = (dx/(2*epsilon))*(YT - Y).'*(YT - Y);
 L    = (dx)*sum(abs(U));
 %%
 % Optional Parameters to go faster
-Gradient                =  @(t,Y,P,U) dx*sign(U) + B*P;
+Gradient                =  @(t,Y,P,U) dt*dx*sign(U) + B*P;
 Hessian                 =  @(t,Y,P,U) dx*eye(iCP.ode.Udim)*dirac(U);
 AdjointFinalCondition   =  @(t,Y) (dx/(epsilon))* (Y-YT);
 Adjoint = pde('A',A);
@@ -54,10 +54,9 @@ OCParmaters = {'Hessian',Hessian,'ControlGradient',Gradient,'AdjointFinalConditi
 %%
 % build problem with constraints
 iCP_norm_L1 =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
-%iCP_norm_L1.constraints.Umax =  20*max(Y0_other);
-%iCP_norm_L1.constraints.Umin =  min(Y0_other);
-iCP_norm_L1.constraints.Umax =  20;
-iCP_norm_L1.constraints.Umin =  -20;
+
+iCP_norm_L1.Constraints.MaxControl =  20;
+iCP_norm_L1.Constraints.MinControl =  0;
 %
 iCP_norm_L1.Target = YT;
 %%
@@ -68,8 +67,9 @@ Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
              'MaxIter',500,                               ...
              'display','all',};
 %%
-GradientMethod(iCP_norm_L1,Parameters{:})
-J = iCP_norm_L1.solution.Jhistory(end)
+U0 = zeros(iCP_norm_L1.Dynamics.Nt,iCP_norm_L1.Dynamics.Udim) + 0.1;
+GradientMethod(iCP_norm_L1,U0,Parameters{:})
+J = iCP_norm_L1.Solution.Jhistory(end)
 end
 %%
 

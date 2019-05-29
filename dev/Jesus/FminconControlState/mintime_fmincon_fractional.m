@@ -44,8 +44,8 @@ function p = Method_SingleStep_fun
     %% Dynamics 
     p.T  = 0.2;
     %%
-    p.Nx = 12;
-    p.Nt = 30; p.dt = p.T/(p.Nt-1);
+    p.Nx = 50;
+    p.Nt = 100; p.dt = p.T/(p.Nt-1);
     %%
     p.xline = linspace(-1,1,p.Nx);
     p.dx =  p.xline(2) - p.xline(1);
@@ -62,8 +62,8 @@ function p = Method_SingleStep_fun
     control(control == 0) = [];
     p.Nu = length(control);
     
-    p.B =  BInterior(p.xline,-0.3,0.8);
-    p.Nu = p.Nx;
+    p.B =  BInterior(p.xline,-0.3,0.5,'min');
+    p.Nu = length(p.B(1,:));
 %     p.B =  p.B(:,newcontrol == 1)
     % problem parameters
     %
@@ -78,7 +78,7 @@ function p = Method_SingleStep_fun
     p.dynamics.Solver = @eulere;
 
     p.dynamics.FinalTime = p.T;
-    p.dynamics.dt = p.T/(p.Nt-1);
+    p.dynamics.Nt = p.Nt;
     
     p.dynamics.InitialCondition = 6*cos(0.5*p.xline');
     U0 = zeros(p.Nt,p.Nu) + 1;
@@ -145,7 +145,7 @@ function p = Method_SingleStep_fun
     yopt = x(1:p.Nx*p.Nt); % extract
     yopt = reshape(yopt,p.Nx,p.Nt);
         
-    uopt = x(1+p.Nx*p.Nt:end); % extract
+    uopt = x(1+p.Nx*p.Nt:p.Nx*p.Nt +p.Nu*p.Nt); % extract
     uopt = reshape(uopt,p.Nu,p.Nt);
     
     p.solution.yopt = yopt;

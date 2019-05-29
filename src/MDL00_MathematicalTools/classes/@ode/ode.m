@@ -66,7 +66,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         Nt                                          (1,1)                           double  
         MassMatrix
         label = '' 
-        Solver = @ode45
+        Solver = @ode23tb
         SolverParameters = {}
         
     end
@@ -156,7 +156,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             addOptional(p,'B',[])
 
             
-            addOptional(p,'Nt',10)
+            addOptional(p,'Nt',10,@DTValidNt)
             addOptional(p,'FinalTime',1)
             addOptional(p,'InitialCondition',[])
 
@@ -247,6 +247,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 
             end
 
+
         end
         %% ================================================================================
         %
@@ -260,10 +261,10 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         end
         %%
         function Udim = get.Udim(obj)
-            if ~isempty(obj.Control.Symbolic)
+            if ~(obj.lineal)
                Udim =  length(obj.Control.Symbolic);
             elseif ~isempty(obj.B) 
-               [Udim, ~ ] =  size(obj.B);
+               [~, Udim ] =  size(obj.B);
             else
                 Udim = 0;
             end

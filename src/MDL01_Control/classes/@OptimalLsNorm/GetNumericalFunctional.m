@@ -36,7 +36,7 @@ function J = GetNumericalFunctional(iCP,Y,U)
         dY = Y(end,:).'-YT;
         dY_norm_L2 = trapz(xline,abs(dY.').^2);
         
-         J = 0.5*dx*dt*max(max(U))^2 + 0.5*k*dY_norm_L2;
+         J = 0.5*max(max(U))^2 + 0.5*k*dY_norm_L2;
     else
         
         U_norm_Ls = trapz(tspan,trapz(xline,abs(U.').^s));

@@ -25,7 +25,7 @@ A = [-0.5,      5,    0,    0;
 B = [0; 1; 0; 1];
 
 dynamics = A*Y + B*U;
-dt = 0.01;
+Nt = 500;
 T = 4.2;
 Y0 = [10; 10; 10; 10];
 
@@ -34,14 +34,14 @@ Y0 = [10; 10; 10; 10];
 
 iode = ode(dynamics,Y,U);
 iode.InitialCondition = Y0;
-iode.Solver = @ode23tb;
+iode.Solver = @eulere;
 iode.FinalTime = T;
-iode.dt = dt;
+iode.Nt = Nt;
 
 Psi = (Y'*Y);
 L   = sym(0);
 
-iCP = OptimalControl(iode,Psi,L);
+iCP = Pontryagin(iode,Psi,L);
 
 %%
 % After we defined 'OptimalControl' class, we may use the function
@@ -59,12 +59,13 @@ options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',true
 %%
 % We can solve the same control problem using 'GradientMethod'.
 
-iCP.constraints.Umax = 1;
-iCP.constraints.Umin = -1;
+iCP.Constraints.MaxControl = 1;
+iCP.Constraints.MinControl = -1;
 
-GradientMethod(iCP,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all')
-U2_tspan = iCP.solution.UOptimal;
-J2_optimal = iCP.solution.JOptimal;
+U0 = zeros(iCP.Dynamics.Nt,iCP.Dynamics.Udim);
+GradientMethod(iCP,U0,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all')
+U2_tspan = iCP.Solution.UOptimal;
+J2_optimal = iCP.Solution.JOptimal;
 %%
 plot(iode.tspan,[U1_tspan,U2_tspan])
 xlabel('Time')

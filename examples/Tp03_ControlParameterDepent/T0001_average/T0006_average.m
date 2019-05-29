@@ -53,8 +53,6 @@ for j = 1:M
 end
 
 %%
-% We take as final target
-xt = zeros(N, 1);
 %%
 % We can use the classical gradient descent method based on the adjoint methodology to obtain the iterative method
 % in order to compute the optimal control. Applying this methodology we obtain the corresponding adjoint system for [^fn],
@@ -70,30 +68,32 @@ xt = zeros(N, 1);
 % \end{equation*} $$
 %%
 iode = ode('A',A,'B',B);
+iode.FinalTime = 5;
 Y0 = ones(N, 1);
 iode.InitialCondition = repmat(Y0,M,1);
-iode.dt = 0.01;
+iode.Nt = 100;
 
 %% 
 Ys = iode.StateVector.Symbolic;
 U  = iode.Control.Symbolic;
 %%
 Ysm = arrayfun(@(index) mean(Ys(index:(M+1):N*M)),1:N).';
-Yt = zeros(N, 1); 
+Yt = ones(N, 1); 
 Psi = (Ysm - Yt).'*(Ysm - Yt);
-beta = 1e-3;
-L   = 0.5*beta*(U.'*U);
+beta = 1e-5;
+L   = 0.001*beta*(U.'*U);
 %%
 % Create the optimal control 
-iCP1 = OptimalControl(iode,Psi,L);
+iCP1 = Pontryagin(iode,Psi,L);
 %% 
 % Solve 
-GradientMethod(iCP1,'DescentAlgorithm',@ClassicalDescent,'MaxIter',1000,'Graphs',false)
+U0 = ones(iCP1.Dynamics.Nt,iCP1.Dynamics.Udim);
+GradientMethod(iCP1,U0,'DescentAlgorithm',@ConjugateDescent,'MaxIter',1000,'tol',1e-8)
 %%
 % See average free
-solve(iode)
+solve(iode);
 Yfree    = iode.StateVector.Numeric;
-Ycontrol = iCP1.ode.StateVector.Numeric;
+Ycontrol = iCP1.Dynamics.StateVector.Numeric;
 %%
 cellstate = arrayfun(@(index) mean(Yfree(:,index:(M+1):N*M),2),1:N,'UniformOutput',0);
 meanvector = [cellstate{:}];

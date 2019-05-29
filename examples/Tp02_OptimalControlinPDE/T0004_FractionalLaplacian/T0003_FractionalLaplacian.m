@@ -33,7 +33,7 @@ xline = xline(2:end-1);
 % Out of that, we can construct the FE approxiamtion of the fractional
 % Lapalcian, using the program FEFractionalLaplacian developped by our
 % team, which implements the methodology described in [1].
-s = 0.8;
+s = 0.3;
 A = FEFractionalLaplacian(s,1,N);
 M = massmatrix(xline);
 %%
@@ -129,7 +129,7 @@ dynamics.label = 'Free';
 iCP1.Dynamics.label = 'Control';
 %%
 %  ```
-% animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
+% animation([iCP1.Dynamics,dynamics],'YLim',[-1 1],'xx',0.05)
 % ```
 %%
 % ![](extra-data/063235.gif)

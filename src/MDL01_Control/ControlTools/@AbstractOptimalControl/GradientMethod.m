@@ -69,13 +69,13 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     %% Control Problem Parameters
     pinp = inputParser;
     addRequired(pinp,'iControlProblem')
-    addRequired(pinp,'InitialControl')
+    addRequired(pinp,'InitialControl',@InitialControlDefault)
     %% Method Parameter
     % ------------------------------------------------------------------------------------------------------
     % |             | Name                  | Default               |            Validator                  | 
     % ------------------------------------------------------------------------------------------------------
     addOptional(pinp,'MaxIter'              ,500)
-    addOptional(pinp,'tol'                  ,1e-3)
+    addOptional(pinp,'tol'                  ,1e-4)
     addOptional(pinp,'DescentAlgorithm'     ,@AdaptativeDescent     ,@(alg)mustBeMember(char(alg),{'AdaptativeDescent','ConjugateDescent','ClassicalDescent'}))
     addOptional(pinp,'DescentParameters'    ,{})
     %% Graphs Parameters
@@ -86,7 +86,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     addOptional(pinp,'Graphs'   ,false )
     addOptional(pinp,'EachIter' ,5 )
 
-    addOptional(pinp,'display'  ,'none'     ,@(display)mustBeMember(display,{'none','all','functional'}))
+    addOptional(pinp,'display'  ,'end'     ,@(display)mustBeMember(display,{'none','all','functional','end'}))
     addOptional(pinp,'SaveGif'  ,false )
     addOptional(pinp,'restart'  ,false )
 
@@ -222,6 +222,12 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
             varargout{1} = iCP.Solution.ControlHistory{end};
             varargout{2} = iCP.Solution.Jhistory(end);
 
+    end
+    
+    %% 
+    function InitialControlDefault(U0)
+        mustBeNumeric(U0)
+    
     end
 end
 

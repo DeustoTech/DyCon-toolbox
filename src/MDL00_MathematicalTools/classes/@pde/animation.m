@@ -21,7 +21,8 @@ function animation(iode,varargin)
     addOptional(p,'YLimControl',[])
     addOptional(p,'Target',[])
     addOptional(p,'InitCondition',[])
-    
+    addOptional(p,'ControlShadow',false)
+
 
     addOptional(p,'xx',1.0)
     addOptional(p,'SaveGif',false)
@@ -34,6 +35,7 @@ function animation(iode,varargin)
     YLimControl     = p.Results.YLimControl;
     Target          = p.Results.Target;
     InitCondition   = p.Results.InitCondition;
+    ControlShadow    = p.Results.ControlShadow;
     
     structure       = [iode.StateVector];
     Y               = {structure.Numeric};
@@ -81,7 +83,7 @@ function animation(iode,varargin)
    end
    
    if ~isempty(Target)
-      line(iode(1).mesh,Target,'Parent',axY,'Color',[1 0.6 0.6],'LineWidth',1.5) 
+      line(iode(1).mesh,Target,'Parent',axY,'Color',[0.4 0.3 0.6],'LineWidth',1.5) 
       int_ls = int_ls + 1;
       legend_string{int_ls} = 'Target';
    end
@@ -108,9 +110,9 @@ function animation(iode,varargin)
         if exist('l','var')
             delete(l)
         end
-        if havecontrol
+        if havecontrol && ~ControlShadow
             if exist('luu','var')
-                delete(luu)
+                delete(luu) 
             end
         end
         axY.Title.String = ['t = ',num2str(t,'%.2f')];
@@ -127,6 +129,9 @@ function animation(iode,varargin)
    
             l(index)   = line(iode(1).mesh,interp1(tspan,iY{:},t),'Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
             if ~isempty(U{index})
+                if ControlShadow && exist('luu','var')
+                    luu(index).Color = 0.2*luu(index).Color + 0.8*[1 1 1];
+                end
                 luu(index) = line(1:iode(1).Udim,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
             end
         end

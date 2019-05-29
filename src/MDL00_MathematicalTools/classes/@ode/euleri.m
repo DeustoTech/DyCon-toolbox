@@ -24,7 +24,7 @@ function [tspan, sol] = euleri(iode,varargin)
     if ~isempty(B)
 
         for i=2:StepsTime
-            sol(:,i) = C\(sol(:,i-1) + dt*B*U(i-1,:)');
+            sol(:,i) = C\sol(:,i-1) + dt*( (M\B)*U(i-1,:)' );
         end
     
     else

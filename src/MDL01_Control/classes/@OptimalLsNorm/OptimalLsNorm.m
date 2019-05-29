@@ -22,7 +22,8 @@ classdef OptimalLsNorm < AbstractOptimalControl
 
             %% Adjoint 
             obj.Adjoint.Dynamics = pde('A',Dynamics.A);
-            
+            obj.Adjoint.Dynamics.Nt = Dynamics.Nt;
+            obj.Adjoint.Dynamics.mesh = Dynamics.mesh;
         end
         
     end
