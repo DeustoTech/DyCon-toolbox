@@ -1,0 +1,39 @@
+
+clear all
+clc
+
+%%
+Nx = 100;
+xline = linspace(-1,1,Nx+2);
+xline = xline(2:end-1);
+dx    = xline(2) - xline(1);
+%%
+A = -FEFractionalLaplacian(0.8,1,Nx);
+B =  BInterior(xline,-0.3,0.8,'Mass',true);
+%%
+idyn            = pde('A',A,'B',B);
+idyn.FinalTime  = 0.1;
+idyn.Nt         = 100;
+idyn.mesh       = xline;
+idyn.MassMatrix = MassMatrix(xline);
+%
+idyn.InitialCondition = sin(pi*xline');
+%%
+iHUM = HUM(idyn);
+iHUM.Epsilon = dx^4;
+%%
+f0   = zeros(Nx,1);
+fOpt = CoConjugateGradient(iHUM,f0,'tol',1e-9);
+
+%%
+close all
+surf(iHUM.Dynamics.Control.Numeric)
+%%
+
+
+solve(idyn)
+
+%%
+iHUM.Dynamics.label = 'dynamics';
+idyn.label = 'Free';
+animation([iHUM.Dynamics idyn],'xx',0.01,'YLim',[-0.2 0.2],'YLimControl',[-100 100])

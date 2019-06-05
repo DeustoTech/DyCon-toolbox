@@ -44,8 +44,8 @@ function p = Method_SingleStep_fun
     %% Dynamics 
     p.T  = 0.2;
     %%
-    p.Nx = 50;
-    p.Nt = 100; p.dt = p.T/(p.Nt-1);
+    p.Nx = 20;
+    p.Nt = 20; p.dt = p.T/(p.Nt-1);
     %%
     p.xline = linspace(-1,1,p.Nx);
     p.dx =  p.xline(2) - p.xline(1);
@@ -53,7 +53,7 @@ function p = Method_SingleStep_fun
     %%
     
     p.A = -FEFractionalLaplacian(0.8,1,p.Nx);
-    %p.A =  FDLaplacian(p.xline);
+    p.A =  FDLaplacian(p.xline);
     
 
     a = -0.3;b = 0.5;
@@ -62,7 +62,7 @@ function p = Method_SingleStep_fun
     control(control == 0) = [];
     p.Nu = length(control);
     
-    p.B =  BInterior(p.xline,-0.3,0.5,'min');
+    p.B =  BInterior(p.xline,-0.3,0.5,'min',true);
     p.Nu = length(p.B(1,:));
 %     p.B =  p.B(:,newcontrol == 1)
     % problem parameters

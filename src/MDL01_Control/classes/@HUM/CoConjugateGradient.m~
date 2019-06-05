@@ -1,0 +1,72 @@
+function f=CoConjugateGradient(iHUM,f,varargin)
+
+    p = inputParser;
+    addRequired(p,'iHUM');
+    addRequired(p,'f');
+    addOptional(p,'tol',1e-3)
+    
+    parse(p,iHUM,f,varargin{:})
+    
+    tol = p.Results.tol;
+    
+    YT = iHUM.Target;
+    %% Calculamos la solucion sin control
+    [~ ,YFree] = solve(iHUM.dynamics);
+    YFreeEnd=YFree(end,:)';
+
+    %%
+    iHUM.adjoint.InitialCondition = f;
+    [~ ,P] =solve(iHUM.adjoint);
+    P = flipud(P);
+    
+    %%
+    [~ ,Y] = solve(iHUM.zerodynamics,'Control',P*iHUM.zerodynamics.B);
+    Yend=Y(end,:)';
+    
+    %%
+    df = (1/iHUM.epsilon)*(Yend + YFreeEnd - YT) +f;
+    
+    w=df;
+
+    initerr = sqrt(df'*df);
+    err=10*tol;
+    
+    while (err>tol) 
+        
+        iHUM.adjoint.InitialCondition = w;
+        [~ ,P] =solve(iHUM.adjoint);
+        P = flipud(P);
+        
+        % Initial Condition is cero!
+        [~ ,Y] = solve(iHUM.zerodynamics,'Control',(iHUM.dynamics.B'*P')');
+        Lambdaw=Y(end,:)';
+    
+    
+	    dfnew = (1/iHUM.epsilon)*Lambdaw + w;
+
+        rho = (df'*df)/(dfnew'*w);
+
+    
+        f=f-rho*w;
+        dfnew = df - rho*dfnew;
+
+        err = sqrt(dfnew'*dfnew)/initerr
+
+        gamma=  (dfnew'*dfnew)/(df'*df);
+
+        w=dfnew+ gamma*w;
+        df=dfnew;
+
+
+    end
+
+    
+    iHUM.adjoint.InitialCondition = fOpt;
+    [~ ,P] =solve(iHUM.adjoint);
+    P = flipud(P);
+
+
+    idyn.InitialCondition = y0;
+    [~ ,soly] = solve(idyn,'Control',(idyn.B*P')');
+
+end

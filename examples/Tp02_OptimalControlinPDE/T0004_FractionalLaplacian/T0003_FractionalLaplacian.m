@@ -25,7 +25,7 @@
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-N = 30;
+N = 50;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N+2);
 xline = xline(2:end-1);
@@ -33,17 +33,17 @@ xline = xline(2:end-1);
 % Out of that, we can construct the FE approxiamtion of the fractional
 % Lapalcian, using the program FEFractionalLaplacian developped by our
 % team, which implements the methodology described in [1].
-s = 0.3;
-A = FEFractionalLaplacian(s,1,N);
+s = 0.8;
+A = -FEFractionalLaplacian(s,1,N);
 M = massmatrix(xline);
 %%
 % Moreover, we build the matrix $B$ defining the action of the control, by
-% using the program "construction_matrix_B" (see below).
-a = -0.3; b = 0.5;
-B = construction_matrix_B(xline,a,b);
+% using the program "BInterior" (see below).
+a = -0.3; b = 0.8;
+B = BInterior(xline,a,b,'Mass',true);
 %%
 % We can then define a final time and an initial datum
-FinalTime = 0.3;
+FinalTime = 0.5;
 Y0 =sin(pi*xline)';
 %%
 % and construct the system
@@ -56,10 +56,8 @@ Y0 =sin(pi*xline)';
 %   \end{cases}
 % \end{equation}
 % $$
-C = -(A);
-B =  (B);
 
-dynamics = pde('A',C,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',100);
+dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',100);
 dynamics.mesh = xline;
 dynamics.MassMatrix = M;
 solve(dynamics);
@@ -93,20 +91,26 @@ U = dynamics.Control.Symbolic;
 dx = xline(2)-xline(1);
 YT = 0.0*xline';
 epsilon = dx^4;
-symPsi  = dx*(YT - Y).'*(YT - Y);
-symL    = 1e-6*dx*(U.'*U);
+symPsi  = (1/(2*epsilon))*dx*(YT - Y).'*(YT - Y);
+symL    = (1/2)*dx*(U.'*U);
 iCP1 = Pontryagin(dynamics,symPsi,symL);
 
 %% Solution of the minimization problem
 % As a final step, we use the gradient method we developed for solving the
 % minimization problem and computing the control. In this case, we choose
 % to use the **Adaptive Gradient Descent** algorithm.
-tol = 1e-3;
+tol = 1e-4;
 %%
 U0 = dynamics.Control.Numeric;
-options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
-fminunc(@(U) Control2Functional(iCP1,U),U0,options)
-%GradientMethod(iCP1,U0,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'Graphs',true,'MaxIter',1000)
+% options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
+% [Uopt , JOpt] = fminunc(@(U) Control2Functional(iCP1,U),U0,options)
+%GradientMethod(iCP1,U0,'DescentAlgorithm',@ConjugateDescent,'tol',tol,'display','all','MaxIter',1000)
+
+
+GetSymbolicalAdjoint2Control(iCP1)
+
+f0 = dynamics.InitialCondition*0;
+CoGradientMethod(iCP1,f0)
 %%
 % As we see, the algorithm has stopped since it has reached the maximum
 % number of iterations allowed, and not because it has encountered a 
@@ -134,15 +138,6 @@ iCP1.Dynamics.label = 'Control';
 %%
 % ![](extra-data/063235.gif)
 %%
-function [B] = construction_matrix_B(mesh,a,b)
-
-N = length(mesh);
-B = zeros(N,N);
-
-control = (mesh>=a).*(mesh<=b);
-B = diag(control);
-
-end
 function M = massmatrix(mesh)
     N = length(mesh);
     dx = mesh(2)-mesh(1);
@@ -155,6 +150,8 @@ function M = massmatrix(mesh)
     M(N,N-1)=1/6;
             
     M=dx*sparse(M);
+    
+    
 end
 %% References
 % 

@@ -32,6 +32,7 @@
     %% Condicion inicial del problema adjunto
     % Para cada cordenada de X, calculamos la derivada de dPsi/dx_i
     PT = gradient(formula(symPsi),symY.').';
+
     % Convertimos la expresion a una funcion simbolica
     % P0(t,  y1,...,yn)
     obj.Adjoint.FinalCondition.Symbolic  = symfun(PT,[t symY.']);

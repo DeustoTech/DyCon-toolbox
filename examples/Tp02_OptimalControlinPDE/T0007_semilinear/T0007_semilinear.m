@@ -56,31 +56,27 @@ end
 % we define symbolically the vectors of the state and the control
 %%
 symY = SymsVector('y',N);
-symU = SymsVector('u',1);
+symU = SymsVector('u',count);
 %%
 % We create the functional that we want to minimize
 % Our goal is to set the system to zero penalizing the norm of the control
 % by a parameter $\beta$ that will be small.
-YT = 0.2 + 0*xline';
-symPsi  = (YT - symY).'*(YT - symY);
-beta=0.5;
-%tiempo= @(t) piecewise(t<=T/2,500,t>T/2,0);
-symL    = 0*(YT - symY).'*(YT - symY) + beta*(t+0.001)^(-2)*(symU.'*symU)*(abs(w1-w2))/count;
+YT = 0*xline';
+
+dx = xline(2) - xline(1);
+beta = dx^4;
+symPsi  = (1/beta)*(YT - symY).'*(YT - symY);
+symL    =(symU.'*symU)*(abs(w1-w2))/count;
 %%
 % We create the ODE object
 % Our ODE object will have the semi-discretization of the semilinear heat equation.
 % We set also initial conditions, define the non linearity and the interaction of the control to the dynamics.
 %%
 % Initial condition
-%Y0 = 2*sin(pi*xline)';
-Y0 = 0.99+0*xline';
+Y0 = 2*sin(pi*xline)';
 %%
 % Diffusion part: the discretization of the 1d Laplacian
 A=(N^2)*(full(gallery('tridiag',N,1,-2,1)));
-% A(1,1)=0;
-% A(1,2)=0;
-% A(end,end)=0;
-% A(end,end-1)=0;
 %%
 % We define the matrix B that will be the effect of the interior control to the dynamics
 B = zeros(N,count);
@@ -93,10 +89,6 @@ for i=1:N
         end
     end
 end
-B = zeros(N,1);
-B(1,1) = 1;
-B(end,end) = 1;
-B = N^2*B;
 %%
 % Definition of the non-linearity
 % $$ \partial_y[-5\exp(-y^2)] $$
@@ -105,23 +97,20 @@ syms x;
 syms G(x);
 syms U(x);
 syms DG(x);
-%U(x)=-5*exp(-x^2);
-%G(x)=diff(U,x);
-L=8;
-G(x)=L*L*x*(1-x)*(x-0.2);
+U(x)=-5*exp(-x^2);
+G(x)=diff(U,x);
 formula=G(x);
 G = symfun(formula,x)
 %%
 % and we define the part of the dynamics corresponding to the nonlinearity
 vectorF = arrayfun( @(x)G(x),symY);
 %%
-
 % Putting all the things together
 Fsym  = A*symY + vectorF + B*symU;
 %%
 % Creation of the ODE object
 % Time horizon
-T = 40;
+T = 1;
 %%
 % We create the ODE-object and we change the resolution to $dt=0.01$ in order
 % to see the variation in a small time scale. We will get the values of the
@@ -130,7 +119,8 @@ T = 40;
 % certain time steps that will hide part of the dynamics.
 %%
 odeEqn = pde(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
-odeEqn.Nt=200;
+odeEqn.Nt=50;
+odeEqn.Solver = @ode23tb;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
@@ -151,18 +141,10 @@ xlabel('Time')
 iCP1 = Pontryagin(odeEqn,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
-U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim)+ 0.99;
+U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim);
 %GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@AdaptativeDescent)
-options = optimoptions(@fmincon,'SpecifyObjectiveGradient',true,'display','iter');
-%fminunc(@(U) Control2Functional(iCP1,U),U0,options)
-%%
-iCP1.Dynamics.mesh = xline;
-%%
-fmincon(@(U) Control2Functional(iCP1,U),U0,[],[], ...
-                                           [],[], ... 
-                                           U0*0 ,U0*0 + 1, ... % lb - yp
-                                           [],options)
-
+options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
+fminunc(@(U) Control2Functional(iCP1,U),U0,options)
 %%
 figure;
 SIZ=size(iCP1.Dynamics.StateVector.Numeric);
@@ -176,23 +158,20 @@ xlabel('Time')
 %%
 % The control function inside the control region
 figure;
-% SIZ=size(iCP1.Dynamics.Control.Numeric);
-% time=linspace(0,T,SIZ(1));
-% space=linspace(1,SIZ(2)-1,SIZ(2)-1);
-% [TIME,SPACE]=meshgrid(time,space);
-% surf(iCP1.Dynamics.Control.Numeric,'EdgeColor','none')
-% title('Control')
-% ylabel('space discretization')
-% xlabel('Time')
-plot(iCP1.Dynamics.Control.Numeric)
+SIZ=size(iCP1.Dynamics.Control.Numeric);
+time=linspace(0,T,SIZ(1));
+space=linspace(1,SIZ(2)-1,SIZ(2)-1);
+[TIME,SPACE]=meshgrid(time,space);
+surf(TIME',SPACE',iCP1.Dynamics.Control.Numeric(:,1:SIZ(2)-1),'EdgeColor','none')
+title('Control')
+ylabel('space discretization')
+xlabel('Time')
 %%
 figure;
 line(xline,YT,'Color','red')
 line(xline,odeEqn.StateVector.Numeric(end,:),'Color','blue')
 line(xline,iCP1.Dynamics.StateVector.Numeric(end,:),'Color','green')
 legend('Target','Free Dynamics','controlled dynamics')
-
-error('sda')
 %%
 % Now we apply the same procedure for the collective
 % behavior dynamics.
@@ -277,5 +256,4 @@ line(xline,d.y1,'Color','red')
 line(xline,d.y2,'Color','blue')
 line(xline,d.y3,'Color','green')
 legend('Target','Free Dynamics','controlled dynamics')
-
 

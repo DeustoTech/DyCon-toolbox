@@ -56,13 +56,13 @@ end
 % we define symbolically the vectors of the state and the control
 %%
 symY = SymsVector('y',N);
-symU = SymsVector('u',1);
+symU = SymsVector('u',count);
 %%
 % We create the functional that we want to minimize
 % Our goal is to set the system to zero penalizing the norm of the control
 % by a parameter $\beta$ that will be small.
-YT = 0.2 + 0*xline';
-symPsi  = (YT - symY).'*(YT - symY);
+YT = 0*xline';
+symPsi  = (1/beta)(YT - symY).'*(YT - symY);
 beta=0.0000001;
 symL    = beta*(symU.'*symU)*(abs(w1-w2))/count;
 %%
@@ -71,8 +71,7 @@ symL    = beta*(symU.'*symU)*(abs(w1-w2))/count;
 % We set also initial conditions, define the non linearity and the interaction of the control to the dynamics.
 %%
 % Initial condition
-%Y0 = 2*sin(pi*xline)';
-Y0 = 0.999*xline';
+Y0 = 2*sin(pi*xline)';
 %%
 % Diffusion part: the discretization of the 1d Laplacian
 A=(N^2)*(full(gallery('tridiag',N,1,-2,1)));
@@ -88,9 +87,6 @@ for i=1:N
         end
     end
 end
-B = zeros(N,1);
-B(1,1) = 1;
-B(end,end) = 1;
 %%
 % Definition of the non-linearity
 % $$ \partial_y[-5\exp(-y^2)] $$
@@ -99,9 +95,8 @@ syms x;
 syms G(x);
 syms U(x);
 syms DG(x);
-%U(x)=-5*exp(-x^2);
-%G(x)=diff(U,x);
-G(x)=x*(1-x)*(x-0.2);
+U(x)=-5*exp(-x^2);
+G(x)=diff(U,x);
 formula=G(x);
 G = symfun(formula,x)
 %%
@@ -123,6 +118,7 @@ T = 1;
 %%
 odeEqn = pde(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
 odeEqn.Nt=50;
+odeEqn.Solver = @ode23tb;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
@@ -147,12 +143,6 @@ U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim);
 %GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@AdaptativeDescent)
 options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
 fminunc(@(U) Control2Functional(iCP1,U),U0,options)
-%%
-fmincon(@(U) Control2Functional(iCP1,U),U0,[],[], ...
-                                           [],[], ... 
-                                           [],[], ...
-                                           [],options)
-
 %%
 figure;
 SIZ=size(iCP1.Dynamics.StateVector.Numeric);
@@ -180,8 +170,6 @@ line(xline,YT,'Color','red')
 line(xline,odeEqn.StateVector.Numeric(end,:),'Color','blue')
 line(xline,iCP1.Dynamics.StateVector.Numeric(end,:),'Color','green')
 legend('Target','Free Dynamics','controlled dynamics')
-
-error('sda')
 %%
 % Now we apply the same procedure for the collective
 % behavior dynamics.

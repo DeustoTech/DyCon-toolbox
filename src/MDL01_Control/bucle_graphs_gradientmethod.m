@@ -84,6 +84,7 @@ function bucle_graphs_gradientmethod(axes,iCP,iter)
  
             
             surf(Unew','Parent',axU{2})
+            %plot(Unew','Parent',axU{2})
             axU{2}.Title.String = 'Evolution of Control Vector ';
             axU{2}.YLabel.String = 'Space';
             axU{2}.XLabel.String = 'Time';

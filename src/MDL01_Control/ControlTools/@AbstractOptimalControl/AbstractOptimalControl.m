@@ -59,6 +59,7 @@ classdef (Abstract) AbstractOptimalControl  < handle & matlab.mixin.SetGet & mat
         % type: double
         % default: none
         % description: It is an array that contains the different functional values during the execution of the optimization algorithm that has been used.
+        Adjoint2Control             SymNumFun       = SymNumFun
         Solution
         %
         Constraints                 constraints     = constraints

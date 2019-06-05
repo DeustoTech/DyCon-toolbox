@@ -84,6 +84,12 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % description: B matrix of lineal problems. If this property is empty, so the ode is not lineal. 
         %                 $$ \dot{Y} = AY + \textbf{B}U $$
         B
+        % type: "double"
+        % dimension: [NxN]
+        % default: "none"
+        % description: B matrix of lineal problems. If this property is empty, so the ode is not lineal. 
+        %                 $$ \dot{Y} = AY + \textbf{B}U $$
+        C
         % type: "logical"
         % dimension: [MxN]
         % default: "false"
@@ -253,11 +259,11 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %
         %% ================================================================================
         function dt = get.dt(obj)
-                dt = obj.FinalTime/(obj.Nt-1);
+                dt = obj.FinalTime/(obj.Nt);
         end
         
         function tspan = get.tspan(obj)
-                tspan = 0:obj.dt:obj.FinalTime;
+                tspan = linspace(0,obj.FinalTime,obj.Nt);
         end
         %%
         function Udim = get.Udim(obj)

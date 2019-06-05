@@ -2,7 +2,7 @@ function tutorials2blog(name,varargin)
      p = inputParser;
      
      addRequired(p,'name')
-     addOptional(p,'path_documentation','/home/jesus/Documentos/GitHub/dycon-platform-documentation')
+     addOptional(p,'path_documentation','/home/djoroya/Documentos/GitHub/dycon-platform-documentation')
      
      parse(p,name,varargin{:})
     

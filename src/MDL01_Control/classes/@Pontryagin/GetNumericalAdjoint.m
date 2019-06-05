@@ -5,9 +5,7 @@ function P = GetNumericalAdjoint(iCP,U,Y)
 
         iCP.Adjoint.Dynamics.Nt = iCP.Dynamics.Nt;
         iCP.Adjoint.Dynamics.FinalTime = iCP.Dynamics.FinalTime;
-        iCP.Adjoint.Dynamics.SolverParameters = iCP.Dynamics.SolverParameters;
         iCP.Adjoint.Dynamics.MassMatrix = iCP.Dynamics.MassMatrix;
-        iCP.Adjoint.Dynamics.Solver = iCP.Dynamics.Solver;
         
         if iCP.Adjoint.Dynamics.lineal
             [~,P] = solve(iCP.Adjoint.Dynamics);

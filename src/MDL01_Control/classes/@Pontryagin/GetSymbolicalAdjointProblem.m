@@ -42,6 +42,7 @@
             Control = [symY.' symU.'].';
             State   = symP.';
             obj.Adjoint.Dynamics = ode(dP_dt,State,Control);
+            obj.Adjoint.Dynamics.Solver = obj.Dynamics.Solver;
         end
     else
          %% Hamiltoniano
@@ -54,6 +55,8 @@
         Control = [symY.' symU.'].';
         State   = symP.';
         obj.Adjoint.Dynamics = ode(dP_dt,State,Control);
+        obj.Adjoint.Dynamics.Solver = obj.Dynamics.Solver;
+
         % Pasamos esta funcion a una function_handle
     end
 

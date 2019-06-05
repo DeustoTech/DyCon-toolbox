@@ -110,13 +110,15 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     %                   INIT PROGRAM
     % ======================================================
     % ======================================================
-    %
+    %% Comprobamos los solver
     % Set dynamics <---> adjoint 
     iCP.Adjoint.Dynamics.Nt        = iCP.Dynamics.Nt;
     iCP.Adjoint.Dynamics.FinalTime = iCP.Dynamics.FinalTime;
-    iCP.Adjoint.Dynamics.Solver    = iCP.Dynamics.Solver;
 
-   
+    if iCP.Dynamics.lineal == iCP.Adjoint.Dynamics.lineal
+        iCP.Adjoint.Dynamics.SolverParameters = iCP.Dynamics.SolverParameters;
+        iCP.Adjoint.Dynamics.Solver = iCP.Dynamics.Solver;    
+    end   
     %% Creamos un solucion vacia
     iCP.Solution = solution;
 
@@ -150,9 +152,6 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
         axes = InitGraphsFcn(iCP);
     end
     
-
-
-        
     %% Clean the persiten variable LengthStepMemory
     clear(char(DescentAlgorithm))
     % ClassicalDescent

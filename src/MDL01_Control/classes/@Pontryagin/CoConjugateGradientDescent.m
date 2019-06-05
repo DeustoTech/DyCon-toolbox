@@ -1,4 +1,4 @@
-function  [fnew,dfnew,Unew ,Ynew,Jnew,dJnew,error,stop] = CoConjugateGradientDescent(iCP,tol,varargin)
+function  [fnew,dfnew,Unew ,Ynew,Jnew,error,stop] = CoConjugateGradientDescent(iCP,tol,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes 
 %               iteratively the algorithms that we give it. In the case of choosing ClassicalDescent 
 %               this function updates the control of the following way 
@@ -70,85 +70,74 @@ function  [fnew,dfnew,Unew ,Ynew,Jnew,dJnew,error,stop] = CoConjugateGradientDes
     
     persistent Iter
     persistent w
-    if isempty(Iter)
-        fnew = iCP.solution.fhistory{1};
+    persistent FirstError
 
-        tspan   =  iCP.ode.tspan; 
-        %% Resolvemos el problem dual
-        % Creamos dp/dt (t,p)  a partir de la funcion dp_dt_xuDepen
-        dP_dt  = @(t,P) -iCP.ode.A'*P;
-        % Obtenemos la condicion final del problema adjunto
-        % Resolvemos el problema dual, colcando un 
-        % signo negativo y luego inviertiendo en el tiempo la solucion
-        solver = iCP.ode.RKMethod;
-        [~,P] = solver(@(t,P) -dP_dt(t,P),tspan,fnew);
+    if isempty(Iter)
+        
+        %%
+        
+        fnew = iCP.Solution.fhistory{1};
+        %%
+        
+        iCP.Adjoint.Dynamics.InitialCondition = fnew;
+        [~ ,P] =solve(iCP.Adjoint.Dynamics);
         P = flipud(P);
-        % Obtenemos la funcion p(t) a partir p = [p(t1) p(t2) ... ]
-        %% Calculamos U
-        solution = solve(iCP.gradient.sym == 0,iCP.ode.Control.Symbolic);
-        %
-        U = arrayfun(@(u) solution.(u{:}),fieldnames(solution));
-        Unew = zeros(length(P(:,1)),iCP.ode.Udim);
-        for nrow = 1:length(P(:,1))
-           Unew(nrow,:) =double(subs(U,iCP.adjoint.P,P(nrow,:))');
-        end
-        %% Obtenemos la dinamica
-        solve(iCP.ode,'Control',Unew);
-        %
-        Ynew = iCP.ode.VectorState.Numeric;
-        Jnew = GetFunctional(iCP,Ynew,Unew);
+    
+        %% 
+
+        Unew = GetNumericalAdjoint2Control(iCP,P);
+        [~ ,Ynew] = solve(iCP.Dynamics,'Control',Unew);
+        PT = GetNumericalAdjointFinalCondition(iCP,Ynew);
+         
+        %% Calculate Gradient
+        dfnew = -fnew + PT';
+
+        %%
+        Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
         Iter = 1;
         error = 0;
-        dJnew = Unew;
-        dfnew = fnew + Ynew(end,:);
         w = dfnew;
         stop = false;
+        %%
+        FirstError = sqrt(dfnew.'*dfnew);
+        
     else
+        
         Iter = Iter + 1;
-        tspan   =  iCP.ode.tspan;
- 
-        %% Resolvemos el problem dual
-        % Creamos dp/dt (t,p)  a partir de la funcion dp_dt_xuDepen
-        dP_dt  = @(t,P) -iCP.ode.A'*P;
-        % Obtenemos la condicion final del problema adjunto
-        % Resolvemos el problema dual, colcando un 
-        % signo negativo y luego inviertiendo en el tiempo la solucion
-        solver = iCP.ode.RKMethod;
-        [~,P] = solver(@(t,P) -dP_dt(t,P),tspan,w);
+        fold= iCP.Solution.fhistory{Iter-1};
+        fnew = fold - w;
+        %%
+        iCP.Adjoint.Dynamics.InitialCondition = fnew;
+        [~ ,P] =solve(iCP.Adjoint.Dynamics);
         P = flipud(P);
-        % Obtenemos la funcion p(t) a partir p = [p(t1) p(t2) ... ]
-    
-        solution = solve(iCP.gradient.sym == 0,iCP.ode.Control.Symbolic);
-        %
-        U = arrayfun(@(u) solution.(u{:}),fieldnames(solution));
-        Unew = zeros(length(P(:,1)),iCP.ode.Udim);
-        for nrow = 1:length(P(:,1))
-           Unew(nrow,:) =double(subs(U,iCP.adjoint.P,P(nrow,:))');
-        end
-        %% Obtenemos la dinamica
-        solve(iCP.ode,'Control',Unew);
-        Ynew = iCP.ode.VectorState.Numeric;
-        dfbar = w + Ynew(end,:);
+        %% 
+
+        Unew = GetNumericalAdjoint2Control(iCP,P);
+        [~ ,Ynew] = solve(iCP.Dynamics,'Control',Unew);
+        PT = GetNumericalAdjointFinalCondition(iCP,Ynew);
         
-        rho = (dfbar*dfbar')/(dfbar*w');
- 
+        %% Calculate Gradient
+        dfnew = -fnew + PT';
+
+        dfold  = iCP.Solution.dfhistory{Iter-1};
+        fold   = iCP.Solution.fhistory{Iter-1};
         
-        fold  = iCP.solution.fhistory{Iter-1};
-        dfold  = iCP.solution.dfhistory{Iter-1};
-        
-        fnew = fold - rho*w;
-        dfnew = dfold -rho*dfbar;
+        rho = (dfold'*dfold)/(dfnew'*w);
+        %fnew  = fold  - rho*w;
+        %dfnew = dfold - rho*dfnew;
+        gamma = (dfnew'*dfnew)/(dfold'*dfold);
+        w = dfnew + gamma*w;
         
         
         %%
         
-        error = 1;
+        error = sqrt(dfnew'*dfnew)/FirstError;
         if error < tol
             stop = true;
         else 
             stop = false;
         end
-        dJnew = 1;
-        Jnew = GetFunctional(iCP,Ynew,Unew);
+        
+        Jnew = GetNumericalFunctional(iCP,Ynew,Unew);
     end
 end

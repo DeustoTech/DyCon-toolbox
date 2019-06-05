@@ -26,12 +26,15 @@ function animation(iode,varargin)
 
     addOptional(p,'xx',1.0)
     addOptional(p,'SaveGif',false)
+    addOptional(p,'SaveVideo',false)
     
     parse(p,iode,varargin{:})
     
     YLim            = p.Results.YLim;
     xx              = p.Results.xx;
     SaveGif         = p.Results.SaveGif;
+    SaveVideo         = p.Results.SaveVideo;
+
     YLimControl     = p.Results.YLimControl;
     Target          = p.Results.Target;
     InitCondition   = p.Results.InitCondition;
@@ -41,16 +44,24 @@ function animation(iode,varargin)
     Y               = {structure.Numeric};
     structure       = [iode.Control];
     U               = {structure.Numeric};        
-    f = figure;
-    
+    f = figure('unit','norm','pos',[0.1 0.1 0.8 0.8]);
+    FontSize = 13;
+   
+    itext = uicontrol('style','text','Parent',f,'unit','norm','pos',[0.45 0.95 0.1 0.03]);
+    itext.FontSize = FontSize;
+   itext.FontWeight = 'bold';   
     havecontrol = ~isempty(iode(1).Control.Symbolic);
     
     if havecontrol
-        axY = subplot(2,1,1,'Parent',f);
+        axY = subplot(1,2,1,'Parent',f);
+        axY.FontSize = FontSize;
+
         if ~isempty(YLim)
             axY.YLim = YLim;
         end
-        axU = subplot(2,1,2,'Parent',f);
+        axU = subplot(1,2,2,'Parent',f);
+        axU.FontSize = FontSize;
+
         if ~isempty(YLimControl)
             axU.YLim = YLimControl;
         end
@@ -72,6 +83,13 @@ function animation(iode,varargin)
       gif([numbernd,'.gif'],'frame',axY.Parent,'DelayTime',1/8)  
    end
    
+   if SaveVideo
+      numbernd =  num2str(floor(100000*rand),'%.6d');
+      ivd = VideoWriter(numbernd,'mp4');
+      ivd.FrameRate = 10;
+
+      open(ivd)
+   end
    axY.XLabel.String = 'State';
    
    legend_string = {};
@@ -102,6 +120,15 @@ function animation(iode,varargin)
    axU.XLabel.String = 'Control';
    
    
+   BarPrograss = axes('Parent',f,'Unit','norm','pos',[0.01 0.01 0.98 0.015]);
+   axis(BarPrograss,'off')
+   BarPrograss.XLim = [0 1];
+   BarPrograss.YLim = [0 1];
+   rectangle('Parent',BarPrograss)
+   irect = patch('XData',[0 1 1 0],'YData',[0 0 1 1]);
+   irect.FaceColor = [1 0 0];
+
+
    while true
         t = xx*toc;
         if t > tmax
@@ -115,7 +142,7 @@ function animation(iode,varargin)
                 delete(luu) 
             end
         end
-        axY.Title.String = ['t = ',num2str(t,'%.2f')];
+        itext.String = ['time = ',num2str(t,'%.2f')];
         
         index = 0;
         colors = {'r','g','b'};
@@ -133,10 +160,18 @@ function animation(iode,varargin)
                     luu(index).Color = 0.2*luu(index).Color + 0.8*[1 1 1];
                 end
                 luu(index) = line(1:iode(1).Udim,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+                %luu(index) = line(iode(1).mesh,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+
             end
         end
         
         legend(axY,legend_string)
+        
+        %%
+       irect_time = t/tmax;
+       irect.XData(2) = irect_time;
+       irect.XData(3) = irect_time;
+   
         %legend(axU,{iode.label})
         pause(0.1)
         
@@ -144,10 +179,24 @@ function animation(iode,varargin)
         if SaveGif
             gif('frame',axY.Parent)
         end
+        
+        if SaveVideo
+           writeVideo(ivd,getframe(axY.Parent)) 
+        end
         if t == tmax
             break;
         end
-    end
+   end
 
+    if SaveGif
+    for iter = 1:10 
+        pause(0.1)
+        gif('frame',axY.Parent)
+    end
+    end
+    
+    if SaveVideo
+       close(ivd) 
+    end
 end
 

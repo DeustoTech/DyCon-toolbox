@@ -1,4 +1,4 @@
-function CoGradientMethod(iCP,varargin)
+function CoGradientMethod(iCP,f0,varargin)
     % name: GradientMethod
     % little_description: The gradient method is able to optimize the given functional, going down the gradient.
     % description: "The gradient method is able to optimize the given
@@ -69,9 +69,9 @@ function CoGradientMethod(iCP,varargin)
     %% Control Problem Parameters
     pinp = inputParser;
     addRequired(pinp,'iControlProblem')
+    addRequired(pinp,'f0')
+
     %%
-    Udefault = zeros(1,iCP.ode.Udim);
-    addOptional(pinp,'f0',Udefault)
     %% Method Parameter
     addOptional(pinp,'MaxIter',100)
     addOptional(pinp,'tol',1e-2)
@@ -88,7 +88,7 @@ function CoGradientMethod(iCP,varargin)
     %% 
     addOptional(pinp,'StoppingCriteria',@FunctionalStopCriteria  )
 
-    parse(pinp,iCP,varargin{:})
+    parse(pinp,iCP,f0,varargin{:})
 
     f0                  = pinp.Results.f0;
     MaxIter             = pinp.Results.MaxIter;    
@@ -104,9 +104,19 @@ function CoGradientMethod(iCP,varargin)
     %                   INIT PROGRAM
     % ======================================================
     % ======================================================
+    %% Comprobamos los solver
+    % Set dynamics <---> adjoint 
+    iCP.Adjoint.Dynamics.Nt        = iCP.Dynamics.Nt;
+    iCP.Adjoint.Dynamics.FinalTime = iCP.Dynamics.FinalTime;
+
+    if iCP.Dynamics.lineal == iCP.Adjoint.Dynamics.lineal
+        iCP.Adjoint.Dynamics.SolverParameters = iCP.Dynamics.SolverParameters;
+        iCP.Adjoint.Dynamics.Solver = iCP.Dynamics.Solver;    
+    end   
+    
     if restart
-        if ~isempty(iCP.solution.fOptimal)
-            f0 = iCP.solution.fOptimal;
+        if ~isempty(iCP.Solution.fOptimal)
+            f0 = iCP.Solution.fOptimal;
         else
             warning('The parameter restart need a previus execution.')
         end
@@ -121,17 +131,17 @@ function CoGradientMethod(iCP,varargin)
     end
     
     %% Creamos un solucion vacia
-    iCP.solution = CPSolution;
+    iCP.Solution = solution;
 
-    iCP.solution.Yhistory = cell(1,MaxIter);
-    iCP.solution.ControlHistory = cell(1,MaxIter);
-    iCP.solution.dJhistory = cell(1,MaxIter);
+    iCP.Solution.Yhistory = cell(1,MaxIter);
+    iCP.Solution.ControlHistory = cell(1,MaxIter);
+    iCP.Solution.dJhistory = cell(1,MaxIter);
 
-    iCP.solution.Jhistory = zeros(1,MaxIter);
-    iCP.solution.fhistory = cell(1,MaxIter);
-    iCP.solution.dfhistory = cell(1,MaxIter);
+    iCP.Solution.Jhistory = zeros(1,MaxIter);
+    iCP.Solution.fhistory = cell(1,MaxIter);
+    iCP.Solution.dfhistory = cell(1,MaxIter);
     
-    iCP.solution.fhistory{1} = f0;
+    iCP.Solution.fhistory{1} = f0;
 
         
     %% Clean the persiten variable LengthStepMemory
@@ -143,25 +153,20 @@ function CoGradientMethod(iCP,varargin)
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
-        [fnew,dfnew,Unew, Ynew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
+        [fnew,dfnew,Unew, Ynew,Jnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
 
         % Save history of optimization
-        iCP.solution.ControlHistory{iter}  = Unew;
-        iCP.solution.fhistory{iter}  = fnew;
-        iCP.solution.dfhistory{iter}  = dfnew;
-        iCP.solution.Yhistory{iter}  = Ynew;
-        iCP.solution.Jhistory(iter)  = Jnew;
-        iCP.solution.dJhistory{iter} = dJnew;
-        iCP.solution.Ehistory(iter)     = error;
+        iCP.Solution.ControlHistory{iter}  = Unew;
+        iCP.Solution.fhistory{iter}  = fnew;
+        iCP.Solution.dfhistory{iter}  = dfnew;
+        iCP.Solution.Yhistory{iter}  = Ynew;
+        iCP.Solution.Jhistory(iter)  = Jnew;
+        iCP.Solution.Ehistory(iter)     = error;
         display(['error = ',num2str(error)])
         %%
 
         % Stopping Criteria
         if iter ~= 1 
-            if Graphs   
-                % plot the graphical convergence 
-                bucle_graphs(axY,axU,axJ,Ynew,Unew,iCP.solution.Jhistory,iCP.ode.tspan,iter,TypeGraphs,SaveGif)
-            end
             if stop
                   break 
             end
@@ -173,16 +178,17 @@ function CoGradientMethod(iCP,varargin)
         warning('Max iteration number reached!!')
     end
     
-    iCP.solution.precision = error;
-    iCP.solution.ControlHistory = iCP.solution.ControlHistory(1:iter);
-    iCP.solution.Jhistory = iCP.solution.Jhistory(1:iter);
-    iCP.solution.dJhistory = iCP.solution.dJhistory(1:iter);
-    iCP.solution.Yhistory = iCP.solution.Yhistory(1:iter);
+    iCP.Solution.precision = error;
+    iCP.Solution.ControlHistory = iCP.Solution.ControlHistory(1:iter);
+    iCP.Solution.Jhistory = iCP.Solution.Jhistory(1:iter);
+    iCP.Solution.Yhistory = iCP.Solution.Yhistory(1:iter);
+    iCP.Solution.fhistory = iCP.Solution.fhistory(1:iter);
+    iCP.Solution.dfhistory = iCP.Solution.dfhistory(1:iter);
 
-    iCP.solution.iter = iter;
-    iCP.solution.time = toc; 
+    iCP.Solution.iter = iter;
+    iCP.Solution.time = toc; 
     
-    resume(iCP.solution)
+    resume(iCP.Solution)
 end
 
 

@@ -3,10 +3,10 @@
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
 
-FinalTimes = linspace(0.1,0.25,4);
-%FinalTimes = linspace(0.15,0.25,4);
+%FinalTimes = linspace(0.1,0.25,4);
+FinalTimes = linspace(0.1,0.3,4);
 %FinalTimes = 0.2;
-%FinalTimes = 0.1531;
+%FinalTimes = 0.15;
 %FinalTimes = 0.0438;
 %FinalTimes = linspace(0.03,0.05,2);
 
@@ -18,11 +18,13 @@ nft  = length(FinalTimes);
 figure;
 
 iter = 0;
+dx =  iOCPs(1).Dynamics.mesh(2) - iOCPs(1).Dynamics.mesh(1);
+distance = dx*TargetDistance(iOCPs);
 for iOCP = iOCPs
     iter = iter + 1;
     subplot(ceil(nft/ncol),ncol,iter)
     surf(iOCP.Dynamics.Control.Numeric)
-    title("T_f = "+FinalTimes(iter)+ "& |.| = "+sqrt(iOCP.Solution.JOptimal))
+    title("T_f = "+FinalTimes(iter)+ "& |.| = "+distance(iter))
     %title("T_f = "+FinalTimes(iter))
 
     shading interp;colormap jet
@@ -31,10 +33,9 @@ for iOCP = iOCPs
     view(0,90)
 end
 %%
-dx =  iOCPs(1).Dynamics.mesh(2) - iOCPs(1).Dynamics.mesh(1);
-distance =dx*TargetDistance(iOCPs)
 
-Tmin = interp1(distance,FinalTimes,5e-3)
+
+Tmin = interp1(distance,FinalTimes,1e-3)
 
 
 iOCP_MinTime = FinalTime2OCP(Tmin)
@@ -48,10 +49,10 @@ colorbar
 view(0,90)
     
 %%
-animation(iOCP_MinTime.Dynamics,'xx',0.01,'YLim',[0 10],'Target',iOCP_MinTime.Target,'YLimControl',[0 50])
+animation(iOCP_MinTime.Dynamics,'xx',0.01,'YLim',[0 5],'Target',iOCP_MinTime.Target,'YLimControl',[0 4000])
 %%
 function iOCP = FinalTime2OCP(FinalTime)
-    Nx = 60;
+    Nx = 50;
     xi = -1; xf = 1;
     xline = linspace(xi,xf,Nx+2);
     %xline = linspace(0,1,Nx+2);
@@ -68,15 +69,16 @@ function iOCP = FinalTime2OCP(FinalTime)
     %%
     % Moreover, we build the matrix $B$ defining the action of the control, by
     % using the program "construction_matrix_B" (see below).
-    a = -0.3; b = 0.5;
-    B = BInterior(xline,a,b);
+    a = -0.3; b = 0.8;
+    B = BInterior(xline,a,b,'mass',true);
     
     %%
     % We can then define a final time and an initial datum
     Y0 = 0.5*cos(0.5*pi*xline');
 
-    Nt = 60;
+    Nt = 50;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
+    dynamics.Solver = @euleri;
     dynamics.MassMatrix = M;
     dynamics.mesh = xline;
 
@@ -94,20 +96,20 @@ function iOCP = FinalTime2OCP(FinalTime)
     % Take simbolic vars
     Y = dynamics.StateVector.Symbolic;
     U = dynamics.Control.Symbolic;
-    beta = 0*dx^4;
+    beta = dx^4;
     %% Construction of the control problem 
     %%
     % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
     %%
-    Psi  = dx*(YT - Y).'*(YT - Y);
-    L    = beta*dx*sum(abs(U));
+    Psi  = (1/beta)*dx*(YT - Y).'*(YT - Y);
+    L    = dx*sum(abs(U));
     %L    = 0.5*beta*dx*(U.'*U);
     %%
     % Optional Parameters to go faster
-    Gradient                =  @(t,Y,P,U) (beta*sign(U) + B'*P);
+    Gradient                =  @(t,Y,P,U) dynamics.dt*(sign(U) + B'*P);
     %Gradient                =  @(t,Y,P,U) beta*U + B*P;
     Hessian                 =  @(t,Y,P,U) 0;
-    AdjointFinalCondition   =  @(t,Y) (1/2)*dx*(Y-YT);
+    AdjointFinalCondition   =  @(t,Y) (1/(2*beta))*(Y-YT);
     Adjoint = pde('A',A);
     OCParmaters = {'Hessian',Hessian,'ControlGradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
     %%
@@ -119,7 +121,7 @@ function iOCP = FinalTime2OCP(FinalTime)
 
         % Solver L1
     Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
-                 'tol',1e-8,                                    ...
+                 'tol',1e-4,                                    ...
                  'Graphs',false,                               ...
                  'MaxIter',500,                               ...
                  'EachIter',50, ...

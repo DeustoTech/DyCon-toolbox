@@ -1,6 +1,6 @@
 %% Two drivers, Flexible time
 
-N_sqrt = 5;
+N_sqrt = 6;
 M = 3; N = N_sqrt^2;
 
 Y = sym('y',[4*(M+N) 1]);
@@ -65,7 +65,7 @@ plot(ud_zero(1,:),ud_zero(2,:),'bo');
 
 % T=5.1725, kappa = 1.5662 -> [-1,1]
 dt = 0.01;
-dynamics = ode(F,Y,U,'FinalTime',1,'Nt',70);
+dynamics = ode(F,Y,U,'FinalTime',1,'Nt',50);
 dynamics.InitialCondition = Y0;
 %%
 tline = dynamics.tspan;
@@ -159,8 +159,8 @@ grid on
 %%
 
 
-Psi = sum(sum((ue - u_f).^2));
-L   = 0.001*(kappa.'*kappa);
+Psi = 1e4*sum(sum((ue - u_f).^2));
+L   = (kappa.'*kappa);
 
 iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);

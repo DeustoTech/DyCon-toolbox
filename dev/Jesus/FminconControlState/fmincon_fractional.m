@@ -39,7 +39,7 @@ function p = Method_SingleStep_fun
     p.T  = 0.2;
     %%
     p.Nx = 15;
-    p.Nt = 60; p.dt = p.T/(p.Nt-1);
+    p.Nt = 30; p.dt = p.T/(p.Nt-1);
     %%
     p.xline = linspace(-1,1,p.Nx);
     p.dx =  p.xline(2) - p.xline(1);

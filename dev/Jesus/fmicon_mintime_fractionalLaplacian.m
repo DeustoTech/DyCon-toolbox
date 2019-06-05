@@ -65,7 +65,7 @@ function p = Method_SingleStep_fun
     p.dynamics.Solver = @eulere;
 
     p.dynamics.FinalTime = p.T;
-    p.dynamics.dt = p.T/(p.Nt-1);
+    p.dynamics.Nt = p.Nt;
     
     p.dynamics.InitialCondition = 6*cos(0.5*p.xline);
     U0 = zeros(p.Nt-1,p.Nx) + 1;

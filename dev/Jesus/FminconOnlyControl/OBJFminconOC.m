@@ -7,7 +7,11 @@ function varargout = OBJFminconOC(urow,p)
     %
     varargout{1} = dx*dt*sum(sum(L));
     %
+    %varargout{1} = urow(end);
     if nargout > 1
         varargout{2} = dx*dt*sign(u);
+        %grad = 0*urow;
+        %grad(end) = 1;
+        %varargout{2} = grad;
     end
 end
