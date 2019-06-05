@@ -44,7 +44,7 @@ L   = sym(0);
 iCP = Pontryagin(iode,Psi,L);
 
 %%
-% After we defined 'OptimalControl' class, we may use the function
+% After we defined 'Pontryagin' class, we may use the function
 % 'Control2Functional' to indicate the cost as a function of the control.
 % In this way, we may impliment 'fmincon'. The maximum and minimum of the
 % control are given by -1 and 1.

@@ -31,7 +31,7 @@
 % $ \alpha $, it calculate the minimal argument numerically using MATLAB
 % built-in function.
 %
-% The default methods of 'OptimalControl' class is
+% The default methods of 'Pontryagin' class is
 % 'ConjugateGradientDescent'.
 %
 % [1] : L. Lasdon, S. Mitter, and A. Waren. "The conjugate gradient method
@@ -56,7 +56,7 @@
 %               -y_2+u_1                
 %      \end{matrix} \right) $$
 %%
-% In order to construct 'OptimalControl' class, we define 'ode' class, the
+% In order to construct 'Pontryagin' class, we define 'ode' class, the
 % final cost 'Psi', and the running cost $ L(t,Y,U) $ using symbolic
 % variables and functions. 
 
@@ -73,11 +73,11 @@ YT = [2;4];
 Psi = sym(0);
 L   =5e-7*(U.'*U) + (Y-YT).'*(Y-YT);
 
-iP = Pontryagin(dynamics,Psi,L); % Define 'OptimalControl' class
+iP = Pontryagin(dynamics,Psi,L); % Define 'Pontryagin' class
 U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.Udim);
 
 %%
-% 'GradientMethod' solves the optimal control problem of 'OptimalControl'
+% 'GradientMethod' solves the optimal control problem of 'Pontryagin'
 % class, where the default function is '@ConjugateGradientDescent'. In
 % order to specify a descent algorithm, we use 'DescentAlgorithm' parameter
 % of 'GradientMethod' function: 

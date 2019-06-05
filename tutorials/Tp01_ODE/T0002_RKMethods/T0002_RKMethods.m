@@ -1,6 +1,8 @@
 %%
 % In this example, we solve the class 'ode' using various numerical
-% methods. Here, we solve an oscillating system of differential equations:
+% methods. By default, it uses the first order forward Euler method for
+% fast calculations. Here, we solve an oscillating system of differential
+% equations:
 %%
 % $$ 
 % \begin{bmatrix} 
@@ -27,19 +29,17 @@ B = [1 ; 1];
 
 dynamics_linear = ode('A',A,'B',B);
 dynamics_linear.InitialCondition = [1,2];
-solve(dynamics_linear)
+solve(dynamics_linear);
 plot(dynamics_linear)
 %%
-% 'ode' class contains the time-descrization information, but be careful:
-% It does not affact the 'ode45' function which takes adaptive time method.
-% They produce basically the same graph, and the tolerance of 'ode45' is
-% fixed for any time-descritization. 
-Nt = 10;
+% 'ode' class contains the time-descrization information, which we may
+% change manually.
+Nt = 20;
 dynamics_linear_fine = ode('A',A,'B',B,'Nt',Nt);
 dynamics_linear_fine.InitialCondition = [1,2];
 solve(dynamics_linear_fine)
-Y_ode45 = dynamics_linear_fine.StateVector.Numeric;
-T_ode45 = dynamics_linear_fine.tspan;
+Y_Nt20 = dynamics_linear_fine.StateVector.Numeric;
+T_Nt20 = dynamics_linear_fine.tspan;
 plot(dynamics_linear_fine)
 hold on
 Y_default = dynamics_linear.StateVector.Numeric;
@@ -62,21 +62,22 @@ y0 = [1,2];
 
 options = odeset('RelTol',1e-5,'AbsTol',1e-5);
 [t,y] = ode45(odefun,tspan,y0,options);
-plot(t,y-Y_ode45)
+plot(t,y-Y_Nt20)
 xlabel('time(s)')
 ylabel('difference of states')
 title('Difference of solution with different tolerances')
 legend('Y_1','Y_2')
 
 %%
-% We may implement the 'options' feature on the 'ode' class, using the
-% structure parameter 'SolverParameters' of 'ode' class:
+% We may use 'ode45' function to solve the 'ode' class and implement the
+% 'options' feature of it.
 
 dynamics_linear_fine.SolverParameters = {options};
+dynamics_linear_fine.Solver = @ode45;
 solve(dynamics_linear_fine)
-Y_new = dynamics_linear_fine.StateVector.Numeric;
-T_new = dynamics_linear_fine.tspan;
-plot(T_new,Y_new-y)
+Y_ode45 = dynamics_linear_fine.StateVector.Numeric;
+T_ode45 = dynamics_linear_fine.tspan;
+plot(T_ode45,Y_ode45-y)
 xlabel('time(s)')
 ylabel('difference of states')
 title('Difference of solutions with different classes')
@@ -106,11 +107,11 @@ legend('Y_1','Y_2')
 
 dynamics_linear_Euler = ode('A',A,'B',B,'Nt',Nt);
 dynamics_linear_Euler.InitialCondition = [1,2];
-dynamics_linear_Euler.Solver = @Euler;
+dynamics_linear_Euler.Solver = @Euler_test;
 solve(dynamics_linear_Euler)
 plot(dynamics_linear_Euler)
 %%
-function [tline,yline] = Euler(iode)
+function [tline,yline] = Euler_test(iode)
     tline = iode.tspan;
     yline = zeros(length(tline),length(iode.StateVector.Symbolic));
     yline(1,:) = iode.InitialCondition;
