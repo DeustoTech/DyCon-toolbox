@@ -158,11 +158,15 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     % ConjugateGradientDescent
     % ConjugateGradienDescent
     
+    SolverChar = char(iCP.Dynamics.Solver);
+    
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
         [Unew, Ynew,Pnew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
-
+        if strcmp(SolverChar,'euleri')
+            Unew(end,:) = 0;
+        end
         % Save history of optimization
         iCP.Solution.ControlHistory{iter}  = Unew;
         iCP.Solution.Yhistory{iter}  = Ynew;

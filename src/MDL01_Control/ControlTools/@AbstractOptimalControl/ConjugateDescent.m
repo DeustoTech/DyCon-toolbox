@@ -105,7 +105,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
         Jnew = Jold + 1e5;
         while Jold < Jnew 
             [OptimalLenght,Jnew] = fminunc(@SearchLenght,SeedLengthStep,options);
-            SeedLengthStep = 0.5*SeedLengthStep;
+            SeedLengthStep = 0.25*SeedLengthStep;
             if abs(OptimalLenght) < 1e-10
                 warning('The Optimal length step of Conjugate Gradient is zero. Possible local minimum.')
                 OptimalLenght = 0;
@@ -160,7 +160,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
             error  = AdJnew/AUnew;
         end
         
-        if error < tol || OptimalLenght == 0 || abs(Jnew-Jold) < 1e-12
+        if error < tol || OptimalLenght == 0 || abs(Jnew-Jold) < 1e-6
             stop = true;
         else 
             stop = false;

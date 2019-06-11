@@ -62,19 +62,20 @@
 
 Y = sym('y',[2 1]); U = sym('u',[1 1]);
 
-F = [ Y(2)             ; ...
+F = @(t,Y,U) [ Y(2)           ; ...
       -Y(2)      + U(1) ] ;
 
 dynamics = ode(F,Y,U); % Define 'ode' class
 dynamics.InitialCondition = [0;-1];
 dynamics.Nt = 100;
 
-YT = [2;4];
-Psi = sym(0);
-L   =5e-7*(U.'*U) + (Y-YT).'*(Y-YT);
+YT = [1;1];
+
+Psi = @(T,Y) 5000*(Y-YT).'*(Y-YT);
+L   = @(t,Y,U) 0.5*(U.'*U) + 0.5*(Y-YT).'*(Y-YT);
 
 iP = Pontryagin(dynamics,Psi,L); % Define 'OptimalControl' class
-U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.Udim);
+U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.ControlDimension);
 
 %%
 % 'GradientMethod' solves the optimal control problem of 'OptimalControl'

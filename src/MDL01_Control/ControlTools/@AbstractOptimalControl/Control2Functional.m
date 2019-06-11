@@ -3,6 +3,7 @@ function varargout  = Control2Functional(iCP,Control,Time)
     % the functional value
     %%
     if nargin > 2
+        Time = abs(Time);
         iCP.Dynamics.FinalTime = Time;
     end
     StateVector = GetNumericalDynamics(iCP,Control);
@@ -11,6 +12,16 @@ function varargout  = Control2Functional(iCP,Control,Time)
     if nargout > 1        
         AdjointVector = GetNumericalAdjoint(iCP,Control,StateVector);
         dJ            = GetNumericalControlGradient(iCP,Control,StateVector,AdjointVector);
+        %dJ(end,:) = 0;
+        if nargin > 2 % tiempo
+            dJ = dJ(:);
+            DynamicsEqn   = iCP.Dynamics.DynamicEquation.Numeric(Time,StateVector(end,:)',Control(end,:)');
+            
+            pf =  AdjointVector(end,:)*DynamicsEqn + 1;
+            L  = iCP.Functional.L.Numeric(Time,StateVector,Control);
+            
+            dJ(end + 1) = iCP.Dynamics.dt*(pf +  L);
+        end
     end
     
     

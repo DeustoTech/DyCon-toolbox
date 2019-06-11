@@ -1,4 +1,4 @@
-function dJnew = GetNumericalGradient(iCP,U,Y,P)
+function dJnew = GetNumericalControlGradient(iCP,U,Y,P)
 %  description: This method is able to update the value of the control by decreasing 
 %               the value of the functional. By calculating the gradient, $ \\frac{dH}{du}$. Also, it is decremented 
 %               in that direction, assuring the decrease by the adaptive step size. 

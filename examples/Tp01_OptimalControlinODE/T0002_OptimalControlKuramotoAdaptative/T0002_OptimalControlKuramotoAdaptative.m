@@ -65,20 +65,21 @@ Vsys = symOm + (symU./m)*sum(symK.*sin(symThth.' - symThth),2);   % Kuramoto int
 K_init = ones(m,m);                 % Constant coupling strength, 1.
 T = 5;                              % We give enough time for the frequency synchronization.
 
-file = 'T002_PontryaginKuramotoAdaptative.m';
+file = 'T002_OptimalControlKuramotoAdaptative.m';
 path_data = replace(which(file),file,'');
 load([path_data,'functions/random_init.mat'],'Om_init','Th_init'); % reference data
 %%
 symF = subs(Vsys,[symOm,symK],[Om_init,K_init]);
-odeEqn = ode(symF,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'Nt',30);
+symFFcn = matlabFunction(symF,'Vars',{t,symTh,symU});
+odeEqn = ode(symFFcn,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'Nt',30);
 %%
 % We next construct cost functional for the control problem.
-symPsi = norm(sin(symThth.' - symThth),'fro');      % Sine distance for the periodic interval $[0,2pi]$.
-symL_1 = 0.001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
+symPsi = @(T,symThth)      norm(sin(symThth.' - symThth),'fro');      % Sine distance for the periodic interval $[0,2pi]$.
+symL_1 = @(t,symThth,symU) 0.001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
 %
 iCP_1 = Pontryagin(odeEqn,symPsi,symL_1);
 %
-U0 = zeros(length(iCP_1.Dynamics.tspan),iCP_1.Dynamics.Udim);
+U0 = zeros(length(iCP_1.Dynamics.tspan),iCP_1.Dynamics.ControlDimension);
 %% Solve Gradient descent
 tic
 GradientMethod(iCP_1,U0)
@@ -115,7 +116,7 @@ title('The control function')
 % In this part, we change the regularization into L^1-norm and see the
 % difference.
 
-symL_2 = 0.001*abs(symU);
+symL_2 = @(t,Y,symU)   0.001*abs(symU);
 iCP_2 = Pontryagin(odeEqn,symPsi,symL_2);
 % 
 tic

@@ -1,7 +1,8 @@
 %% Parametros de discretizacion
-N = 100;
+N = 70;
 xi = -1; xf = 1;
-xline = linspace(xi,xf,N);
+xline = linspace(xi,xf,N+2);
+xline = xline(2:end-1);
 dx = xline(2) - xline(1);
 %% Creamos el ODE 
 A = FDLaplacian(xline);
@@ -9,9 +10,9 @@ A = FDLaplacian(xline);
 a = -0.5; b = 0.5;
 B = construction_matrix_B(xline,a,b);
 %%%%%%%%%%%%%%%%
-FinalTime = 0.3;
+FinalTime = 0.01;
 dt = 0.001;
-Y0 =sin(pi*xline)';
+Y0 =cos(pi*xline)';
 
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',50);
 dynamics.mesh= xline;
@@ -19,10 +20,10 @@ dynamics.mesh= xline;
 Y = dynamics.StateVector.Symbolic;
 U = dynamics.Control.Symbolic;
 
-YT = 0.0*xline';
+YT = 5*cos(0.5*pi*xline');
 epsilon = dx^4;
-symPsi  = dx*(1/(2*epsilon))*(YT - Y).'*(YT - Y);
-symL    = 0.5*dx*(U.'*U);
+symPsi  = @(T,Y)   dx*(1/(2*epsilon))*(YT - Y).'*(YT - Y);
+symL    = @(t,Y,U) 1e5*dx*sum(abs(U));
 %symL     dx* 1/2*sum(abs(U));
 
 
@@ -31,7 +32,7 @@ iCP1 = Pontryagin(dynamics,symPsi,symL);
 %% Solve Gradient
 tol = 1e-6;
 %
-U0 = zeros(iCP1.Dynamics.Nt,iCP1.Dynamics.Udim);
+U0 = zeros(iCP1.Dynamics.Nt,iCP1.Dynamics.ControlDimension);
 [UOptDyCon,JOptDycon] = GradientMethod(iCP1,U0,'tol',tol,'Graphs',false,'DescentAlgorithm',@ConjugateDescent,'MaxIter',200,'display','all')
 %% fmincon
 options = optimoptions(@fminunc,'display','iter','SpecifyObjectiveGradient',true);
@@ -50,14 +51,14 @@ solve(iCP1.Dynamics,'Control',U0)
 iCP1.Dynamics.label = 'free';
 
 %%
-animation([DynFminCon DynDyCon, iCP1.Dynamics])
+animation([DynFminCon DynDyCon, iCP1.Dynamics],'YLim',[0 5],'xx',0.01,'Target',YT)
 %%
-dynamics.label = 'Free';
-iCP1.Dynamics.label = 'with Control';
-solve(dynamics)
-
-plotT([iCP1.Dynamics dynamics])
-hold on 
+% dynamics.label = 'Free';
+% iCP1.Dynamics.label = 'with Control';
+% solve(dynamics)
+% 
+% plotT([iCP1.Dynamics dynamics])
+% hold on 
 % animation([iCP1.ode,dynamics],'YLim',[-1 1],'xx',0.05)
 % Several ways to run
 % GradientMethod(iCP1)

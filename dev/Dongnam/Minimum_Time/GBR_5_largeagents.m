@@ -1,7 +1,7 @@
 %% Two drivers, Flexible time
 
-N_sqrt = 6;
-M = 3; N = N_sqrt^2;
+N_sqrt =2;
+M = 2; N = N_sqrt^2;
 
 Y = sym('y',[4*(M+N) 1]);
 U = sym('u',[M+1 1]);
@@ -48,7 +48,7 @@ ue_zero(1,:) = x_zero(:);
 ue_zero(2,:) = y_zero(:);
 
 for j=1:M
-  ud_zero(:,j) = 5*[cos(2*pi/M*j);sin(2*pi/M*j)];
+  ud_zero(:,j) = 2*[cos(2*pi/M*j);sin(2*pi/M*j)];
 end
 
 Y0 = [ue_zero(:);ve_zero(:);ud_zero(:);vd_zero(:)];
@@ -71,7 +71,7 @@ dynamics.InitialCondition = Y0;
 tline = dynamics.tspan;
 U0_tline = [2*ones([length(tline),M]),5*ones([length(tline),1])];
 %U0_tline = [UO_tline,1*ones([length(tline),1])];
-u_f = [0;-1];
+u_f = [0;0];
 
 dynamics.Control.Numeric = U0_tline;
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
@@ -164,8 +164,8 @@ L   = (kappa.'*kappa);
 
 iP = Pontryagin(dynamics,Psi,L);
 %iP.ode.Control.Numeric = ones(51,1);
-iP.Constraints.MaxControl= 20;
-iP.Constraints.MinControl = -20;
+iP.Constraints.MaxControl= 1000;
+iP.Constraints.MinControl = -1000;
 %%
 tline = dynamics.tspan;
 %temp = interp1(tline1,temp1,tline);
@@ -194,7 +194,7 @@ options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter'
 
 temp = fmincon(@(U) Control2Functional(iP,U),U0_tline, [],[], ... 
                                                        [],[], ...
-                                                       U0_tline*0 - 5,U0_tline*0 + 5, ...
+                                                       U0_tline*0 - 10,U0_tline*0 + 10, ...
                                                        [],    ...
                                                        options);
 
@@ -239,8 +239,8 @@ figure
 lv = plot(vePx(1,:),vePy(1,:),'b*');
 hold on
 lu = plot(uePx(1,:),uePy(1,:),'r*');
-xlim([-5 5])
-ylim([-5 5])
+xlim([-500 500])
+ylim([-500 500])
 
 
 for it = 1:TN-1

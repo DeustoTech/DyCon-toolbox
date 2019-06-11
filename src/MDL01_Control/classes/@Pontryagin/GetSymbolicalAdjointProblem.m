@@ -27,33 +27,28 @@
     %% Creamos las variables simbolica 
     symU   = iode.Control.Symbolic;
     symY   = iode.StateVector.Symbolic;
-    t      = iode.symt;
-    symP  =  sym('p', [1 length(symY)]);
+    symP  =  sym('p', [length(symY) 1]);
     
-    % H_y = L_y + p*f_y
+    lineal = false;
     if obj.Dynamics.lineal
-        Lu = gradient(L,symY);
-        if  sum(gradient(L,symY)) == sym(0)
+        Lu = obj.Functional.DiffLState.Symbolic;
+        if  sum(Lu) == sym(0)
             obj.Adjoint.Dynamics = ode('A',iode.A);
-        else
-            dP_dt = Lu + iode.A*symP.';
-            % Convertimos la expresion a una funcion simbolica
-            % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
-            Control = [symY.' symU.'].';
-            State   = symP.';
-            obj.Adjoint.Dynamics = ode(dP_dt,State,Control);
-            obj.Adjoint.Dynamics.Solver = obj.Dynamics.Solver;
+            lineal = true;
         end
-    else
-         %% Hamiltoniano
-        H = obj.Hamiltonian;
+    end
+    
+    if ~lineal
         %% Obtenemos el Adjunto
+        FY = obj.Dynamics.DerivativeDynState.Numerical;
+        LY = obj.Functional.DiffLState.Numeric;
         % Creamos el problema adjunto  en simbolico
-        dP_dt = gradient(formula(H),symY);  
+        Sdim = obj.Dynamics.StateDimension;
+        dP_dt = @(t,P,YU) FY(t,YU(1:Sdim),YU(Sdim+1:end))'*P + LY(t,YU(1:Sdim),YU(Sdim+1:end));  
         % Convertimos la expresion a una funcion simbolica
         % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
-        Control = [symY.' symU.'].';
-        State   = symP.';
+        Control = [symY; symU];
+        State   = symP;
         obj.Adjoint.Dynamics = ode(dP_dt,State,Control);
         obj.Adjoint.Dynamics.Solver = obj.Dynamics.Solver;
 

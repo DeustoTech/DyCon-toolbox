@@ -23,8 +23,8 @@ U = sym('u',[2 1])
 %%
 % Using these two variables, we can state the system by a symbolic
 % expression of the vector field. 
-F = [ sin(Y(1)*Y(2)) +    (Y(1)*Y(2)) + U(1)   ; ...
-         Y(2)        + cos(Y(1)*Y(2)) + U(2) ] ;
+F = @(t,Y,U) [ sin(Y(1)*Y(2)) +     (Y(1)*Y(2)) + U(1)   ; ...
+                  Y(2)        + cos(Y(1)*Y(2)) + U(2) ] ;
 dynamics = ode(F,Y,U);
 %%
 % In this way, we defined 'dynamics' of the class 'ode' which represents

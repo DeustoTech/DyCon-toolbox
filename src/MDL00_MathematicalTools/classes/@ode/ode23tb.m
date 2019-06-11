@@ -7,14 +7,28 @@ InitialCondition = iode.InitialCondition;
 U = iode.Control.Numeric;
 
 if isempty(varargin)
-  iode.SolverParameters = {odeset('Mass',iode.MassMatrix)};
+  try 
+      Jacobian = double(iode.DerivativeDynState.Symbolical);
+  catch
+      Jacobian = [];
+  end
+  iode.SolverParameters = {odeset('Mass',iode.MassMatrix,'Jacobian',Jacobian)};
 else
   iode.SolverParameters{:} = varargin{:};
   iode.SolverParameters{:}.Mass = iode.MassMatrix;
+%   try 
+%       iode.Jacobian = double(iode.DerivativeDynState.Symbolical);
+%   end
 end
 
-Ufun = @(t) interp1(tspan,U,t)';
-dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t));
+% [MeshInd,MeshTime] = ndgrid(1:iode.Udim,iode.tspan);
+% Uinterp = griddedInterpolant(MeshTime',MeshInd',U);
+% Ufun = @(t) arrayfun(@(id) Uinterp(t,id),1:iode.Udim)';
+
+Ufun = @(t) interp1(tspan,U,t,'nearest')';
+
+
+dynamics = @(t,Y) iode.DynamicEquation.Numerical(t,Y,Ufun(t));
 
 [tspan,StateVector] = ode23tb(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
 

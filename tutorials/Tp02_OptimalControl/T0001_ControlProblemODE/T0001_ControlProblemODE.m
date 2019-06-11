@@ -40,8 +40,8 @@ U = sym('u',[1 1])
 % The dynamics of $ Y $ should be given by a symbolic vector with the same
 % dimensions as the state vector. Following the notation at the beginning,
 % this vector represents $ f (t, Y, U) $:
- F = [ Y(2)          ; ...
-      -Y(2) + U(1) ] ;
+ F = @(t,Y,U) [      Y(1)*Y(2)          ; ...
+                -Y(2) + U(1) ] ;
 %% 
 % Using this dynamics vector, we construct an 'ode' class.
 dynamics = ode(F,Y,U)
@@ -61,8 +61,8 @@ dynamics.Nt = 10;
 % Next we need to define the functional $ J $ we want to minimize.
 % Following the form presented in [1], we define the expressions of $ \ Psi $
 % and $ L $ in symbolic form:
-Psi = sym(0);
-L   = 0.005*(U.'*U)+Y.'*Y ;
+Psi = @(T,Y)   Y.'*Y;
+L   = @(t,Y,U) 0.005*(U.'*U)+Y.'*Y ;
 %%
 % We finally define the optimal control problem as a 'OptimalControl' class:
 iP = Pontryagin(dynamics,Psi,L);
@@ -78,7 +78,7 @@ iP
 % Pontryagin principle.
 %%
 % To solve the problem using the default gradient method, we simply write:
-U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.Udim);
+U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.ControlDimension);
 GradientMethod(iP,U0);
 %% 
 % This command generates 'solution' in the 'OptimalControl' class, which

@@ -51,9 +51,9 @@ symU = SymsVector('u',1);
 % by a parameter $\beta$ that will be small.
 YT = 0.2 + 0*xline';
 dx = xline(2) - xline(1);
-symPsi  = (1/dx^4)*(YT - symY).'*(YT - symY);
+symPsi  = @(T,symY) (1/dx^4)*(YT - symY).'*(YT - symY);
 %tiempo= @(t) piecewise(t<=T/2,500,t>T/2,0);
-symL    = (1/dx^4)*(YT - symY).'*(YT - symY);
+symL    = @(t,symY,symU)(YT - symY).'*(YT - symY);
 %%
 % We create the ODE object
 % Our ODE object will have the semi-discretization of the semilinear heat equation.
@@ -96,12 +96,12 @@ vectorF = arrayfun( @(x)G(x),symY);
 
 % Putting all the things together
 Fsym  = A*symY + vectorF + B*symU;
-
+syms t
+Fsym_fh = matlabFunction(Fsym,'Vars',{t,symY,symU});
 %%
-odeEqn = pde(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',50);
+odeEqn = pde(Fsym_fh,symY,symU,'InitialCondition',Y0,'FinalTime',50);
 odeEqn.Nt=100;
 odeEqn.mesh = xline;
-
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
@@ -118,31 +118,35 @@ xlabel('Time')
 iCP1 = Pontryagin(odeEqn,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
+% 
+iCP1.Constraints.MaxControl = 0;
+iCP1.Constraints.MinControl = 1;
+U0 = 0.0*(iCP1.Dynamics.tspan).' + 0.1;
+U0(U0>1) = 1;
+U0(U0<0) = 0;
 
-iCP1.Constraints.MaxControl = 1;
-iCP1.Constraints.MinControl = 0;
-
-U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim)+ 0.6;
-GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@AdaptativeDescent,'Graphs',false)
+%U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.ControlDimension)+ 0.6;
+GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@ClassicalDescent,'Graphs',false)
 
 %%
-U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim)+ 0;
-options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
-fminunc(@(U) Control2Functional(iCP1,U),U0,options)
+% U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim)+ 0;
+% options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
+% fminunc(@(U) Control2Functional(iCP1,U),U0,options)
 
 %%  
 %  options = optimoptions('ga','display','iter', ...
 %                               'HybridFcn',{'fmincon','SpecifyObjectiveGradient',true},'UseParallel',false);
 % ga(@(U) Control2Functional(iCP1,U'),odeEqn.Nt,[],[],[],[],U0*0 ,U0*0 + 1,[],options)
 % 
-% %%
-% options = optimoptions(@fmincon,'SpecifyObjectiveGradient',true,'display','iter','Algorithm','active-set');
-% U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim)+ 0.6;
-% 
-% fmincon(@(U) Control2Functional(iCP1,U),U0,[],[], ...
-%                                            [],[], ... 
-%                                            U0*0 - 1e-5 ,U0*0 + 1, ... % lb - yp
-%                                            [],options)
+%%
+options = optimoptions(@fmincon,'SpecifyObjectiveGradient',true,'display','iter');
+U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.ControlDimension)+ 0.66;
+U0 = 0.1*(iCP1.Dynamics.tspan.^0.5).';
+
+fmincon(@(U) Control2Functional(iCP1,U),U0,[],[], ...
+                                           [],[], ... 
+                                           U0*0 ,U0*0 + 1, ... % lb - yp
+                                           [],options)
 
 %%
 figure;

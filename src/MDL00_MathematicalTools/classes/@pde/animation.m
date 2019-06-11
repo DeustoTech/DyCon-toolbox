@@ -19,6 +19,8 @@ function animation(iode,varargin)
     addRequired(p,'iode')
     addOptional(p,'YLim',[])
     addOptional(p,'YLimControl',[])
+    addOptional(p,'LogControl',false)
+
     addOptional(p,'Target',[])
     addOptional(p,'InitCondition',[])
     addOptional(p,'ControlShadow',false)
@@ -39,7 +41,7 @@ function animation(iode,varargin)
     Target          = p.Results.Target;
     InitCondition   = p.Results.InitCondition;
     ControlShadow    = p.Results.ControlShadow;
-    
+    LogControl      = p.Results.LogControl;
     structure       = [iode.StateVector];
     Y               = {structure.Numeric};
     structure       = [iode.Control];
@@ -159,7 +161,13 @@ function animation(iode,varargin)
                 if ControlShadow && exist('luu','var')
                     luu(index).Color = 0.2*luu(index).Color + 0.8*[1 1 1];
                 end
-                luu(index) = line(1:iode(1).Udim,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+                if LogControl
+                   Udata =  log10(U{index} + 1);
+                else
+                   Udata =  U{index};
+
+                end
+                luu(index) = line(1:iode(1).ControlDimension,interp1(tspan,Udata,t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
                 %luu(index) = line(iode(1).mesh,interp1(tspan,U{index},t),'Parent',axU,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
 
             end

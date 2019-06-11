@@ -56,9 +56,10 @@ dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
 
 T = U(2); % Time-scaling from s to t
 F = [dot_ud;dot_ue;dot_vd;dot_ve]*T; % Multiply original velocities with time-scaling T(s).
-
+syms t
+F_hd = matlabFunction(F,'Vars',{t,Y,U});
 dt = 0.1; % Numerical time discretization
-dynamics = ode(F,Y,U,'FinalTime',1,'Nt',30);
+dynamics = ode(F_hd,Y,U,'FinalTime',1,'Nt',30);
 
 % ud = (-3,0), ue = (0,0), and zero velocities initially.
 dynamics.InitialCondition = [-3;0;0;0;0;0;0;0]; 
@@ -105,9 +106,12 @@ ylabel('ordinate')
 % $$ J = 1*|ue(T)-uf|^2 + 0.1*T + 0.001*\int_0^T |u(t)|^2dt. $$
 
 Psi = 1*(ue-uf).'*(ue-uf);
+Psi_hd = matlabFunction(Psi,'Vars',{t,Y});
 L   = 0.1*T + 0.001*(kappa.'*kappa)*T;
+L_hd   = matlabFunction(L,'Vars',{t,Y,U});
 
-iP = Pontryagin(dynamics,Psi,L);
+
+iP = Pontryagin(dynamics,Psi_hd,L_hd);
 
 %Constraints on the control : Time should be nonnegative
 iP.Constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];

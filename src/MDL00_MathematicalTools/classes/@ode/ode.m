@@ -48,7 +48,9 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %                   <li> Numeric  - function_handle of dynamics equation. 
         %                   </li>
         %               </ul>
-        DynamicEquation                                                                                
+        DynamicEquation                 SymNumFun =SymNumFun
+        DerivativeDynControl            SymNumFun =SymNumFun
+        DerivativeDynState              SymNumFun =SymNumFun
         % type: "double"
         % dimension: [1xN]
         % default: "[0 0 0 ...]"
@@ -112,8 +114,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % dimension: [NxN]
         % default: "none"
         % description: "Dimension of Control Vector"
-        Udim
-        Ydim
+        ControlDimension
+        StateDimension
         dt
     end
     
@@ -154,9 +156,9 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             %% Control input Parameters 
             p = inputParser;
             
-            addOptional(p,'DynamicEquation',[])
-            addOptional(p,'StateVector',[])
-            addOptional(p,'Control',[])
+            addOptional(p,'DynamicEquation',[],@ValidatorODEDynamicsEquation)
+            addOptional(p,'StateVector'    ,[],@ValidatorODEStateVector)
+            addOptional(p,'Control'        ,[],@ValidatorODEStateVector)
             
             addOptional(p,'A',[])
             addOptional(p,'B',[])
@@ -184,75 +186,68 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                  && isempty(obj.A) && isempty(obj.B) )
                     
                    obj.lineal = false;
-                   
+                   try
+                        Ny = length(StateVector);
+                        Nu = length(Control);
+                        Fresp = DynamicEquation(0,zeros(Ny,1),zeros(Nu,1));
+                        [FrespNrow,FrespNcol] = size(Fresp);
+                        if FrespNrow ~= Ny || FrespNcol ~= 1
+                            error(['The dynamics equation must be return the column vector of dimension: [',num2str(Ny),'x1]'])
+                        end
+                   catch err
+                        err.getReport
+                        error(['You have a some problem in the definition of the dynamics equation.'])
+                   end
             elseif (isempty(DynamicEquation) && isempty(StateVector) && isempty(Control) ...
                  && ~isempty(obj.A) )
              
                    obj.lineal = true;
-                    
+            else
+                error([newline, ...
+                        'You can define the class ode in two different way:',newline, ...
+                        '   - ode(DynamicEquation,StateVector,Control)    ',newline, ...
+                        '   - ode(''A'',A,''B'',B)                        ',newline])
             end
             
             %%
-            syms t
-            obj.symt                    = t;
+            obj.symt                    = sym('t');
 
             if ~obj.lineal
                 %%  Ha entrado variables simbolicas
-                Y    = StateVector;
-                obj.StateVector.Symbolic    = Y;
-                obj.StateVector.Numeric     = [];
-                
-                index = 0;
-                
-                for iU = Control
-                    index = index + 1;
-                    obj.Control(index).Symbolic        = iU;
-                    obj.Control(index).Numeric         = [];
-                end
-                U =  [obj.Control.Symbolic];
-                
-                obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
-                obj.DynamicEquation.Numeric   = matlabFunction(obj.DynamicEquation.Symbolic,'Vars',{t,Y,U});
-                
+                obj.StateVector.Symbolic      = StateVector;                
+                obj.Control.Symbolic          = Control;
+                obj.DynamicEquation.Numerical   = DynamicEquation;
+                obj.DynamicEquation.Symbolical   = [];
+
             else
                 %% Han entrado matrices A y B 
                 [nrow,~ ] = size(obj.A);
                 
                 % Creamos la estructura para el vector de estado 
                 obj.StateVector.Symbolic = sym('y',[nrow 1]);
-                %obj.StateVector.Symbolic =[];
-
-                %Y = obj.StateVector.Symbolic;
                 
-                obj.StateVector.Numeric     = [];
                 % Creamos la estructura para el control
                 [~ ,ncol] = size(obj.B);
-                U = sym('u',[ncol 1]) ;
-                obj.Control.Symbolic        = U;
-                obj.Control.Numeric         = [];
-                %obj.Control.Symbolic =[];
+                obj.Control.Symbolic        = sym('u',[ncol 1]) ;
                %
+
                 if ~isempty(obj.B)
-                    %DynamicEquation = obj.A*Y + obj.B*U;
-                    %obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.',U.']);
-                    obj.DynamicEquation.Numeric   = @(t,Y,U) obj.A*Y + obj.B*U;
+                    obj.DynamicEquation.Numerical   = @(t,Y,U) obj.A*Y + obj.B*U;
                 else
-                    %DynamicEquation = obj.A*Y;
-                    %obj.DynamicEquation.Symbolic  = symfun(DynamicEquation,[t,Y.']);
-                    obj.DynamicEquation.Numeric   = @(t,Y,U) obj.A*Y;
+                    obj.DynamicEquation.Numerical   = @(t,Y,U) obj.A*Y;
                 end
                 % Por defecto 
                 obj.Solver          = @euleri;
+                obj.DerivativeDynControl.Numerical = @(t,Y,U) obj.B;
+                obj.DerivativeDynState.Numerical   = @(t,Y,U) obj.A;
             end
              
-            obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
-            obj.MassMatrix      = eye(obj.Ydim);
+            obj.Control.Numeric = zeros(length(obj.tspan),obj.ControlDimension);
+            obj.MassMatrix      = eye(obj.StateDimension);
+            %
             if isempty(obj.InitialCondition)
-
-                obj.InitialCondition =  zeros(obj.Ydim,1);
-                
+                obj.InitialCondition =  zeros(obj.StateDimension,1);
             end
-
 
         end
         %% ================================================================================
@@ -266,21 +261,21 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 tspan = linspace(0,obj.FinalTime,obj.Nt);
         end
         %%
-        function Udim = get.Udim(obj)
+        function ControlDimension = get.ControlDimension(obj)
             if ~(obj.lineal)
-               Udim =  length(obj.Control.Symbolic);
+               ControlDimension =  length(obj.Control.Symbolic);
             elseif ~isempty(obj.B) 
-               [~, Udim ] =  size(obj.B);
+               [~, ControlDimension ] =  size(obj.B);
             else
-                Udim = 0;
+                ControlDimension = 0;
             end
         end
         %%
-        function Ydim = get.Ydim(obj)
+        function StateDimension = get.StateDimension(obj)
             if obj.lineal
-                [Ydim, ~] = size(obj.A);
+                [StateDimension, ~] = size(obj.A);
             else
-                Ydim =  length(obj.StateVector.Symbolic);
+                StateDimension =  length(obj.StateVector.Symbolic);
             end
         end
         %% ================================================================================
@@ -288,14 +283,14 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         function set.FinalTime(obj,FinalTime)
             obj.FinalTime = FinalTime;
             if ~ isempty(obj.Control)
-                obj.Control.Numeric = zeros(length(obj.tspan),obj.Udim);
+                obj.Control.Numeric = zeros(length(obj.tspan),obj.ControlDimension);
             end
         end
         
         function set.Nt(obj,Nt)
             obj.Nt = Nt;
             if ~isempty(obj.Control)
-                obj.Control.Numeric = zeros(obj.Nt,obj.Udim);
+                obj.Control.Numeric = zeros(obj.Nt,obj.ControlDimension);
             end
         end
         %% ================================================================================

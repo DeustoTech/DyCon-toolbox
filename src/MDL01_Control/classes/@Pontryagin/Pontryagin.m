@@ -36,12 +36,12 @@ properties
 end
      
     methods
-        function obj = Pontryagin(iode,symPsi,symL,varargin)
+        function obj = Pontryagin(idynamics,Psi,L,varargin)
         % name: ControlProblem
         % description: 
         % autor: JOroya
         % MandatoryInputs:   
-        %   iode: 
+        %   idynamics: 
         %       name: Ordinary Differential Equation 
         %       description: Ordinary Differential Equation represent the constrain to minimization the functional 
         %       class: ode
@@ -57,13 +57,13 @@ end
         %       description: This parameter represent the final time of simulation.  
         %       class: double
         %       dimension: [1x1]
-        %       default: iode.T 
+        %       default: idynamics.T 
         %   dt:
         %       name: Final Time 
         %       description: This parameter represent is the interval to interpolate the control, $u$, and state, $y$, to obtain the functional $J$ and the gradient $dH/du$
         %       class: double
         %       dimension: [1x1]
-        %       default: iode.dt         
+        %       default: idynamics.dt         
         % Outputs:
         %   obj:
         %       name: ControlProblem MATLAB
@@ -73,76 +73,138 @@ end
 
             p = inputParser;
             
-            addRequired(p,'iode');
+            addRequired(p,'idynamics');
             
-            addRequired(p,'symPsi');
-            addRequired(p,'symL');
+            addRequired(p,'Psi',@ValidatorPontryaginPsi);
+            addRequired(p,'L'  ,@ValidatorPontryaginL);
                     
+            addOptional(p,'DiffLagrangeState',[],@(dPsidY)ValidatorPontryaginDiffLagrangeState(idynamics,dPsidY))
+            addOptional(p,'DiffLagrangeControl',[],@(dPsidY)ValidatorPontryaginDifLagrangeControl(idynamics,dPsidY))
             
-            addOptional(p,'ControlGradient',[])
-            addOptional(p,'Hessian',[])
+            addOptional(p,'DiffFinalCostState',[],@(dPsidY)ValidatorPontryaginDiffFinalCostState(idynamics,dPsidY))
             addOptional(p,'Adjoint',[])
-            addOptional(p,'AdjointFinalCondition',[])
-            
-            parse(p,iode,symPsi,symL,varargin{:})
-            
-            t           = iode.symt;
-            symU        = iode.Control.Symbolic;
-            symY        = iode.StateVector.Symbolic;
-            Hessian     = p.Results.Hessian;
-            ControlGradient    = p.Results.ControlGradient;
+            addOptional(p,'CheckDerivatives',false)
 
-            Adjoint                 = p.Results.Adjoint;
-            AdjointFinalCondition   = p.Results.AdjointFinalCondition;
-            %% Functiona Definition
-            obj.Functional.Psi.Symbolic      = symfun(symPsi,[t,symY.']);
-            obj.Functional.Psi.Numeric       = matlabFunction(symPsi,'Vars',{t,symY});
+            
+            parse(p,idynamics,Psi,L,varargin{:})
+            
+            DiffLagrangeState   = p.Results.DiffLagrangeState;
+            DiffLagrangeControl = p.Results.DiffLagrangeControl;
+            DiffFinalCostState  = p.Results.DiffFinalCostState;
+            
+            Adjoint             = p.Results.Adjoint;
+            
+            CheckDerivatives = p.Results.CheckDerivatives;
+            
+            t        = idynamics.symt;
+            U        = idynamics.Control.Symbolic;
+            Y        = idynamics.StateVector.Symbolic;
 
-            obj.Functional.L.Symbolic        = symfun(symL,[t,symY.',symU.']);
-            obj.Functional.L.Numeric         = matlabFunction(symL,'Vars',{t,symY,symU});
+            %% Test Variables
+            Utest001 = zeros(idynamics.ControlDimension,1);
+            Ytest001 = zeros(idynamics.StateDimension,1);
+            time0001 = 0;
             %% Dynamics Definition                   
-            obj.Dynamics                 = copy(iode);
-            %% Hamiltonian
+            obj.Dynamics                 = copy(idynamics);
             
-            symP  =  sym('p', [length(symY),1]);
-            
-            if obj.Dynamics.lineal   
-                obj.Hamiltonian = symL + symP.'*(obj.Dynamics.A* obj.Dynamics.StateVector.Symbolic + obj.Dynamics.B*obj.Dynamics.Control.Symbolic);
-            else
-                obj.Hamiltonian = symL + symP.'*formula(obj.Dynamics.DynamicEquation.Symbolic);
+            %% Derivative Dynamics
+            if isempty(obj.Dynamics.DerivativeDynControl.Numerical)
+                GetSymbolicalDerivativeControl(obj.Dynamics)
             end
             
-            %% Direccion del Gradiente
-            
-            if isempty(ControlGradient)
-                GetSymbolicalGradient(obj);
-            else
-                obj.ControlGradient.Numerical = ControlGradient;
+            if isempty(obj.Dynamics.DerivativeDynState.Numerical)
+                GetSymbolicalDerivativeState(obj.Dynamics)
             end
-            
-            if isempty(Hessian)
-                if ~isempty(ControlGradient)
-                    warning('If you specify gradient, is better specify hessian also.')
-                    GetSymbolicalGradient(obj);
+            %% Terminal Cost Term
+            obj.Functional.Psi.Numeric       = Psi;
+            if isempty(DiffFinalCostState)||CheckDerivatives
+                obj.Functional.Psi.Symbolic   = symfun(Psi(t,Y),[t,Y.']);
+                dPsidYSym = gradient(obj.Functional.Psi.Symbolic,Y.').';
+                dPsidYNum =  matlabFunction(dPsidYSym,'Vars',{t,Y});
+                %
+                if ~isempty(DiffFinalCostState)
+                    % check Psi_y 
+                    symResult = dPsidYNum(time0001,Ytest001);
+                    numResult = DiffFinalCostState(time0001,Ytest001);
+                    %
+                    if max(abs(symResult - numResult)) < 1e-3 
+                        fprintf(['   - The dPsi/dY is equal to symbolic derivation',newline,newline])
+                    else
+                        error('The dPsi/dY is different to symbolic derivation')
+                    end
                 end
-                GetSymbolicalHessian(obj);
+                obj.Functional.DiffPsiState.Symbolic  = dPsidYSym;
+                obj.Functional.DiffPsiState.Numeric   = dPsidYNum;
+                
+            else
+                obj.Functional.DiffPsiState.Symbolic  = sym.empty;
+                obj.Functional.DiffPsiState.Numeric   = DiffFinalCostState;
             end
+            
+            %% Lagrange Term
 
-            %% Calculate Adjoint of Dynamics
+            obj.Functional.L.Numeric     = L;
+            % si alguno no esta dado, hay que calcularlo
+            if isempty(DiffLagrangeState)||isempty(DiffLagrangeControl) || CheckDerivatives
+                obj.Functional.L.Symbolic    = symfun(L(t,Y,U),[t,Y.',U.']);
+            end
+            %% Lagrange Term - State Derivative
+            if isempty(DiffLagrangeState)||CheckDerivatives
+                dLdYsym =  gradient(obj.Functional.L.Symbolic,Y.');
+                dLdYnum =  matlabFunction(dLdYsym,'Vars',{t,Y,U});
+                
+                if ~isempty(DiffLagrangeState)
+                    symResult = dLdYnum(time0001,Ytest001,Utest001);
+                    numResult = DiffLagrangeState(time0001,Ytest001,Utest001);
+                    %
+                    if max(abs(symResult - numResult)) < 1e-3 
+                        fprintf(['  - The dL/dY is equal to symbolic derivation',newline,newline])
+                    else
+                        error('The dL/dY is different to symbolic derivation')
+                    end
+                end
+                obj.Functional.DiffLState.Symbolic   = dLdYsym;
+                obj.Functional.DiffLState.Numeric    = dLdYnum;
+            else
+                obj.Functional.DiffLState.Symbolic  = sym.empty;
+                obj.Functional.DiffLState.Numeric    = DiffLagrangeState;
+            end
+            
+            %% Lagrange Term - Control Derivative
+            if isempty(DiffLagrangeControl) || CheckDerivatives
+                dLdUsym =  gradient(obj.Functional.L.Symbolic,U.');
+                dLdUnum = matlabFunction(dLdUsym,'Vars',{t,Y,U});            %% Hamiltonian
+                if ~isempty(DiffLagrangeControl)
+                    symResult = dLdUnum(time0001,Ytest001,Utest001);
+                    numResult = DiffLagrangeControl(time0001,Ytest001,Utest001);
+                    %
+                    if max(abs(symResult - numResult)) < 1e-3 
+                        fprintf(['  - The dL/dU is equal to symbolic derivation',newline,newline])
+                    else
+                        error('The dL/dU is different to symbolic derivation')
+                    end
+                end
+                obj.Functional.DiffLControl.Symbolic   = dLdUsym;
+                obj.Functional.DiffLControl.Numeric    = dLdUnum;
+            else
+                obj.Functional.DiffLControl.Numeric    = DiffLagrangeControl;
+            end
+            
+            dLdUnum = obj.Functional.DiffLControl.Numeric;
+            %% Crear funciones Generales para los algorimtos de optimizacion
+            dFdUnum = obj.Dynamics.DerivativeDynControl.Numerical;
+            obj.ControlGradient.Numerical = @(t,Y,P,U) obj.Dynamics.dt*(dLdUnum(t,Y,U) + dFdUnum(t,Y,U).'*P);
+            % Adjoint
             if isempty(Adjoint)
                 GetSymbolicalAdjointProblem(obj);
             else
                 obj.Adjoint.Dynamics = Adjoint;
             end
-            %% Calculate Adjoint of Dynamics
-            if isempty(AdjointFinalCondition)
-                GetSymbolicalAdjointFinalCondition(obj);
-            else
-                obj.Adjoint.FinalCondition.Numeric = AdjointFinalCondition;
-            end
             
-            
-        end
+            obj.Adjoint.FinalCondition.Numeric   =  obj.Functional.DiffPsiState.Numeric;
+            obj.Adjoint.FinalCondition.Symbolic =   obj.Functional.DiffPsiState.Symbolic;
+    
+          end
         
     end
 end

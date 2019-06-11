@@ -4,86 +4,111 @@
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
 
 %FinalTimes = linspace(0.1,0.25,4);
-FinalTimes = linspace(0.15,1,4);
-%FinalTimes = 0.2;
+%FinalTimes = linspace(0.1,0.3,4);
+FinalTimes = 0.08;
 %FinalTimes = 0.15;
 %FinalTimes = 0.0438;
 %FinalTimes = linspace(0.03,0.05,2);
 
-iOCPs = arrayfun(@(FinalTime) FinalTime2OCP(FinalTime),FinalTimes);
-
-ncol = 3;
-nft  = length(FinalTimes);
+% iOCPs = arrayfun(@(FinalTime) FinalTime2OCP(FinalTime),FinalTimes);
+% 
+% ncol = 3;
+% nft  = length(FinalTimes);
+% %%
+% figure;
+% 
+% iter = 0;
+% dx =  iOCPs(1).Dynamics.mesh(2) - iOCPs(1).Dynamics.mesh(1);
+% distance = dx*TargetDistance(iOCPs);
+% for iOCP = iOCPs
+%     iter = iter + 1;
+%     subplot(ceil(nft/ncol),ncol,iter)
+%     surf(iOCP.Dynamics.Control.Numeric)
+%     title("T_f = "+FinalTimes(iter)+ "& |.| = "+distance(iter))
+%     %title("T_f = "+FinalTimes(iter))
+% 
+%     shading interp;colormap jet
+%     %caxis([0 40])
+%     colorbar
+%     view(0,90)
+% end
 %%
-figure;
-
-iter = 0;
-dx =  iOCPs(1).Dynamics.mesh(2) - iOCPs(1).Dynamics.mesh(1);
-distance = dx*TargetDistance(iOCPs);
-for iOCP = iOCPs
-    iter = iter + 1;
-    subplot(ceil(nft/ncol),ncol,iter)
-    surf(iOCP.Dynamics.Control.Numeric)
-    title("T_f = "+FinalTimes(iter)+ "& |.| = "+distance(iter))
-    %title("T_f = "+FinalTimes(iter))
-
-    shading interp;colormap jet
-    %caxis([0 40])
-    colorbar
-    view(0,90)
-end
-%%
 
 
-Tmin = interp1(distance,FinalTimes,5e-3)
+Tmin = 0.5
 
 
 iOCP_MinTime = FinalTime2OCP(Tmin)
-
+%%
 figure
 surf(iOCP_MinTime.Solution.UOptimal)
-title("T_f = "+Tmin+ "& |.| = "+sqrt(iOCP_MinTime.Solution.JOptimal))
-shading interp;colormap jet
+dx =  iOCP_MinTime.Dynamics.mesh(2) - iOCP_MinTime.Dynamics.mesh(1);
+title("T_f = "+Tmin+ "& |.| = "+ dx*TargetDistance(iOCP_MinTime));
+%shading interp;colormap jet
 %caxis([0 40])
 colorbar
 view(0,90)
     
 %%
-animation(iOCP_MinTime.Dynamics,'xx',0.01,'YLim',[0 5],'Target',iOCP_MinTime.Target,'YLimControl',[0 4000])
+animation(iOCP_MinTime.Dynamics,'xx',0.05,'YLim',[0 7],'Target',iOCP_MinTime.Target,'YLimControl',[0 1e4])
 %%
 function iOCP = FinalTime2OCP(FinalTime)
     Nx = 50;
     xi = -1; xf = 1;
-    xline = linspace(xi,xf,Nx+2);
+    xline = linspace(xi,xf,Nx);
+    yline = linspace(xi,xf,Nx);
+    %
+    [xms, yms] = meshgrid(xline,yline);
+    
     %xline = linspace(0,1,Nx+2);
-    xline = xline(2:end-1);
-    dx = xline(2)-xline(1);
+%     xline = xline(2:end-1);
+     dx = xline(2)-xline(1);
+     dy = yline(2)-yline(1);
+
     %%
     % Out of that, we can construct the FE approxiamtion of the fractional
     % Lapalcian, using the program FEFractionalLaplacian developped by our
     % team, which implements the methodology described in [1].
     %%
     s = 0.8;
-    A  = -FEFractionalLaplacian(s,1,Nx);
-    M  = massmatrix(xline);
+    %A  = -FEFractionalLaplacian(s,1,Nx);
+    %A = FDLaplacian(xline);
+    [~,~,A] = laplacian([Nx Nx],{'DD' 'DD'});
+    %A = sparse(A);
+    %M  = massmatrix(xline);
+    %M  = speye(Nx);
+    M = speye(Nx*Nx);
     %%
     % Moreover, we build the matrix $B$ defining the action of the control, by
     % using the program "construction_matrix_B" (see below).
-    a = -0.3; b = 0.8;
-    B = BInterior(xline,a,b,'mass',true);
-    
+    a = -0.3; b = 0.5;
+    B = BInterior(xline,a,b,'mass',false,'min',false);
+    B = sparse(B);
+    Bcell = repmat({B},Nx,1);
+%     
+% 
+    for iter = 1:10
+        Bcell{iter} = Bcell{iter}*0;
+    end    
+    for iter = 0:10
+        Bcell{end-iter} = Bcell{end-iter}*0;
+    end
+    B = blkdiag(Bcell{:});
     %%
     % We can then define a final time and an initial datum
-    Y0 = 0.5*cos(0.5*pi*xline');
-
-    Nt = 50;
+    alpha = 0.5;
+    Y0 = exp(-(xms.^2 + yms.^2)/alpha.^2);
+    Y0 = Y0(:)';
+    
+    Nt = 100;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
     dynamics.Solver = @euleri;
     dynamics.MassMatrix = M;
     dynamics.mesh = xline;
 
     %% Calculate the Target
-    Y0_other = 6*cos(0.5*pi*xline');
+    Y0_other = 10*exp(-(xms.^2 + yms.^2)/alpha.^2);
+    Y0_other = Y0_other(:);
     TargetDynamics = copy(dynamics);
     TargetDynamics.InitialCondition = Y0_other;
     U00 = TargetDynamics.Control.Numeric*0 + 1;
@@ -94,48 +119,49 @@ function iOCP = FinalTime2OCP(FinalTime)
 
     %% 
     % Take simbolic vars
-    Y = dynamics.StateVector.Symbolic;
-    U = dynamics.Control.Symbolic;
-    beta = dx^4;
+    beta = (dx*dy)^3;
     %% Construction of the control problem 
     %%
     % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
     %%
-    Psi  = (1/beta)*dx*(YT - Y).'*(YT - Y);
-    L    = dx*sum(abs(U));
-    %L    = 0.5*beta*dx*(U.'*U);
+    Psi  = @(T,Y)   (1/beta)*dx*dy*(YT - Y).'*(YT - Y);
+    L    = @(t,Y,U) dx*dy*sum(abs(U));
     %%
     % Optional Parameters to go faster
-    Gradient                =  @(t,Y,P,U) dynamics.dt*(sign(U) + B'*P);
-    %Gradient                =  @(t,Y,P,U) beta*U + B*P;
-    Hessian                 =  @(t,Y,P,U) 0;
-    AdjointFinalCondition   =  @(t,Y) (1/(2*beta))*(Y-YT);
-    Adjoint = pde('A',A);
-    OCParmaters = {'Hessian',Hessian,'ControlGradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
+    L_u   = @(t,Y,U) dx*dy*sign(U);
+    L_y   = @(t,Y,U) zeros(1,dynamics.ControlDimension);
+    Psi_y = @(t,Y)   (2/(beta))*dx*dy*(Y - YT).';
+    
+    Adjoint = pde('A',A.');
+    
+    OCParmaters = {'DiffLagrangeState'    , L_y    ,'DiffLagrangeControl'  ,L_u, ...
+                   'DiffFinalCostState'   , Psi_y  ,'Adjoint',Adjoint,'CheckDerivatives',false};
     %%
     % build problem with constraints
     iOCP =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
+    %iOCP =  Pontryagin(dynamics,Psi,L);
     iOCP.Target = YT;
     %iOCP.constraints.Umax =  300;
-    iOCP.Constraints.MinControl =  0;
+    %iOCP.Constraints.MinControl =  0;
 
         % Solver L1
     Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
-                 'tol',1e-4,                                    ...
+                 'tol',1e-8,                                    ...
                  'Graphs',false,                               ...
-                 'MaxIter',500,                               ...
-                 'EachIter',50, ...
+                 'MaxIter',5000,                               ...
+                 'EachIter',5, ...
                  'display','functional',};
     %%
-    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
+    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1e-3;
+    %load('UO.mat')
     JOpt = GradientMethod(iOCP,U0,Parameters{:});
 %     options = optimoptions(@fmincon,              'display','iter'  , ...
 %                                  'SpecifyObjectiveGradient',true    , ...                                               'Algorithm','trust-region-reflective',...
 %                                                'CheckGradients',false, ...
 %                                                'UseParallel',true );
-%     %U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
+%     U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
 %     
-%     U0 = iOCP.Solution.UOptimal;
+%     %U0 = iOCP.Solution.UOptimal;
 %     [Uopt , JOpt] = fmincon(@(U) Control2Functional(iOCP,U),U0, ...
 %                                             []    ,  [] , ... % eq constraints
 %                                             []    ,  [] , ... % ieq cons

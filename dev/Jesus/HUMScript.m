@@ -12,7 +12,7 @@ A = -FEFractionalLaplacian(0.8,1,Nx);
 B =  BInterior(xline,-0.3,0.8,'Mass',true);
 %%
 idyn            = pde('A',A,'B',B);
-idyn.FinalTime  = 0.1;
+idyn.FinalTime  = 0.5;
 idyn.Nt         = 100;
 idyn.mesh       = xline;
 idyn.MassMatrix = MassMatrix(xline);
