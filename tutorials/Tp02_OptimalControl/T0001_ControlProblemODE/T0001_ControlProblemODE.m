@@ -9,13 +9,13 @@
 %%
 % $$ \dot{Y} = f(t,Y,U). $$
 %% 
-% 'OptimalControl' class uses symbolic interface to define a control
-% problem as in 'ode' class. 'OptimalControl' class contains 'ode' class,
+% 'Pontryagin' class uses symbolic interface to define a control
+% problem as in 'ode' class. 'Pontryagin' class contains 'ode' class,
 % the final cost, and running cost. As 'ode' class contains $ f $, the
 % final cost $ \Psi $ and running cost $ L $ should be given by symbolic
 % functions. 
 %% 
-% Here we explain 'OptimalControl' class with a simple example: we want to
+% Here we explain 'Pontryagin' class with a simple example: we want to
 % minimize the objective function
 %%
 % $$ J (Y,U) := \int_0^2 (y_1^2 + y_2^2) + 0.005(u_1^2 + u_2^2) dt, $$
@@ -54,7 +54,7 @@ dynamics = ode(F,Y,U)
 % The time discretization is generated as a uniform mesh from the timestep
 % $ dt $. It will be used not only for the sampling of the state vector $ Y
 % $ but also to represent the control vector $ U $ and cost $ J $ in
-% 'OptimalControl' class. 
+% 'Pontryagin' class. 
 dynamics.InitialCondition = [0;-1];
 dynamics.Nt = 10;
 %%
@@ -64,7 +64,7 @@ dynamics.Nt = 10;
 Psi = @(T,Y)   Y.'*Y;
 L   = @(t,Y,U) 0.005*(U.'*U)+Y.'*Y ;
 %%
-% We finally define the optimal control problem as a 'OptimalControl' class:
+% We finally define the optimal control problem as a 'Pontryagin' class:
 iP = Pontryagin(dynamics,Psi,L);
 %%
 % This class contains information we need to find the optimal control
@@ -81,12 +81,12 @@ iP
 U0 = zeros(iP.Dynamics.Nt,iP.Dynamics.ControlDimension);
 GradientMethod(iP,U0);
 %% 
-% This command generates 'solution' in the 'OptimalControl' class, which
+% This command generates 'solution' in the 'Pontryagin' class, which
 % contains the optimal control vector 'UOptimal' and its information, such as the
 % cost, precision and time of computations.
 iP.Solution
 %%
 % This structure is independent of the solver, and we can see the results
 % through visualization functions we want. One of the examples is 'plot'
-% function which can be applied to 'OptimalControl' class.
+% function which can be applied to 'Pontryagin' class.
 plot(iP)

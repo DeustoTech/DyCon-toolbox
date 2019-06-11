@@ -49,7 +49,7 @@ resume(dynamics)
 % 'solve' function solves the differential equation of 'ode'. The values of
 % 'Y' are calculated according to the timeline and initial data. The MATLAB
 % built-in function 'ode45' works as a default to solve the 'ode'.
-solve(dynamics)
+solve(dynamics);
 %%
 % 'plot' function plots the states of 'Y', the vector of states. Note that
 % this produces errors if 'solve' function is not operated.
@@ -66,5 +66,5 @@ B = [1 ; 1];
 
 dynamics_linear = ode('A',A,'B',B);
 dynamics_linear.InitialCondition = [1,0];
-solve(dynamics_linear)
+solve(dynamics_linear);
 plot(dynamics_linear)
