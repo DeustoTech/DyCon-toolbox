@@ -20,7 +20,7 @@ end
 
 Ufun = @(t) interp1(tspan,U,t,'nearest')';
 
-dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t));
+dynamics = @(t,Y) iode.DynamicEquation.Numerical(t,Y,Ufun(t));
 
 [tspan,StateVector] = ode45(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
 

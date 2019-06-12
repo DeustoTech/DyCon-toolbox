@@ -1,4 +1,4 @@
-function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,varargin)
+function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,tol,tolU,tolJ,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine in 
 %                 order to get one update of the control in each iteration. In the case of choosing ClassicalDescent this function 
 %                 updates the control of the following way
@@ -33,9 +33,17 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
 %        class: ControlProblem
 %        dimension: [1x1]
 %    tol: 
-%        description: Control Vector in time  
+%        description: the tolerance desired, for gradient of cost functions.  
 %        class: double
-%        dimension: [M,iCP.tspan]
+%        dimension: [1x1]
+%    tolU: 
+%        description: the tolerance desired, for relative difference of control functions.  
+%        class: double
+%        dimension: [1x1]
+%    tolJ: 
+%        description: the tolerance desired, for relative difference of cost functions.  
+%        class: double
+%        dimension: [1x1]
 %  OptionalInputs:
 %    LengthStep: 
 %        description: This parameter is the length step of the gradient method that is going to be used. By default, this is 0.1.
@@ -70,11 +78,13 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
     
     addRequired(p,'iCP')
     addRequired(p,'tol')
+    addRequired(p,'tolU')
+    addRequired(p,'tolJ')
 
     addOptional(p,'LengthStep',0.001)
     addOptional(p,'FixedLengthStep',false)
 
-    parse(p,iCP,tol,varargin{:})
+    parse(p,iCP,tol,tolU,tolJ,varargin{:})
 
     LengthStep      = p.Results.LengthStep;
     FixedLengthStep = p.Results.FixedLengthStep;
@@ -125,7 +135,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
         
         %%
         error = norm(dJnew)/norm(ControlNew);
-        if error < tol || OptimalLenght == 0
+        if error < tol || OptimalLenght == 0 || norm(ControlNew - ControlOld)/(norm(ControlOld)+tolU) <tolU || abs(Jnew-Jold)/(Jold+tolJ) < tolJ
             stop = true;
         else 
             stop = false;

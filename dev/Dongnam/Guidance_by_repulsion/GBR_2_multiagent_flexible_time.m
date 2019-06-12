@@ -1,8 +1,11 @@
 %% Two drivers, Flexible time
 
+global N M u_f Nt
+
 N_sqrt =2;
 M = 2; N = N_sqrt^2;
 
+syms t
 Y = sym('y',[4*(M+N) 1]);
 U = sym('u',[M+1 1]);
 
@@ -35,6 +38,7 @@ end
 
 %Y = [ue(:);ve(:);ud(:);vd(:)];
 F = [dot_ue(:);dot_ve(:);dot_ud(:);dot_vd(:)]*T;
+numF = matlabFunction(F,'Vars',{t,Y,U});
 %%
 ve_zero = zeros(2, N);
 vd_zero = zeros(2, M);
@@ -48,28 +52,29 @@ ue_zero(1,:) = x_zero(:);
 ue_zero(2,:) = y_zero(:);
 
 for j=1:M
-  ud_zero(:,j) = 2*[cos(2*pi/M*j);sin(2*pi/M*j)];
+  ud_zero(:,j) = 3*[cos(2*pi/M*j);sin(2*pi/M*j)];
 end
 
 Y0 = [ue_zero(:);ve_zero(:);ud_zero(:);vd_zero(:)];
 
-%%
-figure()
-hold on
-
-plot(ue_zero(1,:),ue_zero(2,:),'ro');
-plot(ud_zero(1,:),ud_zero(2,:),'bo');
+% %%
+% figure()
+% hold on
+% 
+% plot(ue_zero(1,:),ue_zero(2,:),'ro');
+% plot(ud_zero(1,:),ud_zero(2,:),'bo');
 
 
 %%
 
 % T=5.1725, kappa = 1.5662 -> [-1,1]
-dt = 0.01;
-dynamics = ode(F,Y,U,'FinalTime',1,'Nt',50);
+Nt = 101;
+dt = 1/(Nt-1);
+dynamics = ode(numF,Y,U,'FinalTime',1,'Nt',Nt);
 dynamics.InitialCondition = Y0;
 %%
 tline = dynamics.tspan;
-U0_tline = [2*ones([length(tline),M]),5*ones([length(tline),1])];
+U0_tline = [2.8*ones([length(tline),M]),5*ones([length(tline),1])];
 %U0_tline = [UO_tline,1*ones([length(tline),1])];
 u_f = [0;0];
 
@@ -160,23 +165,28 @@ grid on
 
 
 Psi = 1e4*sum(sum((ue - u_f).^2));
-L   = (kappa.'*kappa);
+L   = (kappa.'*kappa)*T;
+numPsi = matlabFunction(Psi,'Vars',{t,Y});
+numL = matlabFunction(L,'Vars',{t,Y,U});
 
-iP = Pontryagin(dynamics,Psi,L);
+iP = Pontryagin(dynamics,numPsi,numL);
 %iP.ode.Control.Numeric = ones(51,1);
-iP.Constraints.MaxControl= 1000;
-iP.Constraints.MinControl = -1000;
+iP.Constraints.MaxControl= 10;
+iP.Constraints.MinControl = -10;
 %%
-tline = dynamics.tspan;
+tline = iP.Dynamics.tspan;
 %temp = interp1(tline1,temp1,tline);
 %%
 %U0_tline = 1.5662*ones([length(tline),2]);
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
-U0_tline = 2 + zeros(length(iP.Dynamics.tspan),iP.Dynamics.Udim);
+%U0_tline = 2 + zeros(length(iP.Dynamics.tspan),iP.Dynamics.Udim);
 % 
-% GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
-%                            'tol',1e-7,'display','all','EachIter',20,'Graphs',false, ...
-%                            'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
+%GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
+%                           'tol',1e-7,'display','all','EachIter',20,'Graphs',true, ...
+%                           'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
+                           'tol',1e-7,'display','all','EachIter',20,'Graphs',true, ...
+                           'GraphsFcn',{@graphs_init_GBR_flextime,@graphs_iter_GBR_flextime});
 %                        
 % U0_tline = iP.Solution.UOptimal;
 % 
@@ -188,7 +198,7 @@ U0_tline = 2 + zeros(length(iP.Dynamics.tspan),iP.Dynamics.Udim);
 % GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
 %                            'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'}, ...
 %                            'tol',1e-7,'Graphs',false,'EachIter',10,'display','all');
-
+%%
 options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter','StepTolerance',1e-9,'MaxIterations',1e5)
 %temp = fminunc(@(U) Control2Functional(iP,U),U0_tline,options);
 

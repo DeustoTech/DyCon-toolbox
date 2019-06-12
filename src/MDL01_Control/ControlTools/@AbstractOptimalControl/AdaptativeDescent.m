@@ -1,4 +1,4 @@
-function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,varargin)
+function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,tol,tolU,tolJ,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine
 %               in order to get one update of the control in each iteration. In the case of choosing AdaptativeDescent 
 %               this function updates the control of the following way
@@ -24,7 +24,15 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,
 %        class: ControlProblem
 %        dimension: [1x1]
 %    tol: 
-%        description: the tolerance desired.  
+%        description: the tolerance desired, for gradient of cost functions.  
+%        class: double
+%        dimension: [1x1]
+%    tolU: 
+%        description: the tolerance desired, for relative difference of control functions.  
+%        class: double
+%        dimension: [1x1]
+%    tolJ: 
+%        description: the tolerance desired, for relative difference of cost functions.  
 %        class: double
 %        dimension: [1x1]
 %  OptionalInputs:
@@ -64,12 +72,14 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,
     p = inputParser;
     addRequired(p,'iCP')
     addRequired(p,'tol')
+    addRequired(p,'tolU')
+    addRequired(p,'tolJ')
     addOptional(p,'StopCriteria','relative')
     addOptional(p,'TypeNorm','L1')
     addOptional(p,'InitialLengthStep',0.001)
     addOptional(p,'MinLengthStep',1e-10)
     
-    parse(p,iCP,tol,varargin{:})
+    parse(p,iCP,tol,tolU,tolJ,varargin{:})
     
     StopCriteria = p.Results.StopCriteria;
     TypeNorm = p.Results.TypeNorm;
@@ -115,7 +125,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,
                 error = (Jold-Jnew)/(Jold+tol);    % Stop when the difference of J is smaller than tol^2 + Jold*tol.
         end
         %%%
-        if error < tol || norm(ControlNew - ControlOld) == 0 || abs(Jold-Jnew) < 1e-6
+        if error < tol || norm(ControlNew - ControlOld)/(norm(ControlOld)+tolU) <tolU || abs(Jold-Jnew)/(Jold+tolJ) < tolJ
             stop = true;
         else 
             stop = false;

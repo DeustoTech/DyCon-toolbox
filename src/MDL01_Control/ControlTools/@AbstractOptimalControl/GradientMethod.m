@@ -28,7 +28,19 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     %       default: 50
     %   tol:
     %       name: Initial Control 
-    %       description: matrix 
+    %       description: tolerance of Descent Method
+    %       class: double
+    %       dimension: 
+    %       dimension: [1x1]
+    %   tolU:
+    %       name: Initial Control 
+    %       description: tolerance of Descent Method
+    %       class: double
+    %       dimension: 
+    %       dimension: [1x1]
+    %   tolJ:
+    %       name: Initial Control 
+    %       description: tolerance of Descent Method
     %       class: double
     %       dimension: 
     %       dimension: [1x1]
@@ -76,6 +88,8 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     % ------------------------------------------------------------------------------------------------------
     addOptional(pinp,'MaxIter'              ,500)
     addOptional(pinp,'tol'                  ,1e-4)
+    addOptional(pinp,'tolU'                 ,1e-6)
+    addOptional(pinp,'tolJ'                 ,1e-6)
     addOptional(pinp,'DescentAlgorithm'     ,@AdaptativeDescent     ,@(alg)mustBeMember(char(alg),{'AdaptativeDescent','ConjugateDescent','ClassicalDescent'}))
     addOptional(pinp,'DescentParameters'    ,{})
     %% Graphs Parameters
@@ -97,6 +111,8 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
 
     MaxIter             = pinp.Results.MaxIter;    
     tol                 = pinp.Results.tol;
+    tolU                = pinp.Results.tolU;
+    tolJ                = pinp.Results.tolJ;
     Graphs              = pinp.Results.Graphs;
     GraphsFcn           = pinp.Results.GraphsFcn;
     restart             = pinp.Results.restart;
@@ -163,7 +179,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
-        [Unew, Ynew,Pnew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,DescentParameters{:});
+        [Unew, Ynew,Pnew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,tolU,tolJ,DescentParameters{:});
         if strcmp(SolverChar,'euleri')
             Unew(end,:) = 0;
         end

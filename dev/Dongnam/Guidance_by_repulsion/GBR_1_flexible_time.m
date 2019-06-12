@@ -19,6 +19,7 @@
 % for some interactions kernels 'f_d' and 'f_e'. We may describe it as
 % follows:
 
+syms t;
 
 Y = sym('y',[8 1]); % States vectors for positions and velocities
 ud = Y(1:2); ue = Y(3:4); vd = Y(5:6); ve = Y(7:8);
@@ -39,84 +40,143 @@ dot_ue = ve;
 dot_vd = -f_d2(ur.'*ur)*ur - nu_d*vd + kappa * [-ur(2);ur(1)];
 dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
 
-%%
+%
 % The control function is the only argument we can use for minimization.
 % For time minimization, we set U(2) as a time variable T(s) for s in
 % [0,1]. Therefore, this implies that we use the time-scaling
-%%
+%
 % $$ dt = T(s)ds, $$
-%%
+%
 % from the original equation with t to the equation with s. Then, we need
 % to multiply T(s) on the equation, and the final time is calculated by
-%%
+%
 % $$ T_f = \int_0^1 T(s)ds. $$
-%%
+%
 % In this way, we have flexible final time $T_f$ based on non-negative
 % function T(s).
 
 T = U(2); % Time-scaling from s to t
 F = [dot_ud;dot_ue;dot_vd;dot_ve]*T; % Multiply original velocities with time-scaling T(s).
+numF = matlabFunction(F,'Var',{t,Y,U});
 
-dt = 0.01; % Numerical time discretization
-dynamics = ode(F,Y,U,'FinalTime',1,'dt',dt);
+Nt = 101; % Numerical time discretization
+dt = 1/(Nt-1);
+dynamics = ode(numF,Y,U,'FinalTime',1,'Nt',Nt);
 
 % ud = (-3,0), ue = (0,0), and zero velocities initially.
 dynamics.InitialCondition = [-3;0;0;0;0;0;0;0]; 
 
+%% Figure 1 : test
 % Known solution : T=5.1725, kappa = 1.5662 leads the evader close to uf = [-1;1].
 % Initiall guess based on the known solution to make ue(T)=uf.
 tline = dynamics.tspan;
-U0_tline = [1.5662*ones(size(tline));5.1725*ones(size(tline))]'; 
+T_f = 5.1727;
+t2 = 5.1727;
+t1 = 0;
+U0_tline = [1.5662*ones(size(tline));T_f*ones(size(tline))]'; 
 uf = [-1;1];
 
 dynamics.Control.Numeric = U0_tline;
 
-options = odeset('RelTol',1e-6,'AbsTol',1e-6);
+options = odeset('RelTol',1e-7,'AbsTol',1e-7);
 dynamics.Solver=@ode45;
 dynamics.SolverParameters={options};
 
-%% Trajectories from initial guess
+% Trajectories from initial guess
 % Test the initial guess on the control, 'U0_tline'.
 solve(dynamics);
 
+UO_tline = U0_tline;
 Y_tline = dynamics.StateVector.Numeric;
-figure();
-plot(Y_tline(:,1),Y_tline(:,2),'b-');
+zz = Y_tline;
+
+% Cost calcultaion
+tline_UO = dt*cumtrapz(UO_tline(:,end));
+
+Final_Time = tline_UO(end);
+
+Final_Position = [zz(end,3);zz(end,4)];
+Final_Psi = (Final_Position - uf).'*(Final_Position - uf);
+
+Final_Reg = cumtrapz(tline_UO,UO_tline(:,1).^2);
+Final_Reg = Final_Reg(end);
+
+%JO = Final_Psi + 0.1*Final_Time + 0.001*(Final_Reg);
+JO = Final_Psi + 0.001*(Final_Reg);
+
+f1 = figure('position', [0, 0, 1000, 330]);
+
+subplot(1,2,1)
 hold on
-plot(Y_tline(:,3),Y_tline(:,4),'r-');
-
-j=1;
-plot(Y_tline(j,1),Y_tline(j,2),'bs');
-plot(Y_tline(j,3),Y_tline(j,4),'rs');
-
-plot(Y_tline(end,1),Y_tline(end,2),'bo');
-plot(Y_tline(end,3),Y_tline(end,4),'ro');
+plot(zz(:,1),zz(:,2),'b-','LineWidth',1.3);
+plot(zz(:,3),zz(:,4),'r-','LineWidth',1.3);
 plot(uf(1),uf(2),'ks','MarkerSize',20)
+j=1;
+plot(zz(j,1),zz(j,2),'bs');
+plot(zz(j,3),zz(j,4),'rs');
+% j=ceil(t2/T_f/dt);
+% plot(zz(j,1),zz(j,2),'bo');
+% plot(zz(j,3),zz(j,4),'ro');
+% j=floor(t1/T_f/dt);
+% plot(zz(j,1),zz(j,2),'bo');
+% plot(zz(j,3),zz(j,4),'ro');
+
+plot(zz(end,1),zz(end,2),'bo');
+plot(zz(end,3),zz(end,4),'ro');
 hold off
 legend('Driver','Evader','Location','northwest')
 xlabel('abscissa')
 ylabel('ordinate')
+%title(['Final position = (', num2str(Final_Position(1)),',',num2str(Final_Position(2)),')'])
+title(['Position error = ', num2str(Final_Psi)])
 
-%% Cost with time minimization
-% We set the cost with (1. closedness of the target), (2. final time),
-% and (3. regularization on control). Hence, we may define the cost:
-%%
-% $$ J = 1*|ue(T)-uf|^2 + 0.1*T + 0.001*\int_0^T |u(t)|^2dt. $$
+grid on
 
-Psi = 1*(ue-uf).'*(ue-uf);
-L   = 0.1*T + 0.001*(kappa.'*kappa)*T;
+% Control function
+subplot(1,2,2)
 
-iP = Pontryagin(dynamics,Psi,L);
+plot([0; tline_UO; tline_UO(end)],[0; UO_tline(:,1); 0],'LineWidth',1.3)
+
+grid on
+
+xlim([0 tline_UO(end)])
+ylim([-0.5 2])
+xlabel('Time')
+ylabel('Control \kappa(t)')
+legend('Driver')
+
+%title(['Total Time = ',num2str(tline_UO(end))])
+title(['Total Time = ',num2str(tline_UO(end)),' and running cost = ',num2str(Final_Reg)])
+%title(['Cost = ',num2str(Final_Psi),' + 0.1*',num2str(Final_Time),' + 0.001*',num2str(Final_Reg),' = ',num2str(JO)])
+
+
+%% Figure : Cost without time minimization
+% $$ J = 1*|ue(T)-uf|^2 + 0.001*\int_0^T |u(t)|^2dt. $$
+
+Psi = 1000*(ue-uf).'*(ue-uf);
+L   = 1*((kappa).^2)*T;
+
+numPsi = matlabFunction(Psi,'Var',{t,Y});
+numL = matlabFunction(L,'Var',{t,Y,U});
+
+dynamics.Solver=@eulere;
+dynamics.SolverParameters={};
+iP = Pontryagin(dynamics,numPsi,numL);
 
 %Constraints on the control : Time should be nonnegative
-iP.Constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)+abs(Utline(:,end)))];
+min_dt = 0.1;
+iP.Constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)-min_dt+abs(Utline(:,end)-min_dt))+min_dt];
 %%
-figure(2);
-%GradientMethod(iP,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true,'U0',U0_tline);
-GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent,'DescentParameters',{'StopCriteria','Jdiff'},'tol',1e-4,'Graphs',true);
+tol = 1e-6;
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'tolU',tol,'tolJ',tol,'Graphs',true);
 
 temp = iP.Solution.UOptimal;
-%GradientMethod(iP,'DescentAlgorithm',@ConjugateGradientDescent,'DescentParameters',{'StopCriteria','Jdiff','DirectionParameter','PPR'},'tol',1e-4,'Graphs',true,'U0',temp);
+
+% %%
+% tol = 1e-7;
+% GradientMethod(iP,temp,'DescentAlgorithm',@AdaptativeDescent,'tol',tol,'tolU',tol,'tolJ',tol,'Graphs',true);
+% 
+% temp = iP.Solution.UOptimal;
 
 %% Visualization
 % Two importants points in the result:
@@ -150,13 +210,30 @@ j=1;
 plot(zz(j,1),zz(j,2),'bs');
 plot(zz(j,3),zz(j,4),'rs');
 
+j=floor(1/Final_Time/dt);
+plot(zz(j,1),zz(j,2),'bo');
+plot(zz(j,3),zz(j,4),'ro');
+j=floor(2/Final_Time/dt);
+plot(zz(j,1),zz(j,2),'bo');
+plot(zz(j,3),zz(j,4),'ro');
+
+j=floor(3/Final_Time/dt);
+plot(zz(j,1),zz(j,2),'bo');
+plot(zz(j,3),zz(j,4),'ro');
+
+j=floor(4/Final_Time/dt);
+plot(zz(j,1),zz(j,2),'bo');
+plot(zz(j,3),zz(j,4),'ro');
+
 plot(zz(end,1),zz(end,2),'bo');
 plot(zz(end,3),zz(end,4),'ro');
 plot(uf(1),uf(2),'ks','MarkerSize',20)
 legend('Driver','Evader','Location','northwest')
 xlabel('abscissa')
 ylabel('ordinate')
-title(['Final position = (', num2str(Final_Position(1)),',',num2str(Final_Position(2)),')'])
+%title(['Final position = (', num2str(Final_Position(1)),',',num2str(Final_Position(2)),')'])
+title(['Position error = ', num2str(Final_Psi)])
+grid on
 
 % Control function
 subplot(1,2,2)
@@ -165,10 +242,12 @@ plot(tline_UO,UO_tline(:,1),'LineWidth',1.3)
 xlim([0 tline_UO(end)])
 xlabel('Time')
 ylabel('Control \kappa(t)')
-legend(['Total Time = ',num2str(tline_UO(end))])
+%legend(['Total Time = ',num2str(tline_UO(end))])
+legend('Driver')
+grid on
 
-title(['Cost = ',num2str(Final_Psi),' + 0.1*',num2str(Final_Time),' + 0.001*',num2str(Final_Reg),' = ',num2str(JO)])
-
+%title(['Cost = ',num2str(Final_Psi),' + 0.1*',num2str(Final_Time),' + 0.001*',num2str(Final_Reg),' = ',num2str(JO)])
+title(['Total Time = ',num2str(tline_UO(end)),' and running cost = ',num2str(Final_Reg)])
 
 
 
