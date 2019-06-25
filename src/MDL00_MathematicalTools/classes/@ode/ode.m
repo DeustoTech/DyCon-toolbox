@@ -49,8 +49,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %                   </li>
         %               </ul>
         DynamicEquation                 SymNumFun =SymNumFun
-        DerivativeDynControl            SymNumFun =SymNumFun
-        DerivativeDynState              SymNumFun =SymNumFun
+        Params                          param
+        Derivatives                  odeDerivatives = odeDerivatives
         % type: "double"
         % dimension: [1xN]
         % default: "[0 0 0 ...]"
@@ -68,12 +68,13 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         Nt                                          (1,1)                           double  
         MassMatrix
         label = '' 
-        Solver = @ode23tb
+        Solver = @eulere
         SolverParameters = {}
         
     end
 
     properties (Hidden)
+        FixedNt = true
         % type: "double"
         % dimension: [NxN]
         % default: "none"
@@ -157,9 +158,9 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             p = inputParser;
             
             addOptional(p,'DynamicEquation',[],@ValidatorODEDynamicsEquation)
-            addOptional(p,'StateVector'    ,[],@ValidatorODEStateVector)
-            addOptional(p,'Control'        ,[],@ValidatorODEStateVector)
-            
+            addOptional(p,'StateVector'    ,sym.empty,@ValidatorODEStateVector)
+            addOptional(p,'Control'        ,sym.empty,@ValidatorODEControl)
+            addOptional(p,'Params'     ,param.empty,@ValidatorODEParameters)
             addOptional(p,'A',[])
             addOptional(p,'B',[])
 
@@ -174,13 +175,21 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             StateVector         = p.Results.StateVector;
             Control             = p.Results.Control;
             
+            obj.Params  = p.Results.Params;
+            %
+            if ~isempty(p.Results.DynamicEquation)
+                obj.DynamicEquation.Num   = p.Results.DynamicEquation;
+            end
+            obj.StateVector.Symbolic         = p.Results.StateVector;
+            obj.Control.Symbolic             = p.Results.Control;
+            
+            %
             obj.A              = p.Results.A;
             obj.B              = p.Results.B;
 
             obj.Nt              = p.Results.Nt;
             obj.FinalTime       = p.Results.FinalTime;
-            obj.InitialCondition       = p.Results.InitialCondition;
-            
+
             %% Init Program
             if  (~isempty(DynamicEquation) && ~isempty(StateVector) && ~isempty(Control) ...
                  && isempty(obj.A) && isempty(obj.B) )
@@ -189,7 +198,9 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                    try
                         Ny = length(StateVector);
                         Nu = length(Control);
-                        Fresp = DynamicEquation(0,zeros(Ny,1),zeros(Nu,1));
+                        params = [obj.Params.value].';
+
+                        Fresp = DynamicEquation(1,ones(Ny,1),ones(Nu,1),params);
                         [FrespNrow,FrespNcol] = size(Fresp);
                         if FrespNrow ~= Ny || FrespNcol ~= 1
                             error(['The dynamics equation must be return the column vector of dimension: [',num2str(Ny),'x1]'])
@@ -208,7 +219,10 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                         '   - ode(DynamicEquation,StateVector,Control)    ',newline, ...
                         '   - ode(''A'',A,''B'',B)                        ',newline])
             end
-            
+            %%
+            if ~isempty(p.Results.InitialCondition)
+             obj.InitialCondition = p.Results.InitialCondition;
+            end
             %%
             obj.symt                    = sym('t');
 
@@ -216,8 +230,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                 %%  Ha entrado variables simbolicas
                 obj.StateVector.Symbolic      = StateVector;                
                 obj.Control.Symbolic          = Control;
-                obj.DynamicEquation.Numerical   = DynamicEquation;
-                obj.DynamicEquation.Symbolical   = [];
+                obj.DynamicEquation.Num   = DynamicEquation;
+                obj.DynamicEquation.Sym   = [];
 
             else
                 %% Han entrado matrices A y B 
@@ -232,14 +246,14 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                %
 
                 if ~isempty(obj.B)
-                    obj.DynamicEquation.Numerical   = @(t,Y,U) obj.A*Y + obj.B*U;
+                    obj.DynamicEquation.Num   = @(t,Y,U,Params) obj.A*Y + obj.B*U;
                 else
-                    obj.DynamicEquation.Numerical   = @(t,Y,U) obj.A*Y;
+                    obj.DynamicEquation.Num   = @(t,Y,U,Params) obj.A*Y;
                 end
                 % Por defecto 
                 obj.Solver          = @euleri;
-                obj.DerivativeDynControl.Numerical = @(t,Y,U) obj.B;
-                obj.DerivativeDynState.Numerical   = @(t,Y,U) obj.A;
+                obj.Derivatives.Control.Num = @(t,Y,U,Params) obj.B;
+                obj.Derivatives.State.Num   = @(t,Y,U,Params) obj.A;
             end
              
             obj.Control.Numeric = zeros(length(obj.tspan),obj.ControlDimension);
@@ -292,6 +306,13 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             if ~isempty(obj.Control)
                 obj.Control.Numeric = zeros(obj.Nt,obj.ControlDimension);
             end
+        end
+        function set.InitialCondition(obj,IC)
+           [nrow,ncol] = size(IC);
+           if obj.StateDimension ~= nrow||1 ~= ncol
+               error(['The Initial Condition must be a matrix: [',num2str(obj.StateDimension),'x1]'])
+           end
+           obj.InitialCondition = IC;
         end
         %% ================================================================================
     end

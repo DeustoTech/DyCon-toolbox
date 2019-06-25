@@ -8,7 +8,7 @@ U = iode.Control.Numeric;
 
 if isempty(varargin)
   try 
-      Jacobian = double(iode.DerivativeDynState.Symbolical);
+      Jacobian = double(iode.Derivatives.State.Sym);
   catch
       Jacobian = [];
   end
@@ -17,7 +17,7 @@ else
   iode.SolverParameters{:} = varargin{:};
   iode.SolverParameters{:}.Mass = iode.MassMatrix;
 %   try 
-%       iode.Jacobian = double(iode.DerivativeDynState.Symbolical);
+%       iode.Jacobian = double(iode.Derivatives.State.Sym);
 %   end
 end
 
@@ -26,9 +26,10 @@ end
 % Ufun = @(t) arrayfun(@(id) Uinterp(t,id),1:iode.Udim)';
 
 Ufun = @(t) interp1(tspan,U,t,'nearest')';
+params = {iode.Params.value};
 
 
-dynamics = @(t,Y) iode.DynamicEquation.Numerical(t,Y,Ufun(t));
+dynamics = @(t,Y) iode.DynamicEquation.Num(t,Y,Ufun(t),params);
 
 [tspan,StateVector] = ode23tb(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
 

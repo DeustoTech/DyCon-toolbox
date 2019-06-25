@@ -78,7 +78,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     B = sparse(B);
     %%
     % We can then define a final time and an initial datum
-    Y0 = 0.5*cos(0.5*pi*xline');
+    Y0 = 0.5*cos(0.5*pi*xline);
 
     Nt = 50;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
@@ -87,7 +87,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     dynamics.mesh = xline;
 
     %% Calculate the Target
-    Y0_other = 6*cos(0.5*pi*xline');
+    Y0_other = 6*cos(0.5*pi*xline);
     TargetDynamics = copy(dynamics);
     TargetDynamics.InitialCondition = Y0_other;
     U00 = TargetDynamics.Control.Numeric*0 + 1;
@@ -105,8 +105,8 @@ function iOCP = FinalTime2OCP(FinalTime)
     %%
     % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
     %%
-    Psi  = 10*dx*(YT - Y).'*(YT - Y);
-    L    = sym(1) ;
+    Psi  = @(T,Y) 10*dx*(YT - Y).'*(YT - Y);
+    L    = @(t,Y,U) 1 ;
     %L    = 0.5*beta*dx*(U.'*U);
     %%
     % Optional Parameters to go faster
@@ -131,15 +131,15 @@ function iOCP = FinalTime2OCP(FinalTime)
                  'EachIter',50, ...
                  'display','functional',};
     %%
-    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim) + 1e-3;
+    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1e-3;
     %load('UO.mat')
     %JOpt = GradientMethod(iOCP,U0,Parameters{:});
     options = optimoptions(@fmincon,              'display','iter'  , ...
                                  'SpecifyObjectiveGradient',true    , ...                                         
-                                               'CheckGradients',true, ...
-                                               'UseParallel',true ,'MaxFunctionEvaluations',1e8,'MaxIteration',1e5);
+                                               'CheckGradients',false, ...
+                                               'UseParallel',false ,'MaxFunctionEvaluations',1e8,'MaxIteration',1e5);
     
-    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim) + 1;
+    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1;
     
     UT = U0(:);
     UT(end+1) = 1;
@@ -147,14 +147,14 @@ function iOCP = FinalTime2OCP(FinalTime)
     Ubarrie = UT*0;
     Ubarrie(end) = 0.1;
     
-    [Uopt , JOpt] = fmincon(@(U) Control2Functional(iOCP,reshape(U(1:end-1),Nt,iOCP.Dynamics.Udim),U(end)),UT, ...
+    [Uopt , JOpt] = fmincon(@(U) Control2Functional(iOCP,reshape(U(1:end-1),Nt,iOCP.Dynamics.ControlDimension),U(end)),UT, ...
                                             []    ,  [] , ... % eq constraints
                                             []    ,  [] , ... % ieq cons
                                             Ubarrie ,   [] , ...
                                             []          , ...
                                             options);
     
-    surf(reshape(Uopt(1:end-1),Nt,iOCP.Dynamics.Udim));
+    surf(reshape(Uopt(1:end-1),Nt,iOCP.Dynamics.ControlDimension));
     
     %iOCP.Solution = solution;
     %iOCP.Solution.Jhistory = JOpt;

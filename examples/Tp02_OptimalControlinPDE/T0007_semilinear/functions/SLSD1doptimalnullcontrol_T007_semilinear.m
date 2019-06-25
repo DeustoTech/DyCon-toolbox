@@ -96,9 +96,9 @@ end
 symY = SymsVector('y',N);
 symU = SymsVector('u',count);
 % We create the functional that we want to minimize
-YT = 0*xline';
-symPsi  = (YT - symY).'*(YT - symY);
-symL    = beta*(symU.'*symU)*(abs(w1-w2))/count;
+YT = 0*xline;
+symPsi  = @(T,symY)(symY).'*(symY);
+symL    = @(t,symY,symU) beta*(symU.'*symU)*(abs(w1-w2))/count;
 % We create the ODE object
 % Our ODE object will have the semi-discretization of the semilinear heat equation.
 % We set also initial conditions, define the non linearity and the interaction of the control to the dynamics.
@@ -130,6 +130,8 @@ vectorF = arrayfun( @(x)G(x),symY);
 %%
 % Putting all the things together
 Fsym  = A*symY + vectorF + B*symU;
+F     = matlabFunction(Fsym,'Vars',{t,symY,symU,sym.empty});
+
 %%
 % Time horizon
 T = T;
@@ -140,7 +142,7 @@ T = T;
 % modifying this parameter in the object, we might get the solution in
 % certain time steps that will hide part of the dynamics.
 %%
-odeEqn2 = ode(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
+odeEqn2 = ode(F,symY,symU,'InitialCondition',Y0.','FinalTime',T);
 odeEqn2.Nt=50;
 odeEqn2.Solver = @ode23tb;
 %%
@@ -167,7 +169,7 @@ iCP2 = Pontryagin(odeEqn2,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
 %
-U0 = zeros(iCP2.Dynamics.Nt,iCP2.Dynamics.Udim);
+U0 = zeros(iCP2.Dynamics.Nt,iCP2.Dynamics.ControlDimension);
 options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
 fminunc(@(U) Control2Functional(iCP2,U),U0,options)
 

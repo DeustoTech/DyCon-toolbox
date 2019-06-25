@@ -74,6 +74,6 @@ for t = 1:length(tline)
     %
     gif('frame',isurf_1.Parent)
     %
-   pause(0.05)
+   %pause(0.05)
 end
 

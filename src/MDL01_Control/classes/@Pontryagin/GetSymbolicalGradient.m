@@ -15,7 +15,7 @@ function GetSymbolicalGradient(iP)
     syms t
     %%
     idynamics   = iP.Dynamics;
-    L   = iP.Functional.L.Symbolic; 
+    L   = iP.Functional.Lagrange.Sym; 
     %% Creamos las variables simbolica 
     symU   = idynamics.Control.Symbolic;
     % Obtenemos el vector Symbolico Y = [y1 y2 y3 ...]^T
@@ -31,9 +31,9 @@ function GetSymbolicalGradient(iP)
     end
     %
     dH_du = iP.Dynamics.dt*dH_du;
-    iP.ControlGradient.Symbolical = symfun(dH_du,[t symY.' symP.' symU.']);
+    iP.ControlGradient.Sym = symfun(dH_du,[t symY.' symP.' symU.']);
     % Pasamos esta funcion a una function_handle
-    iP.ControlGradient.Numerical = matlabFunction(dH_du,'Vars',{t,symY,symP,symU});
+    iP.ControlGradient.Num = matlabFunction(dH_du,'Vars',{t,symY,symP,symU});
             
 
 end

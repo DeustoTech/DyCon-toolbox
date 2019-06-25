@@ -11,7 +11,17 @@ function f = CoConjugateGradient(iHUM,f,varargin)
 
     M   =  iHUM.Dynamics.MassMatrix; 
     B   =  iHUM.Dynamics.B;
-    Bstart = (1/dx)*(B'*M);
+    
+    x = [-1,iHUM.Dynamics.mesh,1];
+    himd = x(2:end-1)-x(1:end-2);
+    hipd = x(3:end)-x(2:end-1);
+    hi = 0.5*(hipd+himd);
+    I  = diag(hi);
+    %%
+    %I   =  dx*eye(iHUM.Dynamics.StateDimension);
+    
+    %%
+    Bstart = ((I\B)')*M;
 
     tol = p.Results.tol;
     
@@ -27,7 +37,7 @@ function f = CoConjugateGradient(iHUM,f,varargin)
     
     %%
     
-    [~ ,Y] = solve(iHUM.zerodynamics,'Control',P*Bstart);
+    [~ ,Y] = solve(iHUM.zerodynamics,'Control',P*Bstart');
     Yend=Y(end,:)';
     
     %%
@@ -47,7 +57,7 @@ function f = CoConjugateGradient(iHUM,f,varargin)
         P = flipud(P);
         
         % Initial Condition is cero!
-        Control = (Bstart'*P')';
+        Control = P*Bstart';
         [~ ,Y] = solve(iHUM.zerodynamics,'Control',Control);
         Lambdaw=Y(end,:)';
     
@@ -60,7 +70,9 @@ function f = CoConjugateGradient(iHUM,f,varargin)
         f=f-rho*w;
         dfnew = df - rho*dfnew;
 
-        err = sqrt(dfnew'*M*dfnew)/initerr
+        err = sqrt(dfnew'*M*dfnew)/initerr;
+        
+        display("iter = "+it+" error = "+err)
 
         gamma=  (dfnew'*M*dfnew)/(df'*M*df);
 

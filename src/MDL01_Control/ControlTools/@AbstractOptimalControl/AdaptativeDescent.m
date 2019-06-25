@@ -79,8 +79,9 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,
     if isempty(Iter)
         ControlNew = iCP.Solution.ControlHistory{1};
         %
-        [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
+        [Jnew,dJnew,Ynew,Pnew,ControlNew] = Control2Functional(iCP,ControlNew);
         % 
+        dJnew = dJnew/iCP.Dynamics.dt; 
         Iter = 1;
         error = 0;
         stop = false;
@@ -115,7 +116,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,
                 error = (Jold-Jnew)/(Jold+tol);    % Stop when the difference of J is smaller than tol^2 + Jold*tol.
         end
         %%%
-        if error < tol || norm(ControlNew - ControlOld) == 0 || abs(Jold-Jnew) < 1e-6
+        if error < tol || norm(ControlNew) - norm(ControlOld) == 0 || abs(Jold-Jnew) < 1e-6
             stop = true;
         else 
             stop = false;
@@ -156,22 +157,32 @@ function [Unew,Ynew,Pnew,Jnew,dJnew] = MiddleControlFcn(iCP,Uold,Yold,Pold,Jold,
     
     %% Empezamos con un LengthStep
     LengthStep =2*InitialLengthStep;
-    
+    tspanOld   = iCP.Dynamics.tspan;
+    %
+    dJoldNt = dJold;
+    UOldNt  = Uold;
+    %
     while true 
         % en cada iteracion dividimos el LengthStep
         LengthStep = LengthStep/1.25;
         %% Actualizamos  Control
+        if length(dJoldNt(:,1)) ~= iCP.Dynamics.Nt
+            dJoldNt = interp1(tspanOld, dJold,iCP.Dynamics.tspan);
+            UOldNt  = interp1(tspanOld, Uold,iCP.Dynamics.tspan);
+        end
+        
         switch TypeNorm
             case 'L1'
-                normdJold =norm(dJold,1);
+                normdJold =norm(dJoldNt,1);
             case 'L2'
-                normdJold =norm(dJold,2);
+                normdJold =norm(dJoldNt,2);
         end
-        ControlTry = Uold - LengthStep*dJold/normdJold;
+        ControlTry = UOldNt - LengthStep*dJoldNt/normdJold;
         ControlTry = UpdateControlWithConstraints(iCP.Constraints,ControlTry);
+
         %% Resolvemos el problem primal
-        [JTry,dJTry,YTry,PTry] = Control2Functional(iCP,ControlTry);
-     
+        [JTry,dJTry,YTry,PTry,ControlTry] = Control2Functional(iCP,ControlTry);
+        dJTry = dJTry/iCP.Dynamics.dt;
         if ((JTry - Jold) <= 0)
             %%
             Pnew  = PTry;

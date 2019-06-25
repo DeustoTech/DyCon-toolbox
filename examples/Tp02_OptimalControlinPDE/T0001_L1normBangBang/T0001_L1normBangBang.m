@@ -35,7 +35,7 @@ FinalTimes = 0.08;
 %%
 
 
-Tmin = 0.21
+Tmin = 0.3
 
 
 iOCP_MinTime = FinalTime2OCP(Tmin)
@@ -53,7 +53,7 @@ view(0,90)
 animation(iOCP_MinTime.Dynamics,'xx',0.05,'YLim',[0 7],'Target',iOCP_MinTime.Target,'YLimControl',[0 1e4])
 %%
 function iOCP = FinalTime2OCP(FinalTime)
-    Nx = 25;
+    Nx = 50;
     xi = -1; xf = 1;
     xline = linspace(xi,xf,Nx);
     %xline = linspace(0,1,Nx+2);
@@ -74,20 +74,20 @@ function iOCP = FinalTime2OCP(FinalTime)
     % Moreover, we build the matrix $B$ defining the action of the control, by
     % using the program "construction_matrix_B" (see below).
     a = -0.3; b = 0.8;
-    B = BInterior(xline,a,b,'mass',false);
+    B = BInterior(xline,a,b,'mass',true,'min',true);
     B = sparse(B);
     %%
     % We can then define a final time and an initial datum
-    Y0 = 0.5*cos(0.5*pi*xline');
+    Y0 = 0.5*cos(0.5*pi*xline);
 
-    Nt = 25;
+    Nt = 50;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
     dynamics.Solver = @euleri;
     dynamics.MassMatrix = M;
     dynamics.mesh = xline;
 
     %% Calculate the Target
-    Y0_other = 6*cos(0.5*pi*xline');
+    Y0_other = 6*cos(0.5*pi*xline);
     TargetDynamics = copy(dynamics);
     TargetDynamics.InitialCondition = Y0_other;
     U00 = TargetDynamics.Control.Numeric*0 + 1;
@@ -98,24 +98,26 @@ function iOCP = FinalTime2OCP(FinalTime)
 
     %% 
     % Take simbolic vars
-    Y = dynamics.StateVector.Symbolic;
-    U = dynamics.Control.Symbolic;
     beta = dx^4;
     %% Construction of the control problem 
     %%
     % $ \frac{1}{2 \epsilon} || Y - YT || ^2 + \int_0^T ||U||dt $
     %%
-    Psi  = (1/beta)*dx*(YT - Y).'*(YT - Y);
-    L    = 0*dx*sum(abs(U));
+    Psi  = @(T,Y)   (1/beta)*dx*(YT - Y).'*(YT - Y);
+    L    = @(t,Y,U) dx*sum(abs(U));
     %L    = 0.5*beta*dx*(U.'*U);
     %%
     % Optional Parameters to go faster
-    Gradient                =  @(t,Y,P,U) dynamics.dt*(0*sign(U) + B'*P);
-    %Gradient                =  @(t,Y,P,U) beta*U + B*P;
-    Hessian                 =  @(t,Y,P,U) 0;
-    AdjointFinalCondition   =  @(t,Y) (1/(2*beta))*(Y-YT);
-    Adjoint = pde('A',A);
-    OCParmaters = {'Hessian',Hessian,'ControlGradient',Gradient,'AdjointFinalCondition',AdjointFinalCondition,'Adjoint',Adjoint};
+    %%
+    % Optional Parameters to go faster
+    L_u   = @(t,Y,U) dx*sign(U);
+    L_y   = @(t,Y,U) zeros(1,dynamics.StateDimension);
+    Psi_y = @(t,Y)   (2/(beta))*dx*(Y - YT).';
+    
+    Adjoint = pde('A',A.');
+    
+    OCParmaters = {'DiffLagrangeState'    , L_y    ,'DiffLagrangeControl'  ,L_u, ...
+                   'DiffFinalCostState'   , Psi_y  ,'Adjoint',Adjoint,'CheckDerivatives',false};
     %%
     % build problem with constraints
     iOCP =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
@@ -125,22 +127,22 @@ function iOCP = FinalTime2OCP(FinalTime)
 
         % Solver L1
     Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
-                 'tol',1e-8,                                    ...
+                 'tol',1e-5,                                    ...
                  'Graphs',false,                               ...
                  'MaxIter',5000,                               ...
                  'EachIter',50, ...
                  'display','functional',};
     %%
-    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim) + 1e-3;
+    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1e-3;
     %load('UO.mat')
     JOpt = GradientMethod(iOCP,U0,Parameters{:});
 %     options = optimoptions(@fmincon,              'display','iter'  , ...
 %                                  'SpecifyObjectiveGradient',true    , ...                                               'Algorithm','trust-region-reflective',...
 %                                                'CheckGradients',false, ...
 %                                                'UseParallel',true );
-%     %U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
-%     
-%     U0 = iOCP.Solution.UOptimal;
+    %U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
+    
+    %U0 = iOCP.Solution.UOptimal;
 %     [Uopt , JOpt] = fmincon(@(U) Control2Functional(iOCP,U),U0, ...
 %                                             []    ,  [] , ... % eq constraints
 %                                             []    ,  [] , ... % ieq cons
@@ -148,8 +150,8 @@ function iOCP = FinalTime2OCP(FinalTime)
 %                                             []          , ...
 %                                             options);
     
-    %iOCP.Solution = solution;
-    %iOCP.Solution.Jhistory = JOpt;
+    iOCP.Solution = solution;
+    iOCP.Solution.Jhistory = JOpt;
                                         %%
 
 end

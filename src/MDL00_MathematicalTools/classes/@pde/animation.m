@@ -47,7 +47,7 @@ function animation(iode,varargin)
     structure       = [iode.Control];
     U               = {structure.Numeric};        
     f = figure('unit','norm','pos',[0.1 0.1 0.8 0.8]);
-    FontSize = 13;
+    FontSize = 12;
    
     itext = uicontrol('style','text','Parent',f,'unit','norm','pos',[0.45 0.95 0.1 0.03]);
     itext.FontSize = FontSize;
@@ -131,8 +131,14 @@ function animation(iode,varargin)
    irect.FaceColor = [1 0 0];
 
 
+   first = true;
    while true
-        t = xx*toc;
+        if first
+            t = 0;
+            first = false;
+        else
+            t = xx*toc;
+        end
         if t > tmax
             t = tmax;
         end

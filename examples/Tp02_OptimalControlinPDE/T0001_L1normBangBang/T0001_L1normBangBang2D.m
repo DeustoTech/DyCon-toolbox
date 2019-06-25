@@ -53,7 +53,7 @@ view(0,90)
 animation(iOCP_MinTime.Dynamics,'xx',0.05,'YLim',[0 7],'Target',iOCP_MinTime.Target,'YLimControl',[0 1e4])
 %%
 function iOCP = FinalTime2OCP(FinalTime)
-    Nx = 50;
+    Nx = 20;
     xi = -1; xf = 1;
     xline = linspace(xi,xf,Nx);
     yline = linspace(xi,xf,Nx);
@@ -100,7 +100,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     Y0 = exp(-(xms.^2 + yms.^2)/alpha.^2);
     Y0 = Y0(:)';
     
-    Nt = 100;
+    Nt = 30;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
     dynamics.Solver = @euleri;
     dynamics.MassMatrix = M;
@@ -135,7 +135,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     Adjoint = pde('A',A.');
     
     OCParmaters = {'DiffLagrangeState'    , L_y    ,'DiffLagrangeControl'  ,L_u, ...
-                   'DiffFinalCostState'   , Psi_y  ,'Adjoint',Adjoint,'CheckDerivatives',false};
+                   'DiffFinalCostState'   , Psi_y  ,'Adjoint',Adjoint,'CheckDerivatives',true};
     %%
     % build problem with constraints
     iOCP =  Pontryagin(dynamics,Psi,L,OCParmaters{:});

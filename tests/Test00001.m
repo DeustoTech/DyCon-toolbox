@@ -12,7 +12,7 @@ A = [1 2;
 B = [1 0;
      0 2;];
  
-dXdt = @(t,X,U) A*X + B*U;
+dXdt = @(t,X,U,Params) A*X + B*U;
 X = [x1;x2];
 U = [u1;u2];
 
@@ -23,8 +23,7 @@ Psi = @(T,X)   X(1)^2 + X(2)^2;
 L   = @(t,X,U) U(1)^2 + U(2)^2;
 iCP = Pontryagin(idyn,Psi,L);
 
-%%
+%
 P = sym('p',[2 1]);
 XU = [X;U];
 
-iCP.Adjoint.Dynamics.DynamicEquation.Numerical(t,P,XU) == A.'*P

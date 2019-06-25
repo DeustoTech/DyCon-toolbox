@@ -1,0 +1,14 @@
+classdef Tensor
+    %TENSOR Summary of this class goes here
+    %   Detailed explanation goes here
+    
+    properties
+        sym         sym
+        dimension   double
+    end
+    
+    methods
+        function obj = Tensor(sym)
+    end
+end
+

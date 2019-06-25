@@ -2,7 +2,7 @@ function dHessnew = GetNumericalHessian(iCP,U,Y,P)
 %GETNUMERICALHESSIAN Summary of this function goes here
 %   Detailed explanation goes here
 
-    Hessian               = iCP.Hessian.Numerical;
+    Hessian               = iCP.Hessian.Num;
     %
     tspan   =  iCP.ode.tspan;
     %%

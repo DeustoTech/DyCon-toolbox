@@ -75,8 +75,8 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     % |             | Name                  | Default               |            Validator                  | 
     % ------------------------------------------------------------------------------------------------------
     addOptional(pinp,'MaxIter'              ,500)
-    addOptional(pinp,'tol'                  ,1e-4)
-    addOptional(pinp,'DescentAlgorithm'     ,@AdaptativeDescent     ,@(alg)mustBeMember(char(alg),{'AdaptativeDescent','ConjugateDescent','ClassicalDescent'}))
+    addOptional(pinp,'tol'                  ,1e-5)
+    addOptional(pinp,'DescentAlgorithm'     ,@ConjugateDescent     ,@(alg)mustBeMember(char(alg),{'AdaptativeDescent','ConjugateDescent','ClassicalDescent'}))
     addOptional(pinp,'DescentParameters'    ,{})
     %% Graphs Parameters
     % ------------------------------------------------------------------------------------------------------

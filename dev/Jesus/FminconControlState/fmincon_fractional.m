@@ -77,7 +77,7 @@ function p = Method_SingleStep_fun
     U0 = zeros(p.Nt,p.Nu) + 1;
     [~ , ytarget ] = solve(p.dynamics,'Control',U0);
     
-    p.yf =  ytarget(end,:)';
+    p.ytarget =  ytarget(end,:)';
     p.beta  = 0.01;
     %% Initial Guess.
     p.dynamics.InitialCondition = p.y0;

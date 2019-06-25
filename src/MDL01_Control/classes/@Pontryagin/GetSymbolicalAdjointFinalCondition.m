@@ -23,7 +23,7 @@
 
     Jfun   = obj.Functional;
     idynamics   = obj.Dynamics;
-    symPsi = Jfun.Psi.Symbolic;
+    symPsi = Jfun.TerminalCost.Sym;
     %% Creamos las variables simbolica 
     symY   = idynamics.StateVector.Symbolic;
     t      = idynamics.symt;

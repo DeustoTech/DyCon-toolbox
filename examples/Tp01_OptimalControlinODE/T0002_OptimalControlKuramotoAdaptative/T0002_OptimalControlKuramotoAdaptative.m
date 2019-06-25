@@ -70,8 +70,9 @@ path_data = replace(which(file),file,'');
 load([path_data,'functions/random_init.mat'],'Om_init','Th_init'); % reference data
 %%
 symF = subs(Vsys,[symOm,symK],[Om_init,K_init]);
-symFFcn = matlabFunction(symF,'Vars',{t,symTh,symU});
-odeEqn = ode(symFFcn,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'Nt',30);
+Params = sym.empty;
+symFFcn = matlabFunction(symF,'Vars',{t,symTh,symU,Params});
+odeEqn = ode(symFFcn,symTh,symU,'InitialCondition',Th_init.','FinalTime',T,'Nt',100);
 %%
 % We next construct cost functional for the control problem.
 symPsi = @(T,symThth)      norm(sin(symThth.' - symThth),'fro');      % Sine distance for the periodic interval $[0,2pi]$.

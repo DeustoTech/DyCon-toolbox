@@ -44,7 +44,7 @@ B = BInterior(xline,a,b,'Mass',true);
 %%
 % We can then define a final time and an initial datum
 FinalTime = 0.5;
-Y0 =sin(pi*xline)';
+Y0 =sin(pi*xline);
 %%
 % and construct the system
 %%
@@ -89,11 +89,11 @@ U = dynamics.Control.Symbolic;
 %%
 % Moreover, we set the final target to $y(T)=0$.
 dx = xline(2)-xline(1);
-YT = 0.0*xline';
+YT = 0.0*xline;
 epsilon = dx^4;
-symPsi  = (1/(2*epsilon))*dx*(YT - Y).'*(YT - Y);
-symL    = (1/2)*dx*(U.'*U);
-iCP1 = Pontryagin(dynamics,symPsi,symL);
+Psi  = @(T,Y)   (1/(2*epsilon))*dx*(YT.' - Y).'*(YT.' - Y);
+L    = @(t,Y,U) (1/2)*dx*(U.'*U);
+iCP1 = Pontryagin(dynamics,Psi,L);
 
 %% Solution of the minimization problem
 % As a final step, we use the gradient method we developed for solving the

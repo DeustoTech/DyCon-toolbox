@@ -7,6 +7,7 @@ function varargout  = Control2Functional(iCP,Control,Time)
         iCP.Dynamics.FinalTime = Time;
     end
     StateVector = GetNumericalDynamics(iCP,Control);
+    Control     = iCP.Dynamics.Control.Numeric;
     J = GetNumericalFunctional(iCP,StateVector,Control);
     %%
     if nargout > 1        
@@ -15,12 +16,12 @@ function varargout  = Control2Functional(iCP,Control,Time)
         %dJ(end,:) = 0;
         if nargin > 2 % tiempo
             dJ = dJ(:);
-            DynamicsEqn   = iCP.Dynamics.DynamicEquation.Numeric(Time,StateVector(end,:)',Control(end,:)');
+            DynamicsEqn   = iCP.Dynamics.DynamicEquation.Num(Time,StateVector(end,:)',Control(end,:)');
             
             pf =  AdjointVector(end,:)*DynamicsEqn + 1;
-            L  = iCP.Functional.L.Numeric(Time,StateVector,Control);
+            L  = iCP.Functional.Lagrange.Num(Time,StateVector,Control);
             
-            dJ(end + 1) = iCP.Dynamics.dt*(pf +  L);
+            dJ(end + 1) =   (pf +  L);
         end
     end
     
@@ -44,6 +45,13 @@ function varargout  = Control2Functional(iCP,Control,Time)
             varargout{2} = dJ;
             varargout{3} = StateVector;
             varargout{4} = AdjointVector;
+        case 5
+            varargout{1} = J;
+            varargout{2} = dJ;
+            varargout{3} = StateVector;
+            varargout{4} = AdjointVector;
+            varargout{5} = iCP.Dynamics.Control.Numeric;
+
     end
     
 end

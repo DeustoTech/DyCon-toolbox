@@ -24,17 +24,18 @@ function Jvalue = GetNumericalFunctional(iCP,Y,U)
 %    class: double
 %    dimension: [1x1]
 
-    %p = parse()
-    %addRequired(p,'iCP')
-    
     
     tspan   = iCP.Dynamics.tspan;
-    L       = iCP.Functional.L.Numeric;
-    Psi     = iCP.Functional.Psi.Numeric;
+    L       = iCP.Functional.Lagrange.Num;
+    Psi     = iCP.Functional.TerminalCost.Num;
+    Nt      = iCP.Dynamics.Nt;
+    dt      = iCP.Dynamics.dt;
 
-    Lvalues = arrayfun(@(index)  L(tspan(index),Y(index,:)',U(index,:)'),1:length(tspan));
+    Lvalues = arrayfun(@(index)  L(tspan(index),Y(index,:)',U(index,:)'),1:(Nt-1));
+    Jvalue = sum(Lvalues)*dt +  Psi(tspan(end),Y(end,:)');
 
-    Jvalue = trapz(tspan,Lvalues) + Psi(tspan(end),Y(end,:)');
+    %Jvalue = trapz(tspan,Lvalues) + Psi(tspan(end),Y(end,:)');
+
 end
 
 

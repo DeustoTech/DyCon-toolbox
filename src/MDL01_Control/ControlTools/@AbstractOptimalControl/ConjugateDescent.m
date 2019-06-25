@@ -83,6 +83,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
         %
         [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
         % 
+        dJnew = dJnew/iCP.Dynamics.dt;
         Iter = 1;
         error = 0;
         stop = false;
@@ -113,13 +114,14 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
             end
         end
 
-        SeedLengthStep = OptimalLenght;
+        SeedLengthStep = 4*OptimalLenght;
         %% Update Control with Optimal Length Step
         ControlNew = ControlOld + OptimalLenght*s; 
         ControlNew = UpdateControlWithConstraints(iCP.Constraints,ControlNew);
         
         %% Calculate new functional, adjoint, state, gradient
         [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
+        dJnew = dJnew/iCP.Dynamics.dt;
         %% Update Beta 
         diffdJ = dJnew - dJold;
         switch DirectionParameter
@@ -174,6 +176,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
         Usl = UpdateControlWithConstraints(iCP.Constraints,Usl);
 
         Jsl = Control2Functional(iCP,Usl);
+        
     end
 end
 

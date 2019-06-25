@@ -23,9 +23,13 @@ U = sym('u',[2 1])
 %%
 % Using these two variables, we can state the system by a symbolic
 % expression of the vector field. 
-F = @(t,Y,U) [ sin(Y(1)*Y(2)) +     (Y(1)*Y(2)) + U(1)   ; ...
-                  Y(2)        + cos(Y(1)*Y(2)) + U(2) ] ;
-dynamics = ode(F,Y,U);
+F = @(t,Y,U,Params) [ sin(Y(1)*Y(2)) +     (Y(1)*Y(2)) + U(1)   ; ...
+                         Y(2)        +  cos(Y(1)*Y(2)) + U(2) ] ;
+mu = param('mu',10);
+nu = param('nu',10);
+
+parameters = [mu nu];
+dynamics = ode(F,Y,U,parameters);
 %%
 % In this way, we defined 'dynamics' of the class 'ode' which represents
 % the following equation of a matrix form:
@@ -43,7 +47,7 @@ resume(dynamics)
 % We also can directly modify its variables, for example, we may change the
 % initial data:
 
-dynamics.InitialCondition = [1,-1];
+dynamics.InitialCondition = [1 -1];
 resume(dynamics)
 %%
 % 'solve' function solves the differential equation of 'ode'. The values of

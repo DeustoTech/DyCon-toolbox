@@ -1,49 +1,9 @@
-%--------------------------------------------------------------------------
-% Method_SingleStep.m
-% Attempt to solve the Bryson-Denham problem using a single-step method
-% (namely the trapezodial rule with composite trapezoidal quadrature)
-%--------------------------------------------------------------------------
-%
-%--------------------------------------------------------------------------
-% Primary Contributor: Daniel R. Herber, Graduate Student, University of 
-% Illinois at Urbana-Champaign
-% https://github.com/danielrherber/optimal-control-direct-method-examples
-%--------------------------------------------------------------------------
-clear all
-p = Method_SingleStep_fun;
 
-[p.xms ,p.tms] = meshgrid(p.xline,p.tline);
-
-figure 
-subplot(1,2,1)
-surf(p.xms,p.tms,p.solution.yopt)
-title('State')
-
-subplot(1,2,2)
-surf(p.xms,p.tms,p.solution.uopt*p.B)
-title('Control')
-
-
-
-p.dynamics.InitialCondition = p.y0;
-p.free_dynamics = copy(p.dynamics);
-
-p.free_dynamics.label = 'free';
-p.dynamics.label = 'Control';
-
-solve(p.dynamics,'Control',p.solution.uopt*p.B)
-solve(p.free_dynamics,'Control',0*p.solution.uopt)
-
-animation([p.dynamics, p.free_dynamics],'xx',0.05,'Target',p.yf,'YLim',[0,5],'YLimControl',[0 100])
-
-
-
-function p = Method_SingleStep_fun
     %% Dynamics 
     p.T  = 0.2;
     %%
-    p.Nx = 15;
-    p.Nt = 50; p.dt = p.T/(p.Nt-1);
+    p.Nx = 10;
+    p.Nt = 10; p.dt = p.T/(p.Nt-1);
     %%
     p.xline = linspace(-1,1,p.Nx);
     p.tline = linspace( 0,p.T,p.Nt);
@@ -73,9 +33,15 @@ function p = Method_SingleStep_fun
     
     p.yf =  ytarget(end,:)';
     %%
+    xsym = sym('x',[1+2*p.Nt*p.Nx 1]);
+    contraintsSym = constraints(xsym,p);
+    %%
+    dcontraintsSym = jacobian(contraintsSym,xsym);
+    dcontraintsNum = matlabFunction(dcontraintsSym,'Vars',xsym);
     
+    %%
     x0 = 0 + zeros(1+2*p.Nt*p.Nx,1); % initial guess (all zeros)
-    
+    x0(end) = 0.5;
     options = optimoptions(@fmincon,'display','iter','MaxFunctionEvaluations',1e5,'UseParallel',true); % options
     % solve the problem
     [x ,J] = fmincon(@(x) objective(x,p),x0,[],[],[],[],[],[],@(x) constraints(x,p),options);
@@ -93,8 +59,10 @@ function p = Method_SingleStep_fun
     p.solution.Jopt = J;
     %%
     % objective function
-    function f = objective(x,p)
+    function [f,df] = objective(x,p)
         f = p.Nt*x(end);
+        df = zeros(1+2*p.Nt*p.Nx);
+        df(end) = 1;
     end
     % constraint function
     function [c,ceq] = constraints(x,p)
@@ -114,7 +82,7 @@ function p = Method_SingleStep_fun
         % final state conditions
         ceqFinal = y(end,:)'  - p.yf; 
         % defect constraints
-        ceqDyn  = zeros(p.Nx,p.Nt -1);
+        ceqDyn  = zeros(p.Nx,p.Nt -1,class(x));
         
         dt = x(end)/p.Nt;
         for i = 1:p.Nx
@@ -122,7 +90,7 @@ function p = Method_SingleStep_fun
         end
         ceqDyn = reshape(ceqDyn,1,p.Nx*(p.Nt-1));
         
-        ctime = -10*x(end);
+        ctime = x(end);
         
         ceq = [ceqInit;ceqFinal;ceqDyn';ctime]; % combine constraints
     end
@@ -140,4 +108,3 @@ function p = Method_SingleStep_fun
 
         M=dx*sparse(M);
     end
-end

@@ -3,8 +3,8 @@ classdef SymNumFun
     %   Detailed explanation goes here
     
     properties
-        Numerical      function_handle
-        Symbolical     sym              = sym.empty
+        Num     function_handle
+        Sym     sym              = sym.empty
     end
     
 end

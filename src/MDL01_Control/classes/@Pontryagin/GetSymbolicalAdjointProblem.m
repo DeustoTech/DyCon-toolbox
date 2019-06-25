@@ -23,7 +23,7 @@
 
     Jfun   = obj.Functional;
     iode   = obj.Dynamics;
-    L      = Jfun.L.Symbolic;
+    L      = Jfun.Lagrange.Sym;
     %% Creamos las variables simbolica 
     symU   = iode.Control.Symbolic;
     symY   = iode.StateVector.Symbolic;
@@ -31,7 +31,7 @@
     
     lineal = false;
     if obj.Dynamics.lineal
-        Lu = obj.Functional.DiffLState.Symbolic;
+        Lu = obj.Functional.LagrangeDerivatives.State.Sym;
         if  sum(Lu) == sym(0)
             obj.Adjoint.Dynamics = ode('A',iode.A);
             lineal = true;
@@ -40,16 +40,17 @@
     
     if ~lineal
         %% Obtenemos el Adjunto
-        FY = obj.Dynamics.DerivativeDynState.Numerical;
-        LY = obj.Functional.DiffLState.Numeric;
+        FY = obj.Dynamics.Derivatives.State.Num;
+        LY = obj.Functional.LagrangeDerivatives.State.Num;
         % Creamos el problema adjunto  en simbolico
         Sdim = obj.Dynamics.StateDimension;
-        dP_dt = @(t,P,YU) FY(t,YU(1:Sdim),YU(Sdim+1:end))'*P + LY(t,YU(1:Sdim),YU(Sdim+1:end));  
+        dP_dt = @(t,P,YU,Params) FY(t,YU(1:Sdim),YU(Sdim+1:end))'*P + LY(t,YU(1:Sdim),YU(Sdim+1:end));  
         % Convertimos la expresion a una funcion simbolica
         % dP_dt(t,  x1,...,xn,  u1,...,um,  p1,...,pn)
         Control = [symY; symU];
         State   = symP;
-        obj.Adjoint.Dynamics = ode(dP_dt,State,Control);
+        Params  = obj.Dynamics.Params;
+        obj.Adjoint.Dynamics = ode(dP_dt,State,Control,Params);
         obj.Adjoint.Dynamics.Solver = obj.Dynamics.Solver;
 
         % Pasamos esta funcion a una function_handle

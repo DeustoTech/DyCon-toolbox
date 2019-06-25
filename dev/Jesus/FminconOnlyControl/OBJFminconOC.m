@@ -1,6 +1,6 @@
 function varargout = OBJFminconOC(urow,p)
 
-    u = reshape(urow,p.dynamics.Nt,p.dynamics.Udim);
+    u = reshape(urow,p.dynamics.Nt,p.dynamics.ControlDimension);
     dx = p.dynamics.mesh(2) - p.dynamics.mesh(1);
     dt = p.dynamics.dt;
     L = abs(urow); % integrand

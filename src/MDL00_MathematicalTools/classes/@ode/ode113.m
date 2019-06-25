@@ -17,8 +17,10 @@ end
 %Uinterp = arrayfun( @(ui) griddedInterpolant(tspan,U(:,ui)),1:iode.Udim,'UniformOutput',false);
 %Ufun = @(t) arrayfun( @(ui) Uinterp{ui}(t),1:iode.Udim).';
 %Ufun = @(t) interp1(tspan,U,t)';
+params = {iode.Params.value};
+
 Ufun = @(t) interp(tspan,U,t)';
-dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t));
+dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t),params);
 
 [tspan,StateVector] = ode113(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
 

@@ -6,8 +6,8 @@ Y = iCP.Dynamics.StateVector.Symbolic;
 P  =  sym('p', [length(Y),1]);
 syms t
 
-iCP.Hessian.Symbolical = jacobian(formula(iCP.ControlGradient.Symbolical),U);
-iCP.Hessian.Numerical  = matlabFunction(iCP.Hessian.Symbolical,'Vars',{t,Y,P,U});
+iCP.Hessian.Sym = jacobian(formula(iCP.ControlGradient.Sym),U);
+iCP.Hessian.Num  = matlabFunction(iCP.Hessian.Sym,'Vars',{t,Y,P,U});
 
 end
 

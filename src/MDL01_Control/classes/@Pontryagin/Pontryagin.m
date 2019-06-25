@@ -73,10 +73,10 @@ end
 
             p = inputParser;
             
-            addRequired(p,'idynamics');
+            addRequired(p,'idynamics',@validatorPontryaginDynamics);
             
-            addRequired(p,'Psi',@ValidatorPontryaginPsi);
-            addRequired(p,'L'  ,@ValidatorPontryaginL);
+            addRequired(p,'Psi',@(Psi)ValidatorPontryaginPsi(Psi,idynamics));
+            addRequired(p,'L'  ,@(L)  ValidatorPontryaginL(L,idynamics));
                     
             addOptional(p,'DiffLagrangeState',[],@(dPsidY)ValidatorPontryaginDiffLagrangeState(idynamics,dPsidY))
             addOptional(p,'DiffLagrangeControl',[],@(dPsidY)ValidatorPontryaginDifLagrangeControl(idynamics,dPsidY))
@@ -96,30 +96,30 @@ end
             
             CheckDerivatives = p.Results.CheckDerivatives;
             
-            t        = idynamics.symt;
-            U        = idynamics.Control.Symbolic;
-            Y        = idynamics.StateVector.Symbolic;
-
+            t         = idynamics.symt;
+            U         = idynamics.Control.Symbolic;
+            Y         = idynamics.StateVector.Symbolic;
             %% Test Variables
             Utest001 = zeros(idynamics.ControlDimension,1);
             Ytest001 = zeros(idynamics.StateDimension,1);
             time0001 = 0;
             %% Dynamics Definition                   
             obj.Dynamics                 = copy(idynamics);
-            
+            %% Fixed Type of Functional            
+            obj.Functional = PontryaginFunctional;
             %% Derivative Dynamics
-            if isempty(obj.Dynamics.DerivativeDynControl.Numerical)
+            if isempty(obj.Dynamics.Derivatives.Control.Num)
                 GetSymbolicalDerivativeControl(obj.Dynamics)
             end
             
-            if isempty(obj.Dynamics.DerivativeDynState.Numerical)
+            if isempty(obj.Dynamics.Derivatives.State.Num)
                 GetSymbolicalDerivativeState(obj.Dynamics)
             end
             %% Terminal Cost Term
-            obj.Functional.Psi.Numeric       = Psi;
+            obj.Functional.TerminalCost.Num       = Psi;
             if isempty(DiffFinalCostState)||CheckDerivatives
-                obj.Functional.Psi.Symbolic   = symfun(Psi(t,Y),[t,Y.']);
-                dPsidYSym = gradient(obj.Functional.Psi.Symbolic,Y.').';
+                obj.Functional.TerminalCost.Sym   = symfun(Psi(t,Y),[t,Y.']);
+                dPsidYSym = gradient(obj.Functional.TerminalCost.Sym,Y.').';
                 dPsidYNum =  matlabFunction(dPsidYSym,'Vars',{t,Y});
                 %
                 if ~isempty(DiffFinalCostState)
@@ -133,24 +133,24 @@ end
                         error('The dPsi/dY is different to symbolic derivation')
                     end
                 end
-                obj.Functional.DiffPsiState.Symbolic  = dPsidYSym;
-                obj.Functional.DiffPsiState.Numeric   = dPsidYNum;
+                obj.Functional.TerminalCostDerivatives.State.Sym  = dPsidYSym;
+                obj.Functional.TerminalCostDerivatives.State.Num   = dPsidYNum;
                 
             else
-                obj.Functional.DiffPsiState.Symbolic  = sym.empty;
-                obj.Functional.DiffPsiState.Numeric   = DiffFinalCostState;
+                obj.Functional.TerminalCostDerivatives.State.Sym  = sym.empty;
+                obj.Functional.TerminalCostDerivatives.State.Num   = DiffFinalCostState;
             end
             
             %% Lagrange Term
 
-            obj.Functional.L.Numeric     = L;
+            obj.Functional.Lagrange.Num     = L;
             % si alguno no esta dado, hay que calcularlo
             if isempty(DiffLagrangeState)||isempty(DiffLagrangeControl) || CheckDerivatives
-                obj.Functional.L.Symbolic    = symfun(L(t,Y,U),[t,Y.',U.']);
+                obj.Functional.Lagrange.Sym    = symfun(L(t,Y,U),[t,Y.',U.']);
             end
             %% Lagrange Term - State Derivative
             if isempty(DiffLagrangeState)||CheckDerivatives
-                dLdYsym =  gradient(obj.Functional.L.Symbolic,Y.');
+                dLdYsym =  gradient(obj.Functional.Lagrange.Sym,Y);
                 dLdYnum =  matlabFunction(dLdYsym,'Vars',{t,Y,U});
                 
                 if ~isempty(DiffLagrangeState)
@@ -163,16 +163,16 @@ end
                         error('The dL/dY is different to symbolic derivation')
                     end
                 end
-                obj.Functional.DiffLState.Symbolic   = dLdYsym;
-                obj.Functional.DiffLState.Numeric    = dLdYnum;
+                obj.Functional.LagrangeDerivatives.State.Sym   = dLdYsym;
+                obj.Functional.LagrangeDerivatives.State.Num   = dLdYnum;
             else
-                obj.Functional.DiffLState.Symbolic  = sym.empty;
-                obj.Functional.DiffLState.Numeric    = DiffLagrangeState;
+                obj.Functional.LagrangeDerivatives.State.Sym    = sym.empty;
+                obj.Functional.LagrangeDerivatives.State.Num    = DiffLagrangeState;
             end
             
             %% Lagrange Term - Control Derivative
             if isempty(DiffLagrangeControl) || CheckDerivatives
-                dLdUsym =  gradient(obj.Functional.L.Symbolic,U.');
+                dLdUsym =  gradient(obj.Functional.Lagrange.Sym,U.');
                 dLdUnum = matlabFunction(dLdUsym,'Vars',{t,Y,U});            %% Hamiltonian
                 if ~isempty(DiffLagrangeControl)
                     symResult = dLdUnum(time0001,Ytest001,Utest001);
@@ -184,16 +184,16 @@ end
                         error('The dL/dU is different to symbolic derivation')
                     end
                 end
-                obj.Functional.DiffLControl.Symbolic   = dLdUsym;
-                obj.Functional.DiffLControl.Numeric    = dLdUnum;
+                obj.Functional.LagrangeDerivatives.Control.Sym   = dLdUsym;
+                obj.Functional.LagrangeDerivatives.Control.Num    = dLdUnum;
             else
-                obj.Functional.DiffLControl.Numeric    = DiffLagrangeControl;
+                obj.Functional.LagrangeDerivatives.Control.Num    = DiffLagrangeControl;
             end
             
-            dLdUnum = obj.Functional.DiffLControl.Numeric;
+            dLdUnum = obj.Functional.LagrangeDerivatives.Control.Num;
             %% Crear funciones Generales para los algorimtos de optimizacion
-            dFdUnum = obj.Dynamics.DerivativeDynControl.Numerical;
-            obj.ControlGradient.Numerical = @(t,Y,P,U) obj.Dynamics.dt*(dLdUnum(t,Y,U) + dFdUnum(t,Y,U).'*P);
+            dFdUnum = obj.Dynamics.Derivatives.Control.Num;
+            obj.ControlGradient.Num = @(t,Y,P,U,Params) obj.Dynamics.dt*(dLdUnum(t,Y,U) + dFdUnum(t,Y,U,Params).'*P);
             % Adjoint
             if isempty(Adjoint)
                 GetSymbolicalAdjointProblem(obj);
@@ -201,8 +201,8 @@ end
                 obj.Adjoint.Dynamics = Adjoint;
             end
             
-            obj.Adjoint.FinalCondition.Numeric   =  obj.Functional.DiffPsiState.Numeric;
-            obj.Adjoint.FinalCondition.Symbolic =   obj.Functional.DiffPsiState.Symbolic;
+            obj.Adjoint.FinalCondition.Numeric   =  obj.Functional.TerminalCostDerivatives.State.Num;
+            obj.Adjoint.FinalCondition.Symbolic =   obj.Functional.TerminalCostDerivatives.State.Sym;
     
           end
         

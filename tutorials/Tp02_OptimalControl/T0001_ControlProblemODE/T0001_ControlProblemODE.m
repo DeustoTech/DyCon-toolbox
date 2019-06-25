@@ -35,16 +35,20 @@
 % U $, which represent the state of the dynamics and control vector.
 Y = sym('y',[2 1])
 %%
-U = sym('u',[1 1])
+U = sym('u',[2 1])
 %%
 % The dynamics of $ Y $ should be given by a symbolic vector with the same
 % dimensions as the state vector. Following the notation at the beginning,
 % this vector represents $ f (t, Y, U) $:
- F = @(t,Y,U) [      Y(1)*Y(2)          ; ...
-                -Y(2) + U(1) ] ;
+mu = param('mu',10);
+nu = param('nu',1);
+%
+ F = @(t,Y,U,Params) [      Y(1)*Y(2)  + U(2)*Params(1)        ; ...
+                           -Y(2)       + U(1)*norm(Params(2)) ] ;
 %% 
 % Using this dynamics vector, we construct an 'ode' class.
-dynamics = ode(F,Y,U)
+dynamics = ode(F,Y,U,[mu nu]);
+
 %%
 % The printed information above shows the default setting of this 'ode'
 % class. In order to construct the dynamics we want, we need to customize
@@ -55,14 +59,14 @@ dynamics = ode(F,Y,U)
 % $ dt $. It will be used not only for the sampling of the state vector $ Y
 % $ but also to represent the control vector $ U $ and cost $ J $ in
 % 'Pontryagin' class. 
-dynamics.InitialCondition = [0;-1];
+dynamics.InitialCondition = [0; -1];
 dynamics.Nt = 10;
 %%
 % Next we need to define the functional $ J $ we want to minimize.
 % Following the form presented in [1], we define the expressions of $ \ Psi $
 % and $ L $ in symbolic form:
 Psi = @(T,Y)   Y.'*Y;
-L   = @(t,Y,U) 0.005*(U.'*U)+Y.'*Y ;
+L   = @(t,Y,U) 0.005*(U.'*U);
 %%
 % We finally define the optimal control problem as a 'Pontryagin' class:
 iP = Pontryagin(dynamics,Psi,L);

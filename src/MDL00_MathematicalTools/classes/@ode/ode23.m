@@ -14,7 +14,9 @@ else
 end
 
 Ufun = @(t) interp1(tspan,U,t)';
-dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t));
+params = {iode.Params.value};
+
+dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t),params);
 
 [tspan,StateVector] = ode23(dynamics,tspan,InitialCondition);
 

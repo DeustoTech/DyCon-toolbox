@@ -22,5 +22,6 @@ function iPcopy = Copy(obj)
 %        dimension: [1x1]
     iPcopy = copy(obj);
     iPcopy.ode = copy(obj.ode);
+    iPcopy.Functional = copy(obj.Functional);
 end
 

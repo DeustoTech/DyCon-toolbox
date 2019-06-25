@@ -50,11 +50,16 @@ newtspan = linspace(0,T,100);
 newu  = interp1(tspan,u',newtspan);
 
 figure('Unit','norm','Position',[0 0 1 1])
-for i = 1:100
+
+%%
+gif('DyCon.gif')
+for i = 1:1:100
 pdeplot3D(dynamics,'ColormapData',newu(i,:),'Mesh','off','FaceAlpha',0.4);
 view(50-50*(i/100),40+(50/100)*i)
+lightangle(20,20)
 caxis([0 5])
 pause(0.001)
+gif
 end
 
 

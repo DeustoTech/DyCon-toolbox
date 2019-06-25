@@ -34,7 +34,7 @@
 % Definition of the time 
 syms t
 % Discretization of the space
-N = 30;
+N = 20;
 xi = 0; xf = 1;
 xline = linspace(xi,xf,N);
 %%
@@ -97,11 +97,12 @@ vectorF = arrayfun( @(x)G(x),symY);
 % Putting all the things together
 Fsym  = A*symY + vectorF + B*symU;
 syms t
-Fsym_fh = matlabFunction(Fsym,'Vars',{t,symY,symU});
+Fsym_fh = matlabFunction(Fsym,'Vars',{t,symY,symU,sym.empty});
 %%
 odeEqn = pde(Fsym_fh,symY,symU,'InitialCondition',Y0,'FinalTime',50);
-odeEqn.Nt=100;
+odeEqn.Nt=300;
 odeEqn.mesh = xline;
+odeEqn.Solver = @ode23tb;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%

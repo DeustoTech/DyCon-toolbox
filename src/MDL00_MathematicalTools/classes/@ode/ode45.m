@@ -18,12 +18,24 @@ end
 %Ufun = @(t) arrayfun( @(ui) Uinterp{ui}(t),1:iode.Udim).';
 %Ufun = @(t) interp1(tspan,U,t)';
 
-Ufun = @(t) interp1(tspan,U,t,'nearest')';
+Ufun = @(t) interp1(tspan,U,t)';
+params = {iode.Params.value};
 
-dynamics = @(t,Y) iode.DynamicEquation.Numeric(t,Y,Ufun(t));
+dynamics = @(t,Y) iode.DynamicEquation.Num(t,Y,Ufun(t),params);
 
-[tspan,StateVector] = ode45(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
+% if ~isempty(iode.Derivatives.State.Num)
+%      iode.SolverParameters{:}.Jacobian = @(t,Y) iode.Derivatives.State.Num(t,Y,Ufun(t),params);
+% end
 
+if iode.FixedNt 
+    [tspan,StateVector] = ode45(dynamics,tspan,InitialCondition,iode.SolverParameters{:});
+else
+    oldtspan = tspan;
+    [tspan,StateVector] = ode45(dynamics,[tspan(1) tspan(end)],InitialCondition,iode.SolverParameters{:});
+    iode.Nt = length(tspan);
+    
+    iode.Control.Numeric = interp1(oldtspan,U,tspan);
+end
 iode.StateVector.Numeric = StateVector;
 
 

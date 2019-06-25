@@ -44,7 +44,7 @@ function p = Method_SingleStep_fun
     %% Dynamics 
     p.T  = 0.2;
     %%
-    p.Nx = 20;
+    p.Nx = 15;
     p.Nt = 20; p.dt = p.T/(p.Nt-1);
     %%
     p.xline = linspace(-1,1,p.Nx);
@@ -75,7 +75,7 @@ function p = Method_SingleStep_fun
 
     p.dynamics = pde('A',p.A,'B',p.B);
     p.dynamics.mesh = p.xline;
-    p.dynamics.Solver = @eulere;
+    p.dynamics.Solver = @euleri;
 
     p.dynamics.FinalTime = p.T;
     p.dynamics.Nt = p.Nt;

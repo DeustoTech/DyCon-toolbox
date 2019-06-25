@@ -57,12 +57,18 @@ function dJnew = GetNumericalControlGradient(iCP,U,Y,P)
 %        dimension: [1x1]
 
 %% Recupereamos las variables para empezar el problema 
-    dH_du               = iCP.ControlGradient.Numerical;
+    dH_du      = iCP.ControlGradient.Num;
+    Params     = [iCP.Dynamics.Params.value].';
     %
     tspan   =  iCP.Dynamics.tspan;
     %% Calculo del descenso   
     % Obtenemos du(t)
-    du_tDepend = @(index) dH_du(tspan(index),Y(index,:)',P(index,:)',U(index,:)');
+    NtControl    = length(U(:,1));
+    tspanControl = linspace(tspan(1),tspan(end),NtControl);
+    U = interp1(tspanControl',U,tspan');
+            
+    
+    du_tDepend = @(index) dH_du(tspan(index),Y(index,:)',P(index,:)',U(index,:)',Params);
     % Obtenemos [du(t1) du(t2) du(t3) ...] a partir de la funccion du(t)
     [nrow ,ncol] = size(U);
     dJnew = zeros(nrow,ncol);

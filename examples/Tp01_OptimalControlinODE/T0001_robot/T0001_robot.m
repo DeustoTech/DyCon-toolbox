@@ -1,5 +1,5 @@
 clear
-syms x1 x2 theta nu1 nu2 omega
+syms x1 x2 theta nu1 nu2 omega t
 
 syms u1 u2 
 
@@ -19,18 +19,21 @@ dynamics = [ nu1;   ...
  
  Y = [x1; x2; theta; nu1; nu2; omega];
  U = [u1; u2];
-iode = ode(dynamics,Y,U);
-iode.InitialCondition = [-10;-10;0.5*pi;0;0;0];
+
+Params = sym.empty;
+dynFcn = matlabFunction(dynamics,'Vars',{t,Y,U,Params});
+iode = ode(dynFcn,Y,U);
+iode.InitialCondition = [-10;-10;0.5*pi;0;0;0]';
 iode.FinalTime = 12;
-iode.Solver = @ode23tb;
-iode.dt = 0.5;
+iode.Solver = @eulere;
+iode.Nt = 100;
 
 YT = [0;0;0;0;0;0];
 
 delta = 1;
 gamma = 1;
-Psi = 0.5*delta*(Y-YT).'*(Y-YT);
-L   = gamma*(abs(u1) + abs(u2));
+Psi = @(t,Y)0.5*delta*(Y-YT).'*(Y-YT);
+L   = @(t,Y,U) gamma*(abs(U(1)) + abs(U(2)));
 %L   = gamma*((u1)^2 + u2^2);
 
 iCP = Pontryagin(iode,Psi,L);

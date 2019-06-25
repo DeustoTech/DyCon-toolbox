@@ -5,7 +5,7 @@ function [tline,yline] = rk4(iode)
     u0    = iode.Control.Numeric;
     odefunControl = iode.DynamicEquation.Numeric;
     
-    ufun = @(t) interp1(tline,u0,t,'nearest')';
+    ufun = @(t) interp1(tline,u0,t)';
     odefun = @(t,y) odefunControl(t,y,ufun(t));
     for i=1:length(tline)-1
         h = tline(i+1)-tline(i);

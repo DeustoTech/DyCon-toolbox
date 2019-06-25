@@ -71,7 +71,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
     addRequired(p,'iCP')
     addRequired(p,'tol')
 
-    addOptional(p,'LengthStep',0.001)
+    addOptional(p,'LengthStep',0.01)
     addOptional(p,'FixedLengthStep',false)
 
     parse(p,iCP,tol,varargin{:})
@@ -103,8 +103,8 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
         if FixedLengthStep
             OptimalLenght = LengthStep;
         else          
-            options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off','Algorithm','quasi-newton','CheckGradients',false);
-            Jnew = Jold + 1;
+            options = optimoptions(@fminunc,'SpecifyObjectiveGradient',false,'Display','off','CheckGradients',false);
+            Jnew = Jold + 1e5;
             while Jnew > Jold 
                 [OptimalLenght,Jnew] = fminunc(@SearchLenght,seed,options);
                 if OptimalLenght < 1e-20
@@ -112,10 +112,10 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
                     Jnew = Jold;
                     OptimalLenght = 0;
                 end
-                seed = 0.1*seed;
+                seed = 0.25*seed;
             end            
         end
-        
+        seed = 4*seed;
         %% Update Control
         ControlNew = ControlOld - OptimalLenght*dJold; 
         ControlNew = UpdateControlWithConstraints(iCP.Constraints,ControlNew);

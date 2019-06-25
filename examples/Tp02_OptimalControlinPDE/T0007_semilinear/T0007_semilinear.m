@@ -34,7 +34,7 @@
 % Definition of the time 
 syms t
 % Discretization of the space
-N = 40;
+N = 50;
 xi = 0; xf = 1;
 xline = linspace(xi,xf,N);
 %%
@@ -61,19 +61,19 @@ symU = SymsVector('u',count);
 % We create the functional that we want to minimize
 % Our goal is to set the system to zero penalizing the norm of the control
 % by a parameter $\beta$ that will be small.
-YT = 0*xline';
+YT = 0*xline.';
 
 dx = xline(2) - xline(1);
 beta = dx^4;
-symPsi  = (1/beta)*(YT - symY).'*(YT - symY);
-symL    =(symU.'*symU)*(abs(w1-w2))/count;
+symPsi  = @(T,symY)(1/beta)*(YT - symY).'*(YT - symY);
+symL    =@(t,symY,symU)(symU.'*symU)*(abs(w1-w2))/count;
 %%
 % We create the ODE object
 % Our ODE object will have the semi-discretization of the semilinear heat equation.
 % We set also initial conditions, define the non linearity and the interaction of the control to the dynamics.
 %%
 % Initial condition
-Y0 = 2*sin(pi*xline)';
+Y0 = 2*sin(pi*xline);
 %%
 % Diffusion part: the discretization of the 1d Laplacian
 A=(N^2)*(full(gallery('tridiag',N,1,-2,1)));
@@ -107,6 +107,7 @@ vectorF = arrayfun( @(x)G(x),symY);
 %%
 % Putting all the things together
 Fsym  = A*symY + vectorF + B*symU;
+F     = matlabFunction(Fsym,'Vars',{t,symY,symU,sym.empty});
 %%
 % Creation of the ODE object
 % Time horizon
@@ -118,8 +119,8 @@ T = 1;
 % modifying this parameter in the object, we might get the solution in
 % certain time steps that will hide part of the dynamics.
 %%
-odeEqn = pde(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
-odeEqn.Nt=50;
+odeEqn = pde(F,symY,symU,'InitialCondition',Y0,'FinalTime',T);
+odeEqn.Nt=100;
 odeEqn.Solver = @ode23tb;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
@@ -141,7 +142,7 @@ xlabel('Time')
 iCP1 = Pontryagin(odeEqn,symPsi,symL);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
-U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim);
+U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.ControlDimension);
 %GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@AdaptativeDescent)
 options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
 fminunc(@(U) Control2Functional(iCP1,U),U0,options)

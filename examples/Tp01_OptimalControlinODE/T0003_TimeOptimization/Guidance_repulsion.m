@@ -57,7 +57,8 @@ dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
 T = U(2); % Time-scaling from s to t
 F = [dot_ud;dot_ue;dot_vd;dot_ve]*T; % Multiply original velocities with time-scaling T(s).
 syms t
-F_hd = matlabFunction(F,'Vars',{t,Y,U});
+Params = sym.empty;
+F_hd = matlabFunction(F,'Vars',{t,Y,U,Params});
 dt = 0.1; % Numerical time discretization
 dynamics = ode(F_hd,Y,U,'FinalTime',1,'Nt',30);
 
