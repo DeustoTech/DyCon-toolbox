@@ -1,5 +1,0 @@
-title: First Example of ODE class
-author: DognamK
-description: In this example, we present the use of class ‘ode’
-date: 2019-01-01
-number: 1

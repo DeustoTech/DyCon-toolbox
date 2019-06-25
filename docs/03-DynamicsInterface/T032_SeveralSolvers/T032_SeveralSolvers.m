@@ -28,7 +28,7 @@ A = [ -5 -10 ; 10 0];
 B = [1 ; 1];
 
 dynamics_linear = ode('A',A,'B',B);
-dynamics_linear.InitialCondition = [1,2];
+dynamics_linear.InitialCondition = [1;2];
 solve(dynamics_linear);
 plot(dynamics_linear)
 %%
@@ -36,7 +36,7 @@ plot(dynamics_linear)
 % change manually.
 Nt = 20;
 dynamics_linear_fine = ode('A',A,'B',B,'Nt',Nt);
-dynamics_linear_fine.InitialCondition = [1,2];
+dynamics_linear_fine.InitialCondition = [1;2];
 solve(dynamics_linear_fine)
 Y_Nt20 = dynamics_linear_fine.StateVector.Numeric;
 T_Nt20 = dynamics_linear_fine.tspan;
@@ -58,7 +58,7 @@ legend('Y_1','Y_2','Y_1','Y_2')
 
 odefun = @(t,y) A*y;
 tspan = linspace(0,1,Nt);
-y0 = [1,2];
+y0 = [1;2];
 
 options = odeset('RelTol',1e-5,'AbsTol',1e-5);
 [t,y] = ode45(odefun,tspan,y0,options);
@@ -89,7 +89,7 @@ legend('Y_1','Y_2')
 %%
 % We can use other built-in functions, such as 'ode23'.
 dynamics_linear_23 = ode('A',A,'B',B,'Nt',Nt);
-dynamics_linear_23.InitialCondition = [1,2];
+dynamics_linear_23.InitialCondition = [1;2];
 dynamics_linear_23.Solver = @ode23;
 solve(dynamics_linear_23)
 Y_ode23 = dynamics_linear_fine.StateVector.Numeric;
@@ -106,7 +106,7 @@ legend('Y_1','Y_2')
 % define the first-order Euler method and use it for solving 'ode' classes.
 
 dynamics_linear_Euler = ode('A',A,'B',B,'Nt',Nt);
-dynamics_linear_Euler.InitialCondition = [1,2];
+dynamics_linear_Euler.InitialCondition = [1;2];
 dynamics_linear_Euler.Solver = @Euler_test;
 solve(dynamics_linear_Euler)
 plot(dynamics_linear_Euler)
@@ -116,7 +116,7 @@ function [tline,yline] = Euler_test(iode)
     yline = zeros(length(tline),length(iode.StateVector.Symbolic));
     yline(1,:) = iode.InitialCondition;
     u0    = iode.Control.Numeric;
-    odefun = iode.DynamicEquation.Numeric;
+    odefun = iode.DynamicEquation.Num;
     for i=1:length(tline)-1
         vector = odefun(tline(i),yline(i,:)',u0(i,:)')';
         yline(i+1,:) = yline(i,:) + vector*(tline(i+1)-tline(i));

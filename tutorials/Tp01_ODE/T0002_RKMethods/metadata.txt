@@ -1,5 +1,0 @@
-title: Differents solver to ode class
-author: DognamK
-description: In this example, we solve the class 'ode' using various numerical methods.
-date: 2019-01-01
-number: 2

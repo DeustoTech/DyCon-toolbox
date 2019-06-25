@@ -47,7 +47,7 @@ resume(dynamics)
 % We also can directly modify its variables, for example, we may change the
 % initial data:
 
-dynamics.InitialCondition = [1 -1];
+dynamics.InitialCondition = [1 ; -1];
 resume(dynamics)
 %%
 % 'solve' function solves the differential equation of 'ode'. The values of
@@ -69,6 +69,6 @@ A = [ 0 -2 ; 2 0];
 B = [1 ; 1];
 
 dynamics_linear = ode('A',A,'B',B);
-dynamics_linear.InitialCondition = [1,0];
+dynamics_linear.InitialCondition = [1;0];
 solve(dynamics_linear);
 plot(dynamics_linear)
