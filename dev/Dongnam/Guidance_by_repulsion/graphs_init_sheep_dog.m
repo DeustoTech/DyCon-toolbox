@@ -3,8 +3,10 @@ function results = graphs_init_sheep_dog(iCP)
 %   Detailed explanation goes here
 
 fig = figure;
-% results(1) = subplot(1,2,1,'Parent',fig);
-% results(2) = subplot(1,2,2,'Parent',fig);
-results = axes('Parent',fig)
+%xlim([-5 5])
+%ylim([-5 5])
+%results(1) = subplot(1,2,1,'Parent',fig);
+%results(2) = subplot(1,2,2,'Parent',fig);
+results = axes('Parent',fig);
 end
 

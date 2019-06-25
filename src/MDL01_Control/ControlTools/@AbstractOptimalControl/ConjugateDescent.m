@@ -1,4 +1,4 @@
-function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,tol,varargin)
+function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,tol,tolU,tolJ,varargin)
 %  description: This method is used within the GradientMethod method. GradientMethod executes iteratively this rutine in order to get 
 %               one update of the control in each iteration. In the case of choosing ConjugateGradientDescent this function updates the
 %               control of the following way
@@ -33,9 +33,17 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
 %        class: ControlProblem
 %        dimension: [1x1]
 %    tol: 
-%        description: Control Vector in time  
+%        description: the tolerance desired, for gradient of cost functions.  
 %        class: double
-%        dimension: [M,iCP.tspan]
+%        dimension: [1x1]
+%    tolU: 
+%        description: the tolerance desired, for relative difference of control functions.  
+%        class: double
+%        dimension: [1x1]
+%    tolJ: 
+%        description: the tolerance desired, for relative difference of cost functions.  
+%        class: double
+%        dimension: [1x1]
 %  Outputs:
 %    Unew:
 %        description: Update of Control Vector  
@@ -162,7 +170,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ConjugateDescent(iCP,t
             error  = AdJnew/AUnew;
         end
         
-        if error < tol || OptimalLenght == 0 || abs(Jnew-Jold) < 1e-6
+        if error < tol || OptimalLenght == 0 || norm(ControlNew - ControlOld)/(norm(ControlOld)+tolU) <tolU || abs(Jnew-Jold)/(Jold+tolJ) < tolJ
             stop = true;
         else 
             stop = false;
