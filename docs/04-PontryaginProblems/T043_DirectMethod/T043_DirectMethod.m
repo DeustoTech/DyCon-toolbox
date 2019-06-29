@@ -12,7 +12,7 @@
 %%
 clear
 
-syms x1 x2 x3 x4 u1
+syms x1 x2 x3 x4 u1 t
 
 Y = [x1; x2; x3; x4];
 U = [u1];
@@ -25,7 +25,8 @@ A = [-0.5,      5,    0,    0;
 B = [0; 1; 0; 1];
 
 dynamics = A*Y + B*U;
-Nt = 500;
+dynamics = matlabFunction(dynamics,'Vars',{t,Y,U,sym.empty});
+Nt = 50;
 T = 4.2;
 Y0 = [10; 10; 10; 10];
 
@@ -34,12 +35,12 @@ Y0 = [10; 10; 10; 10];
 
 iode = ode(dynamics,Y,U);
 iode.InitialCondition = Y0;
-iode.Solver = @eulere;
+iode.Solver = @ode23;
 iode.FinalTime = T;
 iode.Nt = Nt;
 
-Psi = (Y'*Y);
-L   = sym(0);
+Psi = @(t,Y) (Y'*Y);
+L   = @(t,Y,U) 0;
 
 iCP = Pontryagin(iode,Psi,L);
 
@@ -62,7 +63,7 @@ options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',true
 iCP.Constraints.MaxControl = 1;
 iCP.Constraints.MinControl = -1;
 
-U0 = zeros(iCP.Dynamics.Nt,iCP.Dynamics.Udim);
+U0 = zeros(iCP.Dynamics.Nt,iCP.Dynamics.ControlDimension);
 GradientMethod(iCP,U0,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all')
 U2_tspan = iCP.Solution.UOptimal;
 J2_optimal = iCP.Solution.JOptimal;

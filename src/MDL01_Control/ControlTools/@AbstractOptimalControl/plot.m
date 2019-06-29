@@ -50,7 +50,7 @@ function plot(iCP,varargin)
     tspan = iCP.Dynamics.tspan;
     for iter = 2:iCP.Solution.iter
 
-        bucle_graphs_gradientmethod(axes,iCP,iter)
+        bucle_graphs_gradientmethod(axes,iCP,iter,'live',false)
     end
 end
 

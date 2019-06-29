@@ -72,7 +72,7 @@ function f = CoConjugateGradient(iHUM,f,varargin)
 
         err = sqrt(dfnew'*M*dfnew)/initerr;
         
-        display("iter = "+it+" error = "+err)
+        display("iter = "+num2str(it,'%.4d')+"  |  error = "+err)
 
         gamma=  (dfnew'*M*dfnew)/(df'*M*df);
 

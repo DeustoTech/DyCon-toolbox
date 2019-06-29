@@ -25,6 +25,7 @@ function animation(iode,varargin)
     addOptional(p,'InitCondition',[])
     addOptional(p,'ControlShadow',false)
 
+    addOptional(p,'FontSize',12)
 
     addOptional(p,'xx',1.0)
     addOptional(p,'SaveGif',false)
@@ -47,7 +48,7 @@ function animation(iode,varargin)
     structure       = [iode.Control];
     U               = {structure.Numeric};        
     f = figure('unit','norm','pos',[0.1 0.1 0.8 0.8]);
-    FontSize = 12;
+    FontSize = p.Results.FontSize;
    
     itext = uicontrol('style','text','Parent',f,'unit','norm','pos',[0.45 0.95 0.1 0.03]);
     itext.FontSize = FontSize;

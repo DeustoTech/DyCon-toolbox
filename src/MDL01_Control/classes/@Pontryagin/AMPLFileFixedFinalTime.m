@@ -125,12 +125,19 @@ fprintf(fileID,[newline,sep,newline,newline]);
 F  = idyn.DynamicEquation.Num;
 F  = F(t,Y,U);
 
+Ya = sym('State',[Ydim 1]);
+Ua = sym('Control',[Udim 1]);
+Fa  = idyn.DynamicEquation.Num;
+
+Fa = Fa(t,Ya,Ua);
+
+theta = 1;
 if ~iCP.Dynamics.lineal
 
     for i = 1:Ydim
-        str = ['subject to dynamics_',num2str(i),' {j in 1..Nt-1}:'];
-        strcalculation =[    '  - Y[j,',num2str(i),'] + Y[j+1,',num2str(i),']', ...
-                                            ' = dt*(',char(F(i)),');',newline];
+        str = ['subject to dynamics_',num2str(i),' {j in 2..Nt}:'];
+        strcalculation =[    '  - Y[j-1,',num2str(i),'] + Y[j,',num2str(i),']', ...
+                                            ' = ',num2str(theta),'*dt*(',char(F(i)),') + ',num2str(1-theta),'*dt*(',char(Fa(i)),');',newline];
 
         for j = Udim:-1:1
             strcalculation = replace(strcalculation,char(U(j)),['U[j,',num2str(j),']']);
@@ -138,6 +145,14 @@ if ~iCP.Dynamics.lineal
         for j = Ydim:-1:1
             strcalculation = replace(strcalculation,char(Y(j)),['Y[j,',num2str(j),']']);
         end
+        
+        for j = Udim:-1:1
+            strcalculation = replace(strcalculation,char(Ua(j)),['U[j-1,',num2str(j),']']);
+        end
+        for j = Ydim:-1:1
+            strcalculation = replace(strcalculation,char(Ya(j)),['Y[j-1,',num2str(j),']']);
+        end
+        
         fprintf(fileID,[str,strcalculation]);
 
     end
@@ -161,27 +176,43 @@ else
 end
 
 separation
+if ~isempty(iCP.Constraints.MaxControl)
+        str = ['subject to maxControl {j in 1..Nt ,i in 1..Udim}: U[j,i] <=',num2str(iCP.Constraints.MaxControl),';'];
+        fprintf(fileID,[str,newline]);
+end
+if ~isempty(iCP.Constraints.MinControl)
+        str = ['subject to minControl {j in 1..Nt ,i in 1..Udim}: U[j,i] >=',num2str(iCP.Constraints.MinControl),';'];
+        fprintf(fileID,[str,newline]);
+end
+
+separation
 
 fprintf(fileID,['solve;',newline,newline]);
 
 separation
 
+print1var('cost')
+print1var('T')
+print1var('Ydim')
+print1var('Udim')
 
-str='printf: "T  = %%24.16e\\n", T;';
-fprintf(fileID,[str,newline,newline]);
-
-str = 'printf: "Ydim = %%d\\n", Ydim;';  
-fprintf(fileID,[str,newline,newline]);
-
-str = 'printf: "Nt = %%d\\n", Nt;';  
-fprintf(fileID,[str,newline,newline]);
+str = ['printf: " # Variable - State - ',num2str(Nt),' - ',num2str(Ydim),'\\n";'];
+fprintf(fileID,[str,newline]);
 
 str = 'printf {j in 1..Nt, i in 1..Ydim}: " %%24.16e\\n", Y[j,i];';
-fprintf(fileID,[str,newline,newline]);
+fprintf(fileID,[str,newline]);
+%%
+str = ['printf: " # Variable - Control - ',num2str(Nt),' - ',num2str(Udim),'\\n";'];
+fprintf(fileID,[str,newline]);
 
 str = 'printf {j in 1..Nt, i in 1..Udim}: " %%24.16e\\n", U[j,i];';
-fprintf(fileID,[str,newline,newline]);
+fprintf(fileID,[str,newline]);
 
+str = 'printf: " Variable";';
+fprintf(fileID,[str,newline]);
+%
+str = 'printf: " EndAMPLExecution";';
+fprintf(fileID,[str,newline]);
 
 fclose(fileID);
 
@@ -192,6 +223,13 @@ fclose(fileID);
         fprintf(fileID,[sep,newline]);
         fprintf(fileID,[newline]);
 
+    end
+
+    function print1var(string)
+        str=['printf: " # Variable - ',string,' - 1 \\n";'];
+        fprintf(fileID,[str,newline]);
+        str=['printf: " %%d\\n", ',string,';'];
+        fprintf(fileID,[str,newline]);
     end
 end
 

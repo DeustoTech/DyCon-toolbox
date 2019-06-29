@@ -8,7 +8,7 @@ y = @(x) interp1(xline,yline,x);
 yxline =  gradient(y(xline),xline);
 yx = @(x) interp1(xline,yxline,x);
 %
-xline = linspace(0.01,xf,400);
+xline = linspace(0.01,xf,800);
 %
 dtdx = @(x,t) sqrt(1+yx(x)^2)/sqrt(-2*g*y(x));
 [xline,tline] = ode45(dtdx,xline,0);

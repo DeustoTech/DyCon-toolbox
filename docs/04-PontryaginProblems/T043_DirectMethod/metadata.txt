@@ -1,4 +1,4 @@
 layout: default
-title: Indirect Methods
-nav_order: 2
+title: Dircet Methods
+nav_order: 3
 parent: Pontryagin Problems 

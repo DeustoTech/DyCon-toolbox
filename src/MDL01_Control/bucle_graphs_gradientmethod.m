@@ -1,4 +1,4 @@
-function bucle_graphs_gradientmethod(axes,iCP,iter)
+function bucle_graphs_gradientmethod(axes,iCP,iter,varargin)
     
     axY = axes.axY;
     axU = axes.axU;
@@ -11,7 +11,17 @@ function bucle_graphs_gradientmethod(axes,iCP,iter)
     Jhistory = iCP.Solution.Jhistory(1:iter);
 
     TypeGraphs = class(iCP.Dynamics);
-    live = true;
+    
+    p = inputParser;
+    addRequired(p,'axes')
+    addRequired(p,'iCP')
+    addRequired(p,'iter')
+    
+    addOptional(p,'live',true)
+    parse(p,axes,iCP,iter,varargin{:})
+    
+    
+    live = p.Results.live;
     SaveGif = false;
     %axY,axU,axJ,
     % Ynew,Unew,Jhistory,tspan,iter,TypeGraphs,SaveGif,live
@@ -107,5 +117,8 @@ function bucle_graphs_gradientmethod(axes,iCP,iter)
        f = axJ.Parent.Parent;
        gif('frame',f)
     end
-    pause(0.1)
+    
+            if live
+            pause(0.01)
+            end
 end

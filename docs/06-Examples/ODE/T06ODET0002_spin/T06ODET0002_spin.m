@@ -12,7 +12,7 @@ Fsym  = @(t,Y,U,Params) U;
 
 dynamics = ode(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
 dynamics.Solver =  @eulere;
-dynamics.Nt = 100;
+dynamics.Nt = 500;
 %dynamics.SolverParameters = {odeset('RelTol',1e-1,'AbsTol',1e-1)};
 
 
@@ -32,25 +32,24 @@ symL    = @(t,Y,U) (U(1)^2+U(2)^2+U(3)^2+U(4)^2)+ ...
 %% 
 % Creta the control Problem
 iCP1 = Pontryagin(dynamics,symPsi,symL);
-%% Solve Gradient
-U0 = zeros(length(dynamics.tspan),dynamics.ControlDimension);
-GradientMethod(iCP1,U0,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all','MaxIter',300,'EachIter',50,'Graphs',false)
 %%
-U0 = iCP1.Solution.UOptimal;
-GradientMethod(iCP1,U0,'Graphs',false,'DescentAlgorithm',@ConjugateDescent,'display','all','tol',1e-3,'MaxIter',100,'EachIter',10,'Graphs',false)
-%
-%options = optimoptions('fminunc','display','iter','SpecifyObjectiveGradient',true,'Algorithm','quasi-newton','CheckGradients',false)
-%UOpt = fminunc(@(U) Control2Functional(iCP1,U),U0,options)
 
+
+% AMPL Neos Server
+AMPLFileFixedFinalTime(iCP1,'AMPL.txt')
+outfile = SendNeosServer('AMPL.txt');
+%% Read Data
+AMPLSolution  = NeosLoadData(outfile);
+%% Solve Gradient
 %%
-U = iCP1.Dynamics.Control.Numeric;
-Y = iCP1.Dynamics.StateVector.Numeric;
+U = zeros(dynamics.Nt,dynamics.ControlDimension);
+Y = zeros(dynamics.Nt,dynamics.StateDimension);
 
 GetSymCrossDerivatives(iCP1)
 
 GetSymCrossDerivatives(iCP1.Dynamics)
   
-YU = [Y U];
+YU0 = [Y U];
 Udim = dynamics.ControlDimension;
 Ydim = dynamics.StateDimension;
 
@@ -58,23 +57,43 @@ options = optimoptions('fmincon','display','iter',    ...
                        'MaxFunctionEvaluations',1e6,  ...
                        'SpecifyObjectiveGradient',true, ...
                        'CheckGradients',false,          ...
-                       'SpecifyConstraintGradient',true)%  , ...
-                       %'HessianFcn',@(YU,Lambda) Hessian(iCP1,YU,Lambda));
+                       'SpecifyConstraintGradient',true, ...
+                       'HessianFcn',@(YU,Lambda) Hessian(iCP1,YU,Lambda));
 %
 funobj = @(YU) StateControl2DiscrFunctional(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end));
-fmincon(funobj,YU, ...
+
+clear ConstraintDynamics
+YU = fmincon(funobj,YU0, ...
            [],[], ...
            [],[], ...
            [],[], ...
            @(YU) ConstraintDynamics(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end)),    ...
-           options)
+           options);
 
+iCP1.Dynamics.StateVector.Numeric = YU(:,1:Ydim);
+iCP1.Dynamics.Control.Numeric = YU(:,Ydim+1:end);
 
 %%
-error('sd')
-%%
-close all
+figure
+subplot(2,2,1)
+plot(iCP1.Dynamics.Control.Numeric(1:end-1,:),'.-')
+title('DyCon Toolbox Control');
+subplot(2,2,3)
+plot(iCP1.Dynamics.StateVector.Numeric(1:end-1,:),'.-')
+title('DyCon Toolbox State');
+%
+subplot(2,2,2)
+plot(AMPLSolution.Control','.-')
+title('AMPL Control');
+subplot(2,2,4)
+plot(AMPLSolution.State','.-')
+title('AMPL State');
+
+figure
 subplot(1,2,1)
-plot(iCP1.Dynamics.Control.Numeric,'.-')
+plot(iCP1.Dynamics.Control.Numeric(1:end-1,:) - AMPLSolution.Control(:,1:end-1)','.-')
+title('Diff Control');
+
 subplot(1,2,2)
-plot(iCP1.Dynamics.StateVector.Numeric,'.-')
+plot(iCP1.Dynamics.StateVector.Numeric(1:end-1,:) - AMPLSolution.State(:,1:end-1)','.-')
+title('Diff State');

@@ -81,7 +81,7 @@ dynamics.Solver=@eulere;
 %% Trajectories from initial guess
 % Test the initial guess on the control, 'U0_tline'.
 solve(dynamics);
-
+%%
 Y_tline = dynamics.StateVector.Numeric;
 figure();
 plot(Y_tline(:,1),Y_tline(:,2),'b-');

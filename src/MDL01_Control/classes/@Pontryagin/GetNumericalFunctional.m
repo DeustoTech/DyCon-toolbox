@@ -31,7 +31,11 @@ function Jvalue = GetNumericalFunctional(iCP,Y,U)
     Nt      = iCP.Dynamics.Nt;
     dt      = iCP.Dynamics.dt;
 
-    Lvalues = arrayfun(@(index)  L(tspan(index),Y(index,:)',U(index,:)'),1:(Nt-1));
+    %Lvalues = arrayfun(@(index)  L(tspan(index),Y(index,:)',U(index,:)'),1:(Nt-1));
+    Lvalues = zeros(Nt-1,1);
+    for index=1:(Nt-1)
+        Lvalues(index) =  L(tspan(index),Y(index,:)',U(index,:)');
+    end
     Jvalue = sum(Lvalues)*dt +  Psi(tspan(end),Y(end,:)');
 
     %Jvalue = trapz(tspan,Lvalues) + Psi(tspan(end),Y(end,:)');

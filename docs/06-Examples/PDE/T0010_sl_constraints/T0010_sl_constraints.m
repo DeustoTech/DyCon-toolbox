@@ -1,47 +1,16 @@
 %%
 %% Semi-linear semi-discrete heat equation and collective behavior
-% In this tutorial we will apply the DyCon toolbox to find a control to the
-% semi-discrete semi-linear heat equation. 
-%%
-% $$y_t-N^2Ay=G(y)+Bu$$
-%%
-% where $N^2A$ is the discretization of the Laplacian in 1d in $N$ nodes.
-% We are looking for a control that after time $T$ steers the system near
-% zero. In order to do so we will frame the problem as a minimization of a
-% functional and we will apply gradient descent to find it. Note that the
-% convexity of the fuctional is not proven, therefore, we will obtain a
-% local minima for the functional. The functional
-% considered will be:
-%%
-% $$J(\boldsymbol{y},\boldsymbol{u})=|\boldsymbol{y}(t)|_{L^2}^2+\int_0^T
-% |\boldsymbol{u}(t)|_{L^2}^2 dt$$
-%%
-% where by $|\cdot|_{L^2}$ we understand the discrete $L^2$ norm.
-%% 
-% Once this control is computed for a certain N, we will think on a dynamical
-% system that models an opinion dynamics with $N$ agents communicating
-% through a chain.
-%%
-% \begin{equation}\label{m1}y_t-\frac{1}{N}Ay=G(y)+Bv\end{equation}
-%%
-% The goal will be to compute also the control $v$ thinking model
-% \eqref{m1} as if it was a semidiscretization of a heat equation with
-% diffusivity $\frac{1}{N^3}$.
-% Furthermore we will also compute the control for model \eqref{m1} with
-% the non-linearity being non-homogeneous on $N$ and a time horizon being
-% $T_N=N^3T$.
 %%
 % Definition of the time 
+clear 
 syms t
 % Discretization of the space
-N = 20;
-xi = 0; xf = 1;
-xline = linspace(xi,xf,N);
-%%
-% Here we count how many elements in the discretization should be placed
-% inside the control region
-%%
-% we define symbolically the vectors of the state and the control
+N = 30;
+L = 1;
+xi = 0; xf = L;
+xline = linspace(xi,xf,N+2);
+xline = xline(2:end-1);
+
 %%
 symY = SymsVector('y',N);
 symU = SymsVector('u',1);
@@ -51,9 +20,9 @@ symU = SymsVector('u',1);
 % by a parameter $\beta$ that will be small.
 YT = 0.2 + 0*xline';
 dx = xline(2) - xline(1);
-symPsi  = @(T,symY) (1/dx^4)*(YT - symY).'*(YT - symY);
+symPsi  = @(T,symY) (YT - symY).'*(YT - symY);
 %tiempo= @(t) piecewise(t<=T/2,500,t>T/2,0);
-symL    = @(t,symY,symU)(YT - symY).'*(YT - symY);
+symL    = @(t,symY,symU) 0 ;
 %%
 % We create the ODE object
 % Our ODE object will have the semi-discretization of the semilinear heat equation.
@@ -64,7 +33,7 @@ symL    = @(t,symY,symU)(YT - symY).'*(YT - symY);
 Y0 = 0.99+0*xline';
 %%
 % Diffusion part: the discretization of the 1d Laplacian
-A=(N^2)*(full(gallery('tridiag',N,1,-2,1)));
+A=(N^2/L^2)*(full(gallery('tridiag',N,1,-2,1)));
 % A(1,1)=0;
 % A(1,2)=0;
 % A(end,end)=0;
@@ -74,7 +43,7 @@ A=(N^2)*(full(gallery('tridiag',N,1,-2,1)));
 B = zeros(N,1);
 B(1,1) = 1;
 B(end,end) = 1;
-B = N^2*B;
+B = (N^2/L^2)*B;
 %%
 % Definition of the non-linearity
 % $$ \partial_y[-5\exp(-y^2)] $$
@@ -85,8 +54,7 @@ syms U(x);
 syms DG(x);
 %U(x)=-5*exp(-x^2);
 %G(x)=diff(U,x);
-L=8;
-G(x)=L*L*x*(1-x)*(x-0.2);
+G(x)=x*(1-x)*(x-0.2);
 formula=G(x);
 G = symfun(formula,x)
 %%
@@ -99,8 +67,8 @@ Fsym  = A*symY + vectorF + B*symU;
 syms t
 Fsym_fh = matlabFunction(Fsym,'Vars',{t,symY,symU,sym.empty});
 %%
-odeEqn = pde(Fsym_fh,symY,symU,'InitialCondition',Y0,'FinalTime',50);
-odeEqn.Nt=300;
+odeEqn = pde(Fsym_fh,symY,symU,'InitialCondition',Y0,'FinalTime',2.0);
+odeEqn.Nt=200;
 odeEqn.mesh = xline;
 odeEqn.Solver = @ode23tb;
 %%
@@ -117,17 +85,68 @@ xlabel('Time')
 % We create the object that collects the formulation of an optimal control problem  by means of the object that describes the dynamics odeEqn, the functional to minimize Jfun and the time horizon T
 %%
 iCP1 = Pontryagin(odeEqn,symPsi,symL);
+%
+iCP1.Constraints.MaxControl = 1;
+iCP1.Constraints.MinControl = 0;
+
+%%
+AMPLFileFixedFinalTime(iCP1,'Domenec.txt')
+out = SendNeosServer('Domenec.txt')
+
+data = NeosLoadData(out)
+%%
+U = zeros(odeEqn.Nt,odeEqn.ControlDimension);
+Y = zeros(odeEqn.Nt,odeEqn.StateDimension);
+
+GetSymCrossDerivatives(iCP1)
+
+GetSymCrossDerivatives(iCP1.Dynamics)
+  
+YU0 = [Y U];
+Udim = odeEqn.ControlDimension;
+Ydim = odeEqn.StateDimension;
+
+options = optimoptions('fmincon','display','iter',    ...
+                       'MaxFunctionEvaluations',1e6,  ...
+                       'SpecifyObjectiveGradient',true, ...
+                       'CheckGradients',false,          ...
+                       'SpecifyConstraintGradient',true)% , ...
+                        %'HessianFcn',@(YU,Lambda) Hessian(iCP1,YU,Lambda));
+%
+funobj = @(YU) StateControl2DiscrFunctional(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end));
+
+Yup = Y + Inf;
+Ydown = Y - Inf;
+Uup = Y + 1;
+Udown = Y - 0;
+
+YUdown = [Ydown Udown];
+YUup = [Yup Uup];
+
+
+clear ConstraintDynamics
+YU = fmincon(funobj,YU0, ...
+           [],[], ...
+           [],[], ...
+           YUdown,YUup, ...
+           @(YU) ConstraintDynamics(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end)),    ...
+           options);
+
+iCP1.Dynamics.StateVector.Numeric = YU(:,1:Ydim);
+iCP1.Dynamics.Control.Numeric = YU(:,Ydim+1:end);
+
+
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
 % 
-iCP1.Constraints.MaxControl = 0;
-iCP1.Constraints.MinControl = 1;
+iCP1.Constraints.MaxControl = [];
+iCP1.Constraints.MinControl = [];
 U0 = 0.0*(iCP1.Dynamics.tspan).' + 0.1;
 U0(U0>1) = 1;
 U0(U0<0) = 0;
 
 %U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.ControlDimension)+ 0.6;
-GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@ClassicalDescent,'Graphs',false)
+GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@AdaptativeDescent,'Graphs',false,'display','all')
 
 %%
 % U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.Udim)+ 0;

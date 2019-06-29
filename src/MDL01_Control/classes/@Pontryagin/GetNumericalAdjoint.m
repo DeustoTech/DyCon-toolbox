@@ -1,7 +1,12 @@
 function P = GetNumericalAdjoint(iCP,U,Y)
 
         T = iCP.Dynamics.FinalTime;
-        iCP.Adjoint.Dynamics.InitialCondition = iCP.Adjoint.FinalCondition.Numeric(T,Y(end,:).').';
+        if isa(iCP.Dynamics,'pde')
+           Factor = 1/(iCP.Dynamics.mesh(2) - iCP.Dynamics.mesh(1));
+        else
+           Factor = 1;
+        end
+        iCP.Adjoint.Dynamics.InitialCondition = Factor*iCP.Adjoint.FinalCondition.Numeric(T,Y(end,:).').';
 
         iCP.Adjoint.Dynamics.Nt = iCP.Dynamics.Nt;
         iCP.Adjoint.Dynamics.FinalTime = iCP.Dynamics.FinalTime;

@@ -49,16 +49,29 @@ ylim([-5.5 0.5])
 T = max([tline_1(end) tline_2(end) tline_3(end)]);
 tline = linspace(0,T,100);
 %% interpolation
-XY = interp1(tline_1,[xline_1 yline_1],tline);
+XY = interp1(tline_1,[xline_1 yline_1],tline,'nearest','extrap');
 xline_1 = XY(:,1);yline_1 = XY(:,2);
 %
-XY = interp1(tline_2,[xline_2 yline_2],tline);
+XY = interp1(tline_2,[xline_2 yline_2],tline,'nearest','extrap');
 xline_2 = XY(:,1);yline_2 = XY(:,2);
 %
-XY = interp1(tline_3,[xline_3 yline_3],tline);
+XY = interp1(tline_3,[xline_3 yline_3],tline,'nearest','extrap');
 xline_3 = XY(:,1);yline_3 = XY(:,2);
 %%
-gif('animation_crone.gif','DelayTime',1/11) % <= to create gif
+f1 = fopen('bola1.txt','w');
+fprintf(f1,'%6.6f %6.6f %6.6f\n',[tline',xline_1,yline_1]')
+fclose(f1)
+%%
+f2 = fopen('bola2.txt','w');
+fprintf(f2,'%6.6f %6.6f %6.6f\n',[tline',xline_2,yline_2]')
+fclose(f2)
+%%
+f3 = fopen('bola3.txt','w');
+fprintf(f3,'%6.6f %6.6f %6.6f\n',[tline',xline_3,yline_3]')
+fclose(f3)
+%%
+%return
+%gif('animation_crone.gif','DelayTime',1/11) % <= to create gif
 
 for t = 1:length(tline)
     % change the sphere position
@@ -72,8 +85,8 @@ for t = 1:length(tline)
     isurf_3.XData = X + xline_3(t);
     isurf_3.YData = Y + yline_3(t);
     %
-    gif('frame',isurf_1.Parent)
+    %gif('frame',isurf_1.Parent)
     %
-   %pause(0.05)
+   pause(0.02)
 end
 

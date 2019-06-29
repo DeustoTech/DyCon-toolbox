@@ -42,12 +42,12 @@
 m = 5;  % [m]: number of oscillators.
 
 syms t;
-symTh = sym('y', [m,1]);  % [y]: phases of oscillators, $\theta_i$.
-symOm = sym('om', [m,1]);  % [om]: natural frequencies of osc., $\omega_i$.
-symK = sym('K',[m,m]); % [K]: the coupling network matrix, $\kappa$.
-symU = sym('u',[1,1]); % [u]: the control functions along time, $u(t)$.
+symTh = sym('y', [m,1]);   % [y] :  phases of oscillators, $\theta_i$.
+symOm = sym('om', [m,1]);  % [om]:  natural frequencies of osc., $\omega_i$.
+symK  = sym('K',[m,m]);    % [K] :  the coupling network matrix, $\kappa$.
+symU  = sym('u',[1,1]);    % [u] :  the control functions along time, $u(t)$.
 
-syms Vsys;   % [Vsys]: the vector fields of ODEs.
+syms Vsys;    % [Vsys]: the vector fields of ODEs.
 symThth = repmat(symTh,[1 m]);
 Vsys = symOm + (symU./m)*sum(symK.*sin(symThth.' - symThth),2);   % Kuramoto interaction terms.
 
@@ -72,11 +72,11 @@ load([path_data,'functions/random_init.mat'],'Om_init','Th_init'); % reference d
 symF = subs(Vsys,[symOm,symK],[Om_init,K_init]);
 Params = sym.empty;
 symFFcn = matlabFunction(symF,'Vars',{t,symTh,symU,Params});
-odeEqn = ode(symFFcn,symTh,symU,'InitialCondition',Th_init.','FinalTime',T,'Nt',100);
+odeEqn = ode(symFFcn,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'Nt',100);
 %%
 % We next construct cost functional for the control problem.
-symPsi = @(T,symThth)      norm(sin(symThth.' - symThth),'fro');      % Sine distance for the periodic interval $[0,2pi]$.
-symL_1 = @(t,symThth,symU) 0.001*(symU.'*symU);               % Set the L^2 regularization for the control $u(t)$.
+symPsi = @(T,symThth)      norm(sin(symThth.' - symThth),'fro');   % Sine distance for the periodic interval $[0,2pi]$.
+symL_1 = @(t,symThth,symU) 0.001*(symU.'*symU);                    % Set the L^2 regularization for the control $u(t)$.
 %
 iCP_1 = Pontryagin(odeEqn,symPsi,symL_1);
 %
@@ -88,7 +88,7 @@ toc
 %% Visualization
 % First, we present the dynamics without control,
 [tspan, ThetaVector] = solve(odeEqn);
-figure
+clf
 plot(tspan',ThetaVector)
 legend("\theta_"+[1:m])
 ylabel('Phases [rad]')
@@ -97,7 +97,7 @@ title('The dynamics without control (incoherence)')
 %%
 % and see the controled dynamics.
 odec_1 = iCP_1.Dynamics;
-figure
+clf
 plot(odec_1.tspan',odec_1.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])
 ylabel('Phases [rad]')
@@ -106,7 +106,7 @@ title('The dynamics under control')
 
 %%
 % We also can plot the control function along time.
-figure
+clf
 Ufinal_1 = iCP_1.Solution.UOptimal;
 plot(odec_1.tspan',Ufinal_1)
 legend("norm(u(t)) = "+norm(Ufinal_1))
@@ -125,7 +125,7 @@ GradientMethod(iCP_2,U0)
 toc
 %%
 odec_2 = iCP_2.Dynamics;
-figure
+clf
 plot(odec_2.tspan',odec_2.StateVector.Numeric(:,:))
 legend("\theta_"+[1:m])
 ylabel('Phases [rad]')

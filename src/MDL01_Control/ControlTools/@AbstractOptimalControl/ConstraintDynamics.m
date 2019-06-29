@@ -1,17 +1,26 @@
 function varargout = ConstraintDynamics(iCP,Y,U)
 %CONTRAINTDYNAMICS Summary of this function goes here
 %   Detailed explanation goes here
+persistent Ydim Udim
+if isempty(Ydim) 
+    Ydim = iCP.Dynamics.StateDimension;
+    Udim = iCP.Dynamics.ControlDimension;    
+end
+
 indextime = 1:iCP.Dynamics.Nt;
 tspan     = iCP.Dynamics.tspan;
+Nt        = iCP.Dynamics.Nt;
 Params    = [iCP.Dynamics.Params.value];
 
 Fnum = iCP.Dynamics.DynamicEquation.Num;
 
-F = arrayfun(@(it) Fnum(tspan(it),Y(it,:)',U(it,:)',Params),indextime,'UniformOutput',false);
-F = [F{:}].';
+%F = arrayfun(@(it) Fnum(tspan(it),Y(it,:)',U(it,:)',Params),indextime,'UniformOutput',false);
+F = zeros(iCP.Dynamics.Nt,Ydim);
+for it = 1:Nt
+    F(it,:) = Fnum(tspan(it),Y(it,:)',U(it,:)',Params);
+end
+%F = [F{:}].';
 
-Ydim = iCP.Dynamics.StateDimension;
-Udim = iCP.Dynamics.ControlDimension;
 
 Nt  = iCP.Dynamics.Nt;
 dt  = iCP.Dynamics.dt;
@@ -39,7 +48,7 @@ if nargout > 2
     Fynum = iCP.Dynamics.Derivatives.State.Num;
     
     %% State 
-    Jacob = sparse((Nt)*(Ydim+Udim),(Nt-1)*Ydim);
+    Jacob = zeros((Nt)*(Ydim+Udim),(Nt-1)*Ydim);
     
     for i = 1:Ydim
        for j = 2:Nt
@@ -51,11 +60,11 @@ if nargout > 2
              irow = (k-1)*Nt + j;
              icol = (i-1)*Nt + j;
              
-             Jacob(irow,icol) = -delta(k,i) + dt*theta*Fy1(k,i) ;
+             Jacob(irow,icol) = -double(k==i) + dt*theta*Fy1(k,i) ;
              
              irow = (k-1)*Nt + j - 1;
              icol = (i-1)*Nt + j  ;            
-             Jacob(irow,icol) =  delta(k,i) + dt*(1-theta)*Fy2(k,i) ;
+             Jacob(irow,icol) =  double(k==i) + dt*(1-theta)*Fy2(k,i) ;
 
           end
        end
@@ -88,11 +97,6 @@ if nargout > 2
     end     
     varargout{4} = sparse(Jacob);
 
-end
-
-
-function result = delta(a,b)
-    result = double((a == b));
 end
 end
 

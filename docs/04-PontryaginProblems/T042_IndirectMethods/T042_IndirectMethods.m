@@ -13,7 +13,7 @@
 %
 % - 'ClassicalDescent': After the gradient $ dJ $ is calculated, it updates
 % the control in the following way:
-% $$ u_ {new} = u_ {old} + \ alpha dJ, $$
+% $$ u_ {new} = u_ {old} + \alpha dJ, $$
 % where $ \alpha $ is a constant.
 %
 % - 'AdaptativeDescent': It updates the control in the same way as in
@@ -62,7 +62,7 @@
 
 Y = sym('y',[2 1]); U = sym('u',[1 1]);
 
-F = @(t,Y,U) [ Y(2)           ; ...
+F = @(t,Y,U,Params) [ Y(2)           ; ...
       -Y(2)      + U(1) ] ;
 
 dynamics = ode(F,Y,U); % Define 'ode' class
@@ -100,7 +100,7 @@ plot(iP)
 Cost3 = iP.Solution.JOptimal;
 U3_tspan = iP.Solution.UOptimal;
 %%
-figure();
+clf;
 tspan = iP.Dynamics.tspan;
 plot(tspan,[U1_tspan],'r.--');
 line(tspan,[U2_tspan],'Color','green','Marker','.');

@@ -1,0 +1,5 @@
+layout: default
+title:  Time Optimization in Guidance by replusion
+nav_order: 1
+grand_parent: Examples
+parent: ODE Examples

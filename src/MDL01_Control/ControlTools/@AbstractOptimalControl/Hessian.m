@@ -76,6 +76,8 @@ end
 %%
 theta = 1;
 iter = 0;
+
+HessCell = cell(1,Nt*Ydim);
 for j1 = 1:Ydim 
    for i1 = 1:Nt
        

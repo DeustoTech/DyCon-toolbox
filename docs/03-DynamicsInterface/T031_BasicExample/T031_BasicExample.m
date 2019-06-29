@@ -8,7 +8,7 @@
 % \end{bmatrix} = \left(\begin{array}{c} u_{1}+\sin\left(y_{1}\,y_{2}\right)+y_{1}\,y_{2}\\ u_{2}+y_{2}+\cos\left(y_{1}\,y_{2}\right) \end{array}\right)
 % $$
 %%
-% $$ y_1(1) = 1 / / y_2(1) = -1 $$
+% $$ y_1(1) = 1 \text{    &   } y_2(1) = -1 $$
 %%
 % In DyCon toolbox, the use of symbolic variables is chosen to represent
 % the dynamic equations. We first define a symbolic vector representing the

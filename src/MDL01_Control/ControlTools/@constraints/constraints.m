@@ -5,6 +5,7 @@ classdef constraints
     properties
         MaxControl        double              =   []
         MinControl        double              =   []
+        FinalCondition    double              =   []
         Projector   function_handle
     end
     

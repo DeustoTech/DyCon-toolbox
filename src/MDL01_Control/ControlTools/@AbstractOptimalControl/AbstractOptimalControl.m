@@ -65,6 +65,9 @@ classdef (Abstract) AbstractOptimalControl  < handle & matlab.mixin.SetGet & mat
         Constraints                 constraints     = constraints
     end
     
+    properties (Hidden)
+        tempdata
+    end
     methods (Abstract)
          Y  = GetNumericalDynamics(iCP,Control)
          dJ = GetNumericalControlGradient(iCP,U,Y,P)
