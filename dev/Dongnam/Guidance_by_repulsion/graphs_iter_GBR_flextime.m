@@ -7,7 +7,7 @@ function graphs_iter_GBR_flextime(axes,iCP,iter)
     axU = axes.axU;
     axJ = axes.axJ;
     
-    global N M u_f Nt
+    global N M uf Nt
 
     YO_tline = iCP.Solution.Yhistory{iter};
     UO_tline = iCP.Solution.ControlHistory{iter};
@@ -33,7 +33,7 @@ end
 for k=2:N
     line(ue_tline(:,1,k),ue_tline(:,2,k),'Parent',axY{1},'Color','r','LineStyle','-','LineWidth',1.1)
 end
-line(u_f(1),u_f(2),'Parent',axY{1},'Color','k','Marker','s','MarkerSize',20)
+line(uf(1),uf(2),'Parent',axY{1},'Color','k','Marker','s','MarkerSize',20)
 
 % for k=1:M
 % line(tline_UO,UO_tline(:,k),'Parent',axU{1},'Marker','.')   

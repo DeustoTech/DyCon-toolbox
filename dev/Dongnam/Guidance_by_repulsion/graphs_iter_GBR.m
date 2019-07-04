@@ -1,4 +1,4 @@
-function graphs_iter_GBR_flextime(axes,iCP,iter)
+function graphs_iter_GBR(axes,iCP,iter)
 %INIT_SHEEP_DOG Summary of this function goes here
 %   Detailed explanation goes here
     SaveGif = false;
