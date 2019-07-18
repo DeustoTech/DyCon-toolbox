@@ -1,4 +1,5 @@
-title: Dario Spin
-author: DarioP
-date: 2019-01-11
-description: In this tutorial, we present how to use OptimaControl enviroment to control a consensus that models the complex emergent dynamics over a given network.
+layout: default
+title: Rotor Control
+nav_order: 1
+grand_parent: Examples
+parent: ODE Examples

@@ -6,8 +6,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     % long: This class is the representation of an ode
     %               $$ \dot{Y} = f(t,Y,U) \ \  Y(0) = Y_0$$
     %       where 
-    %           $$ Y = \begin{pmatrix} y_1 \\ y_2 \\..  \\ y_n  \end{pmatrix} \text{   ,   }
-    %              U  = \begin{pmatrix} u_1 \\ u_2 \\..  \\u_m   \end{pmatrix} $$
+    %           $$ Y = \begin{pmatrix} y_1 \ y_2 \..  \ y_n  \end{pmatrix} \text{   ,   }
+    %              U  = \begin{pmatrix} u_1 \ u_2 \..  \u_m   \end{pmatrix} $$
     %       This class is necessary in the toolbox since within the toolbox to be able to systematize
     %       some algorithms. You can create ode objects, which are capable of parameterizing so that 
     %       with a solve statement it is solved. In this way, we can write the "solve" command within
@@ -35,7 +35,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %               <ul>
         %                   <li> Symbolic - Symbolic Vector State [u1 u2 ...] </li>
         %                   <li> Numeric  - matrix Numeric control to solve the equation. 
-        %                                   $$\\dot{Y} = f(t,\\dot{Y},U)$$ 
+        %                                   $$\dot{Y} = f(t,\dot{Y},U)$$ 
         %                   </li>
         %               </ul>
         Control                                                  
@@ -49,7 +49,15 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         %                   </li>
         %               </ul>
         DynamicEquation                 SymNumFun =SymNumFun
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State or Final State dependent of property Type"
         Params                          param
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State or Final State dependent of property Type"
         Derivatives                  odeDerivatives = odeDerivatives
         % type: "double"
         % dimension: [1xN]
@@ -66,11 +74,31 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         % default: "none"
         % description: "Time interval of plots. ATTENTION - the solution of ode is obtain by ode45, with adatative step"
         Nt                                          (1,1)                           double  
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State or Final State dependent of property Type"
         MassMatrix
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State or Final State dependent of property Type"
         label = '' 
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State or Final State dependent of property Type"
         Solver = @eulere
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State or Final State dependent of property Type"
         SolverParameters = {}
-        
+        % type: "double"
+        % dimension: [1xN]
+        % default: "[0 0 0 ...]"
+        % description: "Initial State or Final State dependent of property Type"
+        PlotFcn             GraphsDynamics = GraphsDynamics
     end
 
     properties (Hidden)
@@ -123,24 +151,36 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
     
     methods
         function obj = ode(varargin)
-            % description: The ode class, if only de organization of ode.
-            %               The solve of this class is the RK family.
+            % description: It is a constructor of the class 'ode', which allows to create an 
+            %               object compatible with all the functionalities
+            %               of Dycon Toolbox. Example - 
+            %               Y = sym('y',[1 2])
+            %               U = sym('u',[1 2])
+            %               F = @()Y + U;
+            %               iode = ode(F,Y,U);
             % autor: JOroya
             % OptionalInputs:
             %   DynamicEquation: 
-            %       description: simbolic expresion
-            %       class: Symbolic
-            %       dimension: [1x1]
+            %       description: Function Handle that give a double with
+            %                    dimension of StateVEctor return the values of the
+            %                    dynamics.
+            %       class: function_handle
+            %       dimension: [1xYdim]
             %   StateVector: 
-            %       description: StateVector
-            %       class: Symbolic
-            %       dimension: [1x1]
+            %       description: Symbolic State Vector. This can be every
+            %                   simbolical vector.
+            %       class: sym
+            %       dimension: [1xYdim]
             %   Control: 
-            %       description: simbolic expresion
+            %       description: Symbolic Control Vector. This can be every
+            %                      symbolical vector, but must be different
+            %                      from sym of VectorState
             %       class: Symbolic
             %       dimension: [1x1]
             %   A: 
-            %       description: simbolic expresion
+            %       description: Matrix dynamics. Creating linear problems through this
+            %                    input will make the symbolic calculations faster, in 
+            %                    addition to having access to the solver @euleri.
             %       class: matrix
             %       dimension: [1x1]
             %   B: 
@@ -148,11 +188,15 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             %       class: matrix
             %       dimension: [1x1]            
             %   InitialControl:
-            %       name: Initial Control 
             %       description: matrix 
             %       class: double
             %       dimension: [length(iCP.tspan)]
             %       default:   empty   
+            % Outputs:
+            %   obj: 
+            %       description: object ode
+            %       class: ode
+            %       
             
             %% Control input Parameters 
             p = inputParser;
@@ -310,7 +354,8 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
         function set.InitialCondition(obj,IC)
            [nrow,ncol] = size(IC);
            if obj.StateDimension ~= nrow||1 ~= ncol
-               error(['The Initial Condition must be a matrix: [',num2str(obj.StateDimension),'x1]'])
+               error(['The Initial Condition must be a matrix:', ...
+                       ' [',num2str(obj.StateDimension),'x1], your input Initial Condition is [',num2str(nrow),'x',num2str(ncol),']'])
            end
            obj.InitialCondition = IC;
         end

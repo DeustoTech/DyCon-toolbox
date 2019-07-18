@@ -1,20 +1,28 @@
 function resume(idynamics)
-% description: Constructor the ecuacion diferencial
+% description: The ode class, if only de organization of ode.
+%               The solve of this class is the RK family.
 % autor: JOroya
-% MandatoryInputs:   
+% OptionalInputs:
 %   DynamicEquation: 
 %       description: simbolic expresion
 %       class: Symbolic
 %       dimension: [1x1]
-%   VectorState: 
-%       description: simbolic expresion
+%   StateVector: 
+%       description: StateVector
 %       class: Symbolic
 %       dimension: [1x1]
 %   Control: 
 %       description: simbolic expresion
 %       class: Symbolic
 %       dimension: [1x1]
-% OptionalInputs:
+%   A: 
+%       description: simbolic expresion
+%       class: matrix
+%       dimension: [1x1]
+%   B: 
+%       description: simbolic expresion
+%       class: matrix
+%       dimension: [1x1]            
 %   InitialControl:
 %       name: Initial Control 
 %       description: matrix 

@@ -44,7 +44,7 @@ B = BInterior(xline,a,b,'Mass',true);
 %%
 % We can then define a final time and an initial datum
 FinalTime = 0.5;
-Y0 =sin(pi*xline);
+Y0 =sin(pi*xline');
 %%
 % and construct the system
 %%
@@ -102,9 +102,9 @@ iCP1 = Pontryagin(dynamics,Psi,L);
 tol = 1e-4;
 %%
 U0 = dynamics.Control.Numeric;
-% options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
-% [Uopt , JOpt] = fminunc(@(U) Control2Functional(iCP1,U),U0,options)
-%GradientMethod(iCP1,U0,'DescentAlgorithm',@ConjugateDescent,'tol',tol,'display','all','MaxIter',1000)
+options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
+[Uopt , JOpt] = fminunc(@(U) Control2Functional(iCP1,U),U0,options)
+GradientMethod(iCP1,U0,'DescentAlgorithm',@ConjugateDescent,'tol',tol,'display','all','MaxIter',1000)
 
 
 GetSymbolicalAdjoint2Control(iCP1)

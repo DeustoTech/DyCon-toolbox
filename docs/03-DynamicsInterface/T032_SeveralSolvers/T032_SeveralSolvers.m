@@ -29,7 +29,7 @@ B = [1 ; 1];
 
 dynamics_linear = ode('A',A,'B',B);
 dynamics_linear.InitialCondition = [1;2];
-solve(dynamics_linear);
+[T_default,Y_default] = solve(dynamics_linear);
 plot(dynamics_linear)
 %%
 % 'ode' class contains the time-descrization information, which we may
@@ -37,13 +37,10 @@ plot(dynamics_linear)
 Nt = 20;
 dynamics_linear_fine = ode('A',A,'B',B,'Nt',Nt);
 dynamics_linear_fine.InitialCondition = [1;2];
-solve(dynamics_linear_fine)
-Y_Nt20 = dynamics_linear_fine.StateVector.Numeric;
-T_Nt20 = dynamics_linear_fine.tspan;
+[T_Nt20,Y_Nt20] = solve(dynamics_linear_fine);
+%%
 plot(dynamics_linear_fine)
 hold on
-Y_default = dynamics_linear.StateVector.Numeric;
-T_default = dynamics_linear.tspan;
 plot(T_default,Y_default,'*')
 hold off
 legend('Y_1','Y_2','Y_1','Y_2')
@@ -55,11 +52,10 @@ legend('Y_1','Y_2','Y_1','Y_2')
 %% 
 % In the (MATLAB built-in) 'ode45' function, we may give a (MATLAB built-in)
 % 'odeset' class to set the parameters.
-
 odefun = @(t,y) A*y;
 tspan = linspace(0,1,Nt);
 y0 = [1;2];
-
+%%
 options = odeset('RelTol',1e-5,'AbsTol',1e-5);
 [t,y] = ode45(odefun,tspan,y0,options);
 plot(t,y-Y_Nt20)
@@ -67,22 +63,18 @@ xlabel('time(s)')
 ylabel('difference of states')
 title('Difference of solution with different tolerances')
 legend('Y_1','Y_2')
-
 %%
 % We may use 'ode45' function to solve the 'ode' class and implement the
 % 'options' feature of it.
-
 dynamics_linear_fine.SolverParameters = {options};
 dynamics_linear_fine.Solver = @ode45;
-solve(dynamics_linear_fine)
-Y_ode45 = dynamics_linear_fine.StateVector.Numeric;
-T_ode45 = dynamics_linear_fine.tspan;
+[T_ode45 Y_ode45] = solve(dynamics_linear_fine);
+%%
 plot(T_ode45,Y_ode45-y)
 xlabel('time(s)')
 ylabel('difference of states')
 title('Difference of solutions with different classes')
 legend('Y_1','Y_2')
-
 %%
 % Note that the difference of solutions are tiny since they use basically
 % the same numerical methods.
@@ -91,9 +83,9 @@ legend('Y_1','Y_2')
 dynamics_linear_23 = ode('A',A,'B',B,'Nt',Nt);
 dynamics_linear_23.InitialCondition = [1;2];
 dynamics_linear_23.Solver = @ode23;
-solve(dynamics_linear_23)
-Y_ode23 = dynamics_linear_fine.StateVector.Numeric;
-T_ode23 = dynamics_linear_fine.tspan;
+%
+[T_ode23,Y_ode23] = solve(dynamics_linear_23);
+%%
 hold on
 plot(T_ode23,Y_ode23-Y_ode45)
 xlabel('time(s)')

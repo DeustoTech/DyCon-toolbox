@@ -13,10 +13,10 @@
 % local minima for the functional. The functional
 % considered will be:
 %%
-% $$J(\boldsymbol{y},\boldsymbol{u})=|\boldsymbol{y}(t)|_{L^2}^2+\int_0^T
-% |\boldsymbol{u}(t)|_{L^2}^2 dt$$
+% $$J(\boldsymbol{y},\boldsymbol{u})= | \boldsymbol{y}(t) |_{L^2}^2+\int_0^T
+% | \boldsymbol{u}(t) |_{L^2}^2 dt$$
 %%
-% where by $|\cdot|_{L^2}$ we understand the discrete $L^2$ norm.
+% where by $\| \cdot \|_{L^2}$ we understand the discrete $L^2$ norm.
 %% 
 % Once this control is computed for a certain N, we will think on a dynamical
 % system that models an opinion dynamics with $N$ agents communicating
@@ -34,7 +34,7 @@
 % Definition of the time 
 syms t
 % Discretization of the space
-N = 50;
+N = 30;
 xi = 0; xf = 1;
 xline = linspace(xi,xf,N);
 %%
@@ -65,15 +65,16 @@ YT = 0*xline.';
 
 dx = xline(2) - xline(1);
 beta = dx^4;
-symPsi  = @(T,symY)(1/beta)*(YT - symY).'*(YT - symY);
-symL    =@(t,symY,symU)(symU.'*symU)*(abs(w1-w2))/count;
+%
+Psi  = @(T,Y)   (1/beta)*(YT - Y).'*(YT - Y);
+L    = @(t,Y,U) (U.'*U)*(abs(w1-w2))/count;
 %%
 % We create the ODE object
 % Our ODE object will have the semi-discretization of the semilinear heat equation.
 % We set also initial conditions, define the non linearity and the interaction of the control to the dynamics.
 %%
 % Initial condition
-Y0 = 2*sin(pi*xline);
+Y0 = 2*sin(pi*xline');
 %%
 % Diffusion part: the discretization of the 1d Laplacian
 A=(N^2)*(full(gallery('tridiag',N,1,-2,1)));
@@ -120,12 +121,13 @@ T = 1;
 % certain time steps that will hide part of the dynamics.
 %%
 odeEqn = pde(F,symY,symU,'InitialCondition',Y0,'FinalTime',T);
-odeEqn.Nt=100;
+odeEqn.mesh = xline;
+odeEqn.Nt=30;
 odeEqn.Solver = @ode23tb;
 %%
 % We solve the equation and we plot the free solution applying solve to odeEqn and we plot the free solution.
 %%
-solve(odeEqn)
+solve(odeEqn);
 %%
 figure;
 SIZ=size(odeEqn.StateVector.Numeric);
@@ -139,13 +141,12 @@ xlabel('Time')
 %%
 % We create the object that collects the formulation of an optimal control problem  by means of the object that describes the dynamics odeEqn, the functional to minimize Jfun and the time horizon T
 %%
-iCP1 = Pontryagin(odeEqn,symPsi,symL);
+iCP1 = Pontryagin(odeEqn,Psi,L);
 %%
 % We apply the steepest descent method to obtain a local minimum (our functional might not be convex).
 U0 = zeros(length(iCP1.Dynamics.tspan),iCP1.Dynamics.ControlDimension);
-%GradientMethod(iCP1,U0,'display','all','DescentAlgorithm',@AdaptativeDescent)
 options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
-fminunc(@(U) Control2Functional(iCP1,U),U0,options)
+fminunc(@(U) Control2Functional(iCP1,U),U0,options);
 %%
 figure;
 SIZ=size(iCP1.Dynamics.StateVector.Numeric);
@@ -191,7 +192,7 @@ syms DG(x);
 U(x)=-5*exp(-x^2);
 G(x)=diff(U,x);
 T=1;
-N=50;
+N=30;
 %%
 % For the simulation of the model in collective behavior we will employ a
 % diffusivity $D=\frac{1}{N^3}$.

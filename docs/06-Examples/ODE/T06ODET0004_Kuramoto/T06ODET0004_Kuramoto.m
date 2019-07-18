@@ -65,18 +65,18 @@ Vsys = symOm + (symU./m)*sum(symK.*sin(symThth.' - symThth),2);   % Kuramoto int
 K_init = ones(m,m);                 % Constant coupling strength, 1.
 T = 5;                              % We give enough time for the frequency synchronization.
 
-file = 'T002_OptimalControlKuramotoAdaptative.m';
+file = 'T06ODET0004_Kuramoto.m';
 path_data = replace(which(file),file,'');
 load([path_data,'functions/random_init.mat'],'Om_init','Th_init'); % reference data
 %%
 symF = subs(Vsys,[symOm,symK],[Om_init,K_init]);
 Params = sym.empty;
 symFFcn = matlabFunction(symF,'Vars',{t,symTh,symU,Params});
-odeEqn = ode(symFFcn,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'Nt',100);
+odeEqn = ode(symFFcn,symTh,symU,'InitialCondition',Th_init,'FinalTime',T,'Nt',700);
 %%
 % We next construct cost functional for the control problem.
-symPsi = @(T,symThth)      norm(sin(symThth.' - symThth),'fro');   % Sine distance for the periodic interval $[0,2pi]$.
-symL_1 = @(t,symThth,symU) 0.001*(symU.'*symU);                    % Set the L^2 regularization for the control $u(t)$.
+symPsi = @(T,symThth)      10000*norm(sin(symThth.' - symThth),'fro');   % Sine distance for the periodic interval $[0,2pi]$.
+symL_1 = @(t,symThth,symU) (symU.'*symU);                    % Set the L^2 regularization for the control $u(t)$.
 %
 iCP_1 = Pontryagin(odeEqn,symPsi,symL_1);
 %
@@ -117,7 +117,7 @@ title('The control function')
 % In this part, we change the regularization into L^1-norm and see the
 % difference.
 
-symL_2 = @(t,Y,symU)   0.001*abs(symU);
+symL_2 = @(t,Y,symU)   abs(symU);
 iCP_2 = Pontryagin(odeEqn,symPsi,symL_2);
 % 
 tic
@@ -152,3 +152,12 @@ title('The comparison between two different control cost functionals')
 % As one can expected from the regularization functions, the control function
 % from $L^2$-norm acting more smoothly from 0 to the largest value. The
 % function from $L^2$-norm draws much stiff lines.
+
+%%
+YFr = odeEqn.StateVector.Numeric;
+YL1 = iCP_1.Dynamics.StateVector.Numeric;
+YL2 = iCP_2.Dynamics.StateVector.Numeric;
+%
+% animationpendulums({YFr,YL1,YL2},tspan,{'Free','L^2 Control','L^1 Control'})
+%%
+% ![](extra-data/animation.gif)

@@ -86,11 +86,11 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     % ------------------------------------------------------------------------------------------------------
     % |             | Name                  | Default               |            Validator                  | 
     % ------------------------------------------------------------------------------------------------------
-    addOptional(pinp,'MaxIter'              ,500)
-    addOptional(pinp,'tol'                  ,1e-4)
+    addOptional(pinp,'MaxIter'              ,1000)
+    addOptional(pinp,'tol'                  ,1e-6)
     addOptional(pinp,'tolU'                 ,1e-6)
-    addOptional(pinp,'tolJ'                 ,1e-6)
-    addOptional(pinp,'DescentAlgorithm'     ,@AdaptativeDescent     ,@(alg)mustBeMember(char(alg),{'AdaptativeDescent','ConjugateDescent','ClassicalDescent'}))
+    addOptional(pinp,'tolJ'                 ,1e-9)
+    addOptional(pinp,'DescentAlgorithm'     ,@ConjugateDescent     ,@(alg)mustBeMember(char(alg),{'AdaptativeDescent','ConjugateDescent','ClassicalDescent'}))
     addOptional(pinp,'DescentParameters'    ,{})
     %% Graphs Parameters
     % ------------------------------------------------------------------------------------------------------
@@ -126,6 +126,9 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     %                   INIT PROGRAM
     % ======================================================
     % ======================================================
+    %% Comprobe Numerical Derivatives
+    %
+
     %% Comprobamos los solver
     % Set dynamics <---> adjoint 
     iCP.Adjoint.Dynamics.Nt        = iCP.Dynamics.Nt;

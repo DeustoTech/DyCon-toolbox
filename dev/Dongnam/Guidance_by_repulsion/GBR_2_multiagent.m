@@ -2,8 +2,8 @@
 
 global N M u_f Nt tf
 
-N_sqrt =2;
-M = 2; N = N_sqrt^2;
+N_sqrt =3;
+M =2; N = N_sqrt^2;
 
 syms t
 Y = sym('y',[4*(M+N) 1]);
@@ -29,7 +29,7 @@ dot_ue = ve;
 dot_ud = vd;
 uebar = mean(ue,2);
 
-dot_vd = -f_d2(square(ud-uebar)).*(ud-uebar) - nu_d*vd + repmat(kappa',[2 1]).*perp(ud-uebar);
+dot_vd = -f_d2(square(ud-uebar)).*(ud-uebar) - nu_d*vd + repmat(kappa.',[2 1]).*perp(ud-uebar);
 
 dot_ve = - nu_e*ve;
 for j=1:M
@@ -38,7 +38,7 @@ end
 
 %Y = [ue(:);ve(:);ud(:);vd(:)];
 F = [dot_ue(:);dot_ve(:);dot_ud(:);dot_vd(:)];
-numF = matlabFunction(F,'Vars',{t,Y,U});
+numF = matlabFunction(F,'Vars',{t,Y,U,sym.empty});
 
 ve_zero = zeros(2, N);
 vd_zero = zeros(2, M);
@@ -68,16 +68,18 @@ Y0 = [ue_zero(:);ve_zero(:);ud_zero(:);vd_zero(:)];
 
 
 % T=5.1725, kappa = 1.5662 -> [-1,1]
-tf = 7;
-Nt = 101;
+tf = 5;
+Nt = 100;
 dt = 1/(Nt-1);
 dynamics = ode(numF,Y,U,'FinalTime',tf,'Nt',Nt);
 dynamics.InitialCondition = Y0;
 %%
 tline = dynamics.tspan;
-U0_tline = [2.8*ones([length(tline),M])];
+U0_tline = 2*[rand([length(tline),M])];
+
+U0_tline = rand([length(tline),M])*10 - 5;
 %U0_tline = [UO_tline,1*ones([length(tline),1])];
-u_f = [0;0];
+u_f = [-0;0];
 
 dynamics.Control.Numeric = U0_tline;
 options = odeset('RelTol',1e-6,'AbsTol',1e-6);
@@ -87,7 +89,7 @@ dynamics.Solver=@eulere;
 %dynamics.SolverParameters={};
 
 solve(dynamics);
-%plot(dynamics)
+plot(dynamics)
 
 
 TN = length(tline);
@@ -166,15 +168,29 @@ grid on
 %%
 
 
-Psi = 1e4*sum(sum((ue - u_f).^2));
+Psi = 100*sum(sum((ue - u_f).^2));
 L   = (kappa.'*kappa);
 numPsi = matlabFunction(Psi,'Vars',{t,Y});
 numL = matlabFunction(L,'Vars',{t,Y,U});
 
-iP = Pontryagin(dynamics,numPsi,numL);
+iP = Pontryagin(dynamics,numPsi,numL,'SymbolicCalculations',true);
 %iP.ode.Control.Numeric = ones(51,1);
-iP.Constraints.MaxControl= 10;
-iP.Constraints.MinControl = -10;
+iP.Constraints.MaxControl= 20;
+iP.Constraints.MinControl = -20;
+%%
+
+% AMPLFile(iP,'Dongnam.txt','StateGuess',YO_tline,'ControlGuess',U0_tline)
+% %%
+% out = SendNeosServer('Dongnam.txt');
+% data = NeosLoadData(out);
+% %%
+% YO_tline = data.State';
+%%
+out='/home/djoroya/Documentos/GitHub/DyCon-toolbox/tmp/AMPL-executions/09-Jul-2019-11-16-513021-196596-Dongnam.txt/Dongnam.txt.out';
+data = NeosLoadData(out);
+%%
+YO_tline = data.State';
+%%
 
 tline = iP.Dynamics.tspan;
 %temp = interp1(tline1,temp1,tline);
@@ -183,14 +199,13 @@ tline = iP.Dynamics.tspan;
 %U0_tline = [-0.5*ones([length(tline),1]),0.5*ones([length(tline),1])];
 %U0_tline = 2 + zeros(length(iP.Dynamics.tspan),iP.Dynamics.Udim);
 % 
-%GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
-%                           'tol',1e-7,'display','all','EachIter',20,'Graphs',true, ...
-%                           'GraphsFcn',{@graphs_init_sheep_dog,@graphs_iter_sheep_dog});
-tol = 1e-7;
 GradientMethod(iP,U0_tline,'DescentAlgorithm',@AdaptativeDescent, ...
-                           'tol',tol,'tolU',tol,'tolJ',tol,'display','all','EachIter',20,'Graphs',true, ...
-                           'GraphsFcn',{@graphs_init_GBR,@graphs_iter_GBR});
-%                        
+                          'tol',1e-7,'display','all','EachIter',1,'Graphs',true, ...
+                          'GraphsFcn',{@graphs_init_GBR,@graphs_iter_GBR});
+% tol = 1e-7;GradientMethod(iP,U0_tline,'DescentAlgorithm',@ClassicalDescent,'DescentParameters',{'FixedLengthStep',false,'LengthStep',1e-7}, ...
+%                            'tol',tol,'tolU',tol,'tolJ',tol,'display','all','EachIter',1,'Graphs',true, ...
+%                            'GraphsFcn',{@graphs_init_GBR,@graphs_iter_GBR});
+% %                        
 % U0_tline = iP.Solution.UOptimal;
 % 
 % GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
@@ -227,8 +242,7 @@ temp = fmincon(@(U) Control2Functional(iP,U),U0_tline, [],[], ...
 %% Jesus Plot
 %figure
 
-
-% YO_tline = iP.Solution.Yhistory(end);
+%YO_tline = iP.Solution.Yhistory(end);
 % YO_tline = YO_tline{1};   % Trajectories
 % zz = YO_tline;
 zz = YO_tline;
@@ -252,8 +266,8 @@ figure
 lv = plot(vePx(1,:),vePy(1,:),'b*');
 hold on
 lu = plot(uePx(1,:),uePy(1,:),'r*');
-xlim([-500 500])
-ylim([-500 500])
+xlim([-10 10])
+ylim([-10 15])
 
 
 for it = 1:TN-1

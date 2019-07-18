@@ -62,7 +62,7 @@ pdeplot(dynamics,'XYData',YTarget,'Zdata',YTarget)
 view(0,90); caxis([-0.5 4])
 
 subplot(1,2,2)
-for iter = 1:5
+for iter = 1:500
     % solve direct dynamics
     newUControl = UControl;
     

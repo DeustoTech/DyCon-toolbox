@@ -1,4 +1,5 @@
-title: Computation of a control for a semilinear semi-discrete heat equation and analogies with a collective behavior model
-description: This tutorial concerns the use of the DyCon toolbox for computing a null-control for the semilinear semi-discrete heat equation. The control will be found by means of a minimization of a functional, i.e. an Optimal Control problem. The control is computing by means of a gradient descent method. However, the functional might be not convex, therefore the control found could be only a local minima for the functional considered. Afterwards the same procedure will be applied to a dynamical system that shares the formal structure of a semilinear semi-discrete heat equation.
-date: 2018-12-18
-author: [DomenecR]
+layout: default
+title: Control for a semilinear heat equation and analogies with a collective behavior model
+nav_order: 1
+grand_parent: Examples
+parent: PDE Examples

@@ -6,13 +6,13 @@ symU = SymsVector('u',4);
 %%
 
 %% Dynamics 
-T = 120;
+T = 20;
 Y0 = [2,3.2,1,4].';
 Fsym  = @(t,Y,U,Params) U;
 
 dynamics = ode(Fsym,symY,symU,'InitialCondition',Y0,'FinalTime',T);
 dynamics.Solver =  @eulere;
-dynamics.Nt = 500;
+dynamics.Nt = 150;
 %dynamics.SolverParameters = {odeset('RelTol',1e-1,'AbsTol',1e-1)};
 
 
@@ -36,7 +36,7 @@ iCP1 = Pontryagin(dynamics,symPsi,symL);
 
 
 % AMPL Neos Server
-AMPLFileFixedFinalTime(iCP1,'AMPL.txt')
+AMPLFile(iCP1,'AMPL.txt')
 outfile = SendNeosServer('AMPL.txt');
 %% Read Data
 AMPLSolution  = NeosLoadData(outfile);

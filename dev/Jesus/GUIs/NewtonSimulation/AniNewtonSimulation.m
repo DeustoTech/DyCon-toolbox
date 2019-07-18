@@ -1,6 +1,7 @@
 %% Pause 
 dpause = 0.025;
-
+SaveVideo = true;
+BackgroundColor = [0 1 0];
 %% Define mesh 
 
 XLim = [-20 20];
@@ -15,14 +16,16 @@ zms = Vfh(xms,yms);
 ifig = figure(1);
 ifig.MenuBar='none';
 ifig.ToolBar='none';
-% v = VideoWriter('newfile','MPEG-4');
-% open(v)
-
+if SaveVideo
+Video = VideoWriter('myfile.avi');
+Video.Quality = 100;
+open(Video)
+end
 ifig.Units = 'norm';
 ifig.Position = [0 0 1 1];
 clf
 delete(ifig.Children);
-ifig.Color = [0 0 0];
+ifig.Color = BackgroundColor;
 hold on
 
 %% Surface Solid 
@@ -68,8 +71,11 @@ for it = 1:MaxIter
     Az = Azint + (Azend-Azint)*(it/MaxIter);
     El = Elint + (Elend-Elint)*(it/MaxIter);
     view(Az,El)
-    pause(dpause)
-    %writeVideo(v,getframe(ifig));
+    if SaveVideo
+        writeVideo(Video,getframe(ifig));
+    else
+        pause(2*dpause)
+    end
 end
 %%
 Azint = Azend;
@@ -87,8 +93,11 @@ for it = 1:MaxIter
     Az = Azint - (Azend-Azint)*(it/MaxIter);
     El = Elint + (Elend-Elint)*(it/MaxIter);
     view(Az,El)
-    pause(dpause)
-    % writeVideo(v,getframe(ifig));
+    if SaveVideo
+        writeVideo(Video,getframe(ifig));
+    else
+        pause(2*dpause)
+    end
 end
 
 %% Create Graphs Objects
@@ -108,8 +117,11 @@ isurf.MeshStyle = 'none';
 
 %%
 for it = 1:30
-   pause(dpause)
-   %writeVideo(v,getframe(ifig));
+    if SaveVideo
+        writeVideo(Video,getframe(ifig));
+    else
+        pause(2*dpause)
+    end
 end
 
 %% Create Line 
@@ -139,8 +151,11 @@ for it = 1:2:dynamics.Nt
     l1.ZData = [l1.ZData z];
 
     % pause for see the update graphs 
-    pause(2*dpause)
-    %writeVideo(v,getframe(ifig));
+    if SaveVideo
+        writeVideo(Video,getframe(ifig));
+    else
+        pause(2*dpause)
+    end
     % get frame of figure
     % gif('frame',isurf.Parent) % <== to create gif
     % stop animation when the potential is very high
@@ -148,3 +163,9 @@ for it = 1:2:dynamics.Nt
         break
     end
 end
+
+
+    if SaveVideo
+        close(Video);
+
+    end

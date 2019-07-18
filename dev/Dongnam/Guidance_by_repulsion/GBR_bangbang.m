@@ -25,8 +25,11 @@ dot_vd = -f_d2(ur.'*ur)*ur - nu_d*vd + kappa * [-ur(2);ur(1)];
 dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
 
 F = [dot_ud;dot_ue;dot_vd;dot_ve];
+t = sym('t');
+F = matlabFunction(F,'Vars',{t,Y,U,sym.empty});
+
 dt = 0.01; % Numerical time discretization
-dynamics = ode(F,Y,U,'FinalTime',14,'dt',dt);
+dynamics = ode(F,Y,U,'FinalTime',14,'Nt',100);
 
 % ud = (-3,0), ue = (0,0), and zero velocities initially.
 dynamics.InitialCondition = [-3;0;0;0;0;0;0;0]; 
@@ -87,10 +90,11 @@ dot_ud = vd;
 dot_ue = ve;
 dot_vd = -f_d2(ur.'*ur)*ur - nu_d*vd + kappa * [-ur(2);ur(1)];
 dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
-
+t = sym('t')
 F = [dot_ud;dot_ue;dot_vd;dot_ve];
+F = matlabFunction(F,'Vars',{t,Y,U,sym.empty});
 dt = 0.01; % Numerical time discretization
-dynamics = ode(F,Y,U,'FinalTime',14,'dt',dt);
+dynamics = ode(F,Y,U,'FinalTime',14,'Nt',100);
 
 % ud = (-3,0), ue = (0,0), and zero velocities initially.
 dynamics.InitialCondition = [-3;0;0;0;0;0;0;0]; 

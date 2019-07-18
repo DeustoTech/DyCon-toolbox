@@ -30,9 +30,9 @@ len = length(result);
 [nrow,ncol] = size(result);
 errortext = [subject,' the output must have the dimension: [1x',num2str(idynamics.StateDimension),'], but it have: [',num2str(nrow),'x',num2str(ncol),']'];
 if len ~= idynamics.StateDimension
-    error(errortext)
+    %error(errortext)
 elseif nrow ~= 1
-    error(errortext)
+    %error(errortext)
 end
     
 end

@@ -1,0 +1,4 @@
+layout: default
+title: LQR
+nav_order: 1
+parent: Specialized Tools

@@ -1,5 +1,5 @@
 layout: default
-title: Choose a solver
-nav_order: 1
+title: Choose a differents solvers
+nav_order: 2
 has_children: false
-parent: Interface for Dynamics (ODE/PDE)
+parent: Interface for Dynamics (ODEs)

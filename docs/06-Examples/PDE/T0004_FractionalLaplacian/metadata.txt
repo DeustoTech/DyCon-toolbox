@@ -1,4 +1,5 @@
-title: Control of Fractional Laplacian
-author: UmbertoB
-description: In this example we will see how to use DyCon toolbox for the control of the Fractional Laplacian 
-date: 2019-01-01
+layout: default
+title: Control of Fractional Heat Equation
+nav_order: 1
+grand_parent: Examples
+parent: PDE Examples

@@ -41,7 +41,7 @@ Tmin = 0.3
 iOCP_MinTime = FinalTime2OCP(Tmin)
 %%
 figure
-surf(iOCP_MinTime.Solution.UOptimal)
+surf(iOCP_MinTime.Dynamics.Control.Numeric)
 dx =  iOCP_MinTime.Dynamics.mesh(2) - iOCP_MinTime.Dynamics.mesh(1);
 title("T_f = "+Tmin+ "& |.| = "+ dx*TargetDistance(iOCP_MinTime));
 %shading interp;colormap jet
@@ -53,7 +53,7 @@ view(0,90)
 animation(iOCP_MinTime.Dynamics,'xx',0.05,'YLim',[0 7],'Target',iOCP_MinTime.Target,'YLimControl',[0 1e4])
 %%
 function iOCP = FinalTime2OCP(FinalTime)
-    Nx = 50;
+    Nx = 30;
     xi = -1; xf = 1;
     xline = linspace(xi,xf,Nx);
     %xline = linspace(0,1,Nx+2);
@@ -78,7 +78,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     B = sparse(B);
     %%
     % We can then define a final time and an initial datum
-    Y0 = 0.5*cos(0.5*pi*xline);
+    Y0 = 0.5*cos(0.5*pi*xline.');
 
     Nt = 50;
     dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
@@ -87,7 +87,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     dynamics.mesh = xline;
 
     %% Calculate the Target
-    Y0_other = 6*cos(0.5*pi*xline);
+    Y0_other = 6*cos(0.5*pi*xline');
     TargetDynamics = copy(dynamics);
     TargetDynamics.InitialCondition = Y0_other;
     U00 = TargetDynamics.Control.Numeric*0 + 1;
@@ -111,7 +111,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     %%
     % Optional Parameters to go faster
     L_u   = @(t,Y,U) dx*sign(U);
-    L_y   = @(t,Y,U) zeros(1,dynamics.StateDimension);
+    L_y   = @(t,Y,U) zeros(1,dynamics.StateDimension)';
     Psi_y = @(t,Y)   (2/(beta))*dx*(Y - YT).';
     
     Adjoint = pde('A',A.');
@@ -127,33 +127,73 @@ function iOCP = FinalTime2OCP(FinalTime)
 
         % Solver L1
     Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
-                 'tol',1e-5,                                    ...
+                 'tol',1e-2,                                    ...
                  'Graphs',false,                               ...
                  'MaxIter',5000,                               ...
                  'EachIter',50, ...
                  'display','functional',};
-    %%
-    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1e-3;
-    %load('UO.mat')
-    JOpt = GradientMethod(iOCP,U0,Parameters{:});
+%     %%
+%     U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1e-3;
+%     %load('UO.mat')
+%     %JOpt = GradientMethod(iOCP,U0,Parameters{:});
 %     options = optimoptions(@fmincon,              'display','iter'  , ...
 %                                  'SpecifyObjectiveGradient',true    , ...                                               'Algorithm','trust-region-reflective',...
 %                                                'CheckGradients',false, ...
 %                                                'UseParallel',true );
-    %U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.Udim);
-    
-    %U0 = iOCP.Solution.UOptimal;
+%     
 %     [Uopt , JOpt] = fmincon(@(U) Control2Functional(iOCP,U),U0, ...
 %                                             []    ,  [] , ... % eq constraints
 %                                             []    ,  [] , ... % ieq cons
 %                                             U0*0-1e-8 ,   [] , ...
 %                                             []          , ...
 %                                             options);
-    
-    iOCP.Solution = solution;
-    iOCP.Solution.Jhistory = JOpt;
-                                        %%
+% %     
+%      iOCP.Solution = solution;
+%      iOCP.Solution.Jhistory = JOpt;
+                 odeEqn = iOCP.Dynamics;
+                 %%
+U = zeros(odeEqn.Nt,odeEqn.ControlDimension);
+Y = zeros(odeEqn.Nt,odeEqn.StateDimension);
 
+GetSymCrossDerivatives(iOCP)
+
+GetSymCrossDerivatives(iOCP.Dynamics)
+  
+YU0 = [Y U];
+Udim = odeEqn.ControlDimension;
+Ydim = odeEqn.StateDimension;
+
+options = optimoptions('fmincon','display','iter',    ...
+                       'MaxFunctionEvaluations',1e6,  ...
+                       'SpecifyObjectiveGradient',true, ...
+                       'CheckGradients',false,          ...
+                       'SpecifyConstraintGradient',true)% , ...
+                        %'HessianFcn',@(YU,Lambda) Hessian(iCP1,YU,Lambda));
+%
+funobj = @(YU) StateControl2DiscrFunctional(iOCP,YU(:,1:Ydim),YU(:,Ydim+1:end));
+
+Yup = Y + Inf;
+Ydown = Y - Inf;
+Uup = Y + Inf;
+Udown = Y - 0;
+
+YUdown = [Ydown Udown];
+YUup = [Yup Uup];
+
+
+clear ConstraintDynamics
+YU = fmincon(funobj,YU0, ...
+           [],[], ...
+           [],[], ...
+           YUdown,YUup, ...
+           @(YU) ConstraintDynamics(iOCP,YU(:,1:Ydim),YU(:,Ydim+1:end)),    ...
+           options);
+
+iOCP.Dynamics.StateVector.Numeric = YU(:,1:Ydim);
+iOCP.Dynamics.Control.Numeric = YU(:,Ydim+1:end);
+                                        
+                                        
+                                        %%
 end
 %%
 function [B] = construction_matrix_B(mesh,a,b)

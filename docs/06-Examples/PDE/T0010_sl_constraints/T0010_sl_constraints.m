@@ -5,7 +5,7 @@
 clear 
 syms t
 % Discretization of the space
-N = 30;
+N = 10;
 L = 1;
 xi = 0; xf = L;
 xline = linspace(xi,xf,N+2);
@@ -68,7 +68,7 @@ syms t
 Fsym_fh = matlabFunction(Fsym,'Vars',{t,symY,symU,sym.empty});
 %%
 odeEqn = pde(Fsym_fh,symY,symU,'InitialCondition',Y0,'FinalTime',2.0);
-odeEqn.Nt=200;
+odeEqn.Nt=20;
 odeEqn.mesh = xline;
 odeEqn.Solver = @ode23tb;
 %%

@@ -7,7 +7,7 @@ function [dynamics,mesh] = DynamicsInvProblem
 
 
     %applyBoundaryCondition(dynamics,'Edge',(1:4),'r',@bcd);
-    mesh = generateMesh(dynamics,'Hmax',0.4);
+    mesh = generateMesh(dynamics,'Hmax',1);
 
     %applyBoundaryCondition(dynamics,'dirichlet','Face',all_points,'r',@bcd);
     applyBoundaryCondition(dynamics,'dirichlet','Edge',1:4);

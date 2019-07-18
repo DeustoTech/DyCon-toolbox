@@ -96,6 +96,8 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
         ControlNew = iCP.Solution.ControlHistory{1};
         %
         [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
+        dJnew = dJnew/iCP.Dynamics.dt;
+
         % 
         Iter = 1;
         error = 0;
@@ -129,10 +131,10 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
         %% Update Control
         ControlNew = ControlOld - OptimalLenght*dJold; 
         ControlNew = UpdateControlWithConstraints(iCP.Constraints,ControlNew);
-        
         %% Calculate new functional, adjoint, state, gradient
         [Jnew,dJnew,Ynew,Pnew] = Control2Functional(iCP,ControlNew);
-        
+        dJnew = dJnew/iCP.Dynamics.dt;
+
         %%
         error = norm(dJnew)/norm(ControlNew);
         if error < tol || OptimalLenght == 0 || norm(ControlNew - ControlOld)/(norm(ControlOld)+tolU) <tolU || abs(Jnew-Jold)/(Jold+tolJ) < tolJ

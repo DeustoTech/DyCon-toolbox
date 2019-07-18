@@ -1,4 +1,5 @@
-title: Laplacian
-author: JOroya
-description: First Example
-date: 2019-01-01
+layout: default
+title: Control of Heat Equation
+nav_order: 1
+grand_parent: Examples
+parent: PDE Examples

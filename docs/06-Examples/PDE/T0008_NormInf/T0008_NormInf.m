@@ -1,4 +1,4 @@
-
+%%
 L  = 1;
 N  = 50;
 xline = linspace(-1,1,N);
@@ -19,15 +19,15 @@ iOC = OptimalLsNorm(dynamics);
 
 dx = xline(2) - xline(1);
 iOC.kappa = 1/dx^4;
-iOC.Target = sin(pi*xline');
+iOC.Target = 0*sin(pi*xline');
 
 
-iOC.s = 2;
-iOC.sp = 2;
+iOC.s = Inf;
+iOC.sp = 1;
 %iOC.Constraints.MinControl = 0;
 
-U0 = zeros(length(dynamics.tspan),dynamics.Udim) + 0.01;
-GradientMethod(iOC,U0,'display','all')
+U0 = zeros(length(dynamics.tspan),dynamics.ControlDimension) + 0.01;
+GradientMethod(iOC,U0,'display','all','Graphs',true,'EachIter',20)
 DynamicsDyCon = copy(iOC.Dynamics);
 DynamicsDyCon.label = 'DyCon';
 options   = optimoptions(@fminunc,'display','iter','SpecifyObjectiveGradient',true);

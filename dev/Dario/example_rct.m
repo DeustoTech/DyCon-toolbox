@@ -18,8 +18,6 @@ x0 = [1.4 ;1.4];
  LQRfun.FunctionalParams.gamma = 0;
  
  
-
- 
  LQRfun.FunctionalParams.q = @(t) [0];
  LQRfun.FunctionalParams.z = @(t) [sin(t);sin(t)];
  
