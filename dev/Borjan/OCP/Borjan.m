@@ -35,7 +35,9 @@ Dyn.Nt     = 100;
 Dyn.FinalTime        = 0.5;
 Dyn.InitialCondition = InitialConditionFcn(xline);
 %
+% Jacobian F_u
 Dyn.Derivatives.Control.Num = @(t,Y,U,Params) Y*0 + 1;
+% Jacobian F_y
 Dyn.Derivatives.State.Num   = @(t,Y,U,Params) A + 1/epsilon*dF(Y);
 
 %% 
