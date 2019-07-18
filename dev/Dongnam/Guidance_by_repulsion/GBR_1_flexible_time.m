@@ -19,10 +19,13 @@
 % for some interactions kernels 'f_d' and 'f_e'. We may describe it as
 % follows:
 
+global N M uf Nt
+
+N=1; M=1;
 syms t;
 
 Y = sym('y',[8 1]); % States vectors for positions and velocities
-ud = Y(1:2); ue = Y(3:4); vd = Y(5:6); ve = Y(7:8);
+ue = Y(1:2); ve = Y(3:4); ud = Y(5:6); vd = Y(7:8);
 
 U = sym('u',[2 1]);
 kappa = U(1); % Control function of the original problem
@@ -56,15 +59,15 @@ dot_ve = -f_e2(ur.'*ur)*ur - nu_e*ve;
 % function T(s).
 
 T = U(2); % Time-scaling from s to t
-F = [dot_ud;dot_ue;dot_vd;dot_ve]*T; % Multiply original velocities with time-scaling T(s).
+F = [dot_ue;dot_ve;dot_ud;dot_vd]*T; % Multiply original velocities with time-scaling T(s).
 numF = matlabFunction(F,'Var',{t,Y,U});
 
 Nt = 101; % Numerical time discretization
-dt = 1/(Nt-1);
+dt = 1/(Nt);
 dynamics = ode(numF,Y,U,'FinalTime',1,'Nt',Nt);
 
 % ud = (-3,0), ue = (0,0), and zero velocities initially.
-dynamics.InitialCondition = [-3;0;0;0;0;0;0;0]; 
+dynamics.InitialCondition = [0;0;0;0;-3;0;0;0]; 
 
 %% Figure 1 : test
 % Known solution : T=5.1725, kappa = 1.5662 leads the evader close to uf = [-1;1].
@@ -108,12 +111,12 @@ f1 = figure('position', [0, 0, 1000, 330]);
 
 subplot(1,2,1)
 hold on
-plot(zz(:,1),zz(:,2),'b-','LineWidth',1.3);
-plot(zz(:,3),zz(:,4),'r-','LineWidth',1.3);
+plot(zz(:,5),zz(:,6),'b-','LineWidth',1.3);
+plot(zz(:,1),zz(:,2),'r-','LineWidth',1.3);
 plot(uf(1),uf(2),'ks','MarkerSize',20)
 j=1;
-plot(zz(j,1),zz(j,2),'bs');
-plot(zz(j,3),zz(j,4),'rs');
+plot(zz(j,5),zz(j,6),'bs');
+plot(zz(j,1),zz(j,2),'rs');
 % j=ceil(t2/T_f/dt);
 % plot(zz(j,1),zz(j,2),'bo');
 % plot(zz(j,3),zz(j,4),'ro');
@@ -121,8 +124,8 @@ plot(zz(j,3),zz(j,4),'rs');
 % plot(zz(j,1),zz(j,2),'bo');
 % plot(zz(j,3),zz(j,4),'ro');
 
-plot(zz(end,1),zz(end,2),'bo');
-plot(zz(end,3),zz(end,4),'ro');
+plot(zz(end,5),zz(end,6),'bo');
+plot(zz(end,1),zz(end,2),'ro');
 hold off
 legend('Driver','Evader','Location','northwest')
 xlabel('abscissa')
@@ -166,17 +169,50 @@ iP = Pontryagin(dynamics,numPsi,numL);
 %Constraints on the control : Time should be nonnegative
 min_dt = 0.1;
 iP.Constraints.Projector = @(Utline) [Utline(:,1),0.5*(Utline(:,end)-min_dt+abs(Utline(:,end)-min_dt))+min_dt];
-%%
-tol = 1e-6;
-GradientMethod(iP,U0_tline,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'tolU',tol,'tolJ',tol,'Graphs',true);
-
-temp = iP.Solution.UOptimal;
+% %%
+% tol = 1e-6;
+% GradientMethod(iP,U0_tline,'DescentAlgorithm',@ClassicalDescent,'tol',tol,'tolU',tol,'tolJ',tol,'Graphs',true);
+% 
+% temp = iP.Solution.UOptimal;
 
 % %%
 % tol = 1e-7;
 % GradientMethod(iP,temp,'DescentAlgorithm',@AdaptativeDescent,'tol',tol,'tolU',tol,'tolJ',tol,'Graphs',true);
 % 
 % temp = iP.Solution.UOptimal;
+
+%%
+
+tol = 1e-6;
+GradientMethod(iP,U0_tline,'DescentAlgorithm',@ConjugateDescent, ...
+                           'tol',tol,'tolU',tol,'tolJ',tol,'display','all','EachIter',20,'Graphs',true, ...
+                           'GraphsFcn',{@graphs_init_GBR_flextime,@graphs_iter_GBR_flextime});
+temp = iP.Solution.UOptimal;
+
+%%
+tol = 1e-9;
+GradientMethod(iP,temp,'DescentAlgorithm',@ConjugateDescent, ...
+                           'tol',tol,'tolU',tol,'tolJ',tol,'display','all','EachIter',20,'Graphs',true, ...
+                           'GraphsFcn',{@graphs_init_GBR_flextime,@graphs_iter_GBR_flextime});
+temp = iP.Solution.UOptimal;
+tline = iP.Dynamics.tspan;
+%%
+temp_old = temp;
+tline_old = tline;
+%%
+Nt = 1000;
+iP.Dynamics.Nt = Nt;
+dt = 1/Nt;
+tline = iP.Dynamics.tspan;
+temp = interp1(tline_old,temp_old,tline);
+%%
+tol = 1e-9;
+GradientMethod(iP,temp,'DescentAlgorithm',@ConjugateDescent, ...
+                           'tol',tol,'tolU',tol,'tolJ',tol,'display','all','EachIter',20,'Graphs',true,'MaxIter',100, ...
+                           'GraphsFcn',{@graphs_init_GBR_flextime,@graphs_iter_GBR_flextime});
+temp = iP.Solution.UOptimal;
+tline = iP.Dynamics.tspan;
+
 
 %% Visualization
 % Two importants points in the result:
@@ -195,7 +231,7 @@ f1 = figure('position', [0, 0, 1000, 400]);
 % Cost calcultaion
 Final_Time = tline_UO(end);
 
-Final_Position = [zz(end,3);zz(end,4)];
+Final_Position = [zz(end,1);zz(end,2)];
 Final_Psi = (Final_Position - uf).'*(Final_Position - uf);
 
 Final_Reg = cumtrapz(tline_UO,UO_tline(:,1).^2);
@@ -204,29 +240,29 @@ Final_Reg = Final_Reg(end);
 % Trajectories
 subplot(1,2,1)
 hold on
-plot(zz(:,1),zz(:,2),'b-','LineWidth',1.3);
-plot(zz(:,3),zz(:,4),'r-','LineWidth',1.3);
+plot(zz(:,5),zz(:,6),'b--','LineWidth',1.3);
+plot(zz(:,1),zz(:,2),'r-','LineWidth',1.2);
 j=1;
-plot(zz(j,1),zz(j,2),'bs');
-plot(zz(j,3),zz(j,4),'rs');
+plot(zz(j,5),zz(j,6),'bs');
+plot(zz(j,1),zz(j,2),'rs');
 
-j=floor(1/Final_Time/dt);
-plot(zz(j,1),zz(j,2),'bo');
-plot(zz(j,3),zz(j,4),'ro');
-j=floor(2/Final_Time/dt);
-plot(zz(j,1),zz(j,2),'bo');
-plot(zz(j,3),zz(j,4),'ro');
+[~,j]=min(abs(tline_UO-1));
+plot(zz(j,5),zz(j,6),'bo');
+plot(zz(j,1),zz(j,2),'ro');
+[~,j]=min(abs(tline_UO-2));
+plot(zz(j,5),zz(j,6),'bo');
+plot(zz(j,1),zz(j,2),'ro');
 
-j=floor(3/Final_Time/dt);
-plot(zz(j,1),zz(j,2),'bo');
-plot(zz(j,3),zz(j,4),'ro');
+[~,j]=min(abs(tline_UO-3));
+plot(zz(j,5),zz(j,6),'bo');
+plot(zz(j,1),zz(j,2),'ro');
 
-j=floor(4/Final_Time/dt);
-plot(zz(j,1),zz(j,2),'bo');
-plot(zz(j,3),zz(j,4),'ro');
+[~,j]=min(abs(tline_UO-4));
+plot(zz(j,5),zz(j,6),'bo');
+plot(zz(j,1),zz(j,2),'ro');
 
-plot(zz(end,1),zz(end,2),'bo');
-plot(zz(end,3),zz(end,4),'ro');
+plot(zz(end,5),zz(end,6),'bo');
+plot(zz(end,1),zz(end,2),'ro');
 plot(uf(1),uf(2),'ks','MarkerSize',20)
 legend('Driver','Evader','Location','northwest')
 xlabel('abscissa')

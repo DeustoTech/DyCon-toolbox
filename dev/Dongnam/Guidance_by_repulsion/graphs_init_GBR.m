@@ -1,4 +1,4 @@
-function axes = graphs_init_GBR_flextime(~)
+function axes = graphs_init_GBR(~)
 
    %InitialControl = iCP.Solution.ControlHistory{1};
    global M

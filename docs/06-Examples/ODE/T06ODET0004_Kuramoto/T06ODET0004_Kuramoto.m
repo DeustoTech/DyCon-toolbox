@@ -10,10 +10,10 @@
 % $$\dot \theta_i = \omega_i + \frac{1}{N}\sum_{j=1}^N K_{i,j}
 % \sin(\theta_j-\theta_i),\quad i =1,\cdots,N.$$
 %%
-% Here the first constant terms $\omega_i$ denote the natural oscillatory
+% Here, the first constant terms $\omega_i$ denote the natural oscillatory
 % behaviors, and the interactions are nonlinearly affected by the relative
-% phases. The amplitude of interactions is determined by the coupling
-% strength, $\kappa$.
+% phases. The amplitude and connections of interactions are determined by
+% the coupling strength, $K_{i,j}$.
 %% Control strategy
 % The control interface is on the coupling strength as follows:
 %%
@@ -44,19 +44,19 @@ m = 5;  % [m]: number of oscillators.
 syms t;
 symTh = sym('y', [m,1]);   % [y] :  phases of oscillators, $\theta_i$.
 symOm = sym('om', [m,1]);  % [om]:  natural frequencies of osc., $\omega_i$.
-symK  = sym('K',[m,m]);    % [K] :  the coupling network matrix, $\kappa$.
-symU  = sym('u',[1,1]);    % [u] :  the control functions along time, $u(t)$.
+symK  = sym('K',[m,m]);    % [K] :  the coupling network matrix, $K_{i,j}$.
+symU  = sym('u',[1,1]);    % [u] :  the control function along time, $u(t)$.
 
 syms Vsys;    % [Vsys]: the vector fields of ODEs.
 symThth = repmat(symTh,[1 m]);
 Vsys = symOm + (symU./m)*sum(symK.*sin(symThth.' - symThth),2);   % Kuramoto interaction terms.
 
 %%
-% The parameter $\omega_i$ and $\kappa$ should be specified for the
-% calculations. Practically, $K > \vert \max\Omega - \min\Omega \vert$ leads to the
-% synchronization of frequencies. We normalize the coupling strength to 1,
-% and give random values for the natural frequencies from the normal
-% distribution $N(0,0.1)$. We also choose initial data from $N(0,pi/4)$.
+% The parameter $\omega_i$ and $K_{i,j}$ should be specified for the
+% calculations. Practically, $K_{i,j}u(t) > \vert \max\Omega - \min\Omega \vert$
+% leads to the synchronization of frequencies. We normalize the coupling
+% strength to 1, and give random values for the natural frequencies from
+% the normal distribution $N(0,0.1)$. We also choose initial data from $N(0,\pi/4)$. 
 %%
 %   % Om_init = normrnd(0,0.1,m,1);
 %   % Om_init = Om_init - mean(Om_init);  % Mean zero frequencies
@@ -79,7 +79,7 @@ symPsi = @(T,symThth)      10000*norm(sin(symThth.' - symThth),'fro');   % Sine 
 symL_1 = @(t,symThth,symU) (symU.'*symU);                    % Set the L^2 regularization for the control $u(t)$.
 %
 iCP_1 = Pontryagin(odeEqn,symPsi,symL_1);
-%
+
 U0 = zeros(length(iCP_1.Dynamics.tspan),iCP_1.Dynamics.ControlDimension);
 %% Solve Gradient descent
 tic
@@ -114,7 +114,7 @@ ylabel('u(t)')
 xlabel('Time [sec]')
 title('The control function')
 %% The problem with different regularization
-% In this part, we change the regularization into L^1-norm and see the
+% In this part, we change the regularization into $L^1$-norm and see the
 % difference.
 
 symL_2 = @(t,Y,symU)   abs(symU);
@@ -144,13 +144,13 @@ Psi_1 = norm(sin(Thfinal_1.' - Thfinal_1),'fro');
 Psi_2 = norm(sin(Thfinal_2.' - Thfinal_2),'fro');
 
 legend("u(t) with L^2-norm; Terminal cost = "+Psi_1,"u(t) with L^1-norm; Terminal cost = "+Psi_2)
-ylabel('The coupling strength (\kappa+u(t))')
+ylabel('The coupling strength (u(t))')
 xlabel('Time [sec]')
 title('The comparison between two different control cost functionals')
 
 %%
 % As one can expected from the regularization functions, the control function
-% from $L^2$-norm acting more smoothly from 0 to the largest value. The
+% from $L^2$-norm acting more smoothly from $0$ to the largest value. The
 % function from $L^2$-norm draws much stiff lines.
 
 %%
