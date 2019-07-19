@@ -77,7 +77,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = AdaptativeDescent(iCP,
     addOptional(p,'StopCriteria','relative')
     addOptional(p,'TypeNorm','L1')
     addOptional(p,'InitialLengthStep',0.001)
-    addOptional(p,'MinLengthStep',1e-10)
+    addOptional(p,'MinLengthStep',1e-8)
     
     parse(p,iCP,tol,tolU,tolJ,varargin{:})
     
