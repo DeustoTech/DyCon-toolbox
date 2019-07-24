@@ -243,6 +243,10 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
         case 2 
             varargout{1} = iCP.Solution.ControlHistory{end};
             varargout{2} = iCP.Solution.Jhistory(end);
+        case 3
+            varargout{1} = iCP.Solution.ControlHistory{end};
+            varargout{2} = iCP.Solution.Jhistory(end);          
+            varargout{3} = iCP.Solution.Yhistory{end};            
 
     end
     

@@ -26,23 +26,29 @@ B = [0; 1; 0; 1];
 
 dynamics = A*Y + B*U;
 dynamics = matlabFunction(dynamics,'Vars',{t,Y,U,sym.empty});
-Nt = 50;
-T = 4.2;
-Y0 = [10; 10; 10; 10];
 
 %%
 % We choose solver 'ode23tb' to cover the stiff nature of the equations.
 
 iode = ode(dynamics,Y,U);
-iode.InitialCondition = Y0;
-iode.Solver = @ode23;
-iode.FinalTime = T;
-iode.Nt = Nt;
-
+% setting ODE
+iode.InitialCondition = [10; 10; 10; 10];
+iode.FinalTime        = 4.2;
+iode.Nt               = 100;
+%% Free
+[~,YGuess] = solve(iode);
+UGuess = iode.Control.Numeric;
+%% 
+% We Create the Optimal Control Problem 
+%% 
+% 
 Psi = @(t,Y) (Y'*Y);
 L   = @(t,Y,U) 0;
 
 iCP = Pontryagin(iode,Psi,L);
+%
+iCP.Constraints.MaxControl = +1;
+iCP.Constraints.MinControl = -1;
 
 %%
 % After we defined 'Pontryagin' class, we may use the function
@@ -50,25 +56,22 @@ iCP = Pontryagin(iode,Psi,L);
 % In this way, we may impliment 'fmincon'. The maximum and minimum of the
 % control are given by -1 and 1.
 
-U0 = iode.Control.Numeric;
-Umax = 1*ones(size(iode.Control.Numeric));
-Umin = -1*ones(size(iode.Control.Numeric));
-options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',true);
-[U1_tspan,J1_optimal] = fmincon(@(U)Control2Functional(iCP,U),U0,[],[],[],[],Umin,Umax,[],options);
-%[U1_tspan,J1_optimal] = fminunc(@(U)Control2Functional(iCP,U),U0,options);
+% U0 = iode.Control.Numeric;
+% Umax = 1*ones(size(iode.Control.Numeric));
+% Umin = -1*ones(size(iode.Control.Numeric));
+% options = optimoptions(@fmincon,'display','iter','SpecifyObjectiveGradient',true);
+% [U1_tspan,J1_optimal] = fmincon(@(U)Control2Functional(iCP,U),U0,[],[],[],[],Umin,Umax,[],options);
+% 
 
 %%
 % We can solve the same control problem using 'GradientMethod'.
-
-iCP.Constraints.MaxControl = 1;
-iCP.Constraints.MinControl = -1;
-
-U0 = zeros(iCP.Dynamics.Nt,iCP.Dynamics.ControlDimension);
-GradientMethod(iCP,U0,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all')
-U2_tspan = iCP.Solution.UOptimal;
-J2_optimal = iCP.Solution.JOptimal;
+%
+[U1 ,J1,Y1] =  DiscreteProblemFmincon(iCP,'ControlGuess',UGuess + 1,'StateGuess',YGuess+ 2);
+%
+[U2 ,J2,Y2] = GradientMethod(iCP,UGuess,'Graphs',false,'DescentAlgorithm',@AdaptativeDescent,'display','all');
+%
 %%
-plot(iode.tspan,[U1_tspan,U2_tspan])
+plot(iode.tspan,[U1,U2])
 xlabel('Time')
 ylabel('Control')
-legend(['Solution of fmincon, cost=',num2str(J1_optimal)],['Solution of GradientMethod, cost=',num2str(J2_optimal)])
+legend(['Solution of fmincon, cost=',num2str(J1)],['Solution of GradientMethod, cost=',num2str(J2)])

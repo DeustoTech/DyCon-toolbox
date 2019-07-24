@@ -41,38 +41,39 @@ outfile = SendNeosServer('AMPL.txt');
 %% Read Data
 AMPLSolution  = NeosLoadData(outfile);
 %% Solve Gradient
+% %%
+% U = zeros(dynamics.Nt,dynamics.ControlDimension);
+% Y = zeros(dynamics.Nt,dynamics.StateDimension);
+% 
+% GetSymCrossDerivatives(iCP1)
+% 
+% GetSymCrossDerivatives(iCP1.Dynamics)
+%   
+% YU0 = [Y U];
+% Udim = dynamics.ControlDimension;
+% Ydim = dynamics.StateDimension;
+% 
+% options = optimoptions('fmincon','display','iter',    ...
+%                        'MaxFunctionEvaluations',1e6,  ...
+%                        'SpecifyObjectiveGradient',true, ...
+%                        'CheckGradients',false,          ...
+%                        'SpecifyConstraintGradient',true, ...
+%                        'HessianFcn',@(YU,Lambda) Hessian(iCP1,YU,Lambda));
+% %
+% funobj = @(YU) StateControl2DiscrFunctional(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end));
+% 
+% clear ConstraintDynamics
+% YU = fmincon(funobj,YU0, ...
+%            [],[], ...
+%            [],[], ...
+%            [],[], ...
+%            @(YU) ConstraintDynamics(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end)),    ...
+%            options);
+% 
+% iCP1.Dynamics.StateVector.Numeric = YU(:,1:Ydim);
+% iCP1.Dynamics.Control.Numeric = YU(:,Ydim+1:end);
 %%
-U = zeros(dynamics.Nt,dynamics.ControlDimension);
-Y = zeros(dynamics.Nt,dynamics.StateDimension);
-
-GetSymCrossDerivatives(iCP1)
-
-GetSymCrossDerivatives(iCP1.Dynamics)
-  
-YU0 = [Y U];
-Udim = dynamics.ControlDimension;
-Ydim = dynamics.StateDimension;
-
-options = optimoptions('fmincon','display','iter',    ...
-                       'MaxFunctionEvaluations',1e6,  ...
-                       'SpecifyObjectiveGradient',true, ...
-                       'CheckGradients',false,          ...
-                       'SpecifyConstraintGradient',true, ...
-                       'HessianFcn',@(YU,Lambda) Hessian(iCP1,YU,Lambda));
-%
-funobj = @(YU) StateControl2DiscrFunctional(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end));
-
-clear ConstraintDynamics
-YU = fmincon(funobj,YU0, ...
-           [],[], ...
-           [],[], ...
-           [],[], ...
-           @(YU) ConstraintDynamics(iCP1,YU(:,1:Ydim),YU(:,Ydim+1:end)),    ...
-           options);
-
-iCP1.Dynamics.StateVector.Numeric = YU(:,1:Ydim);
-iCP1.Dynamics.Control.Numeric = YU(:,Ydim+1:end);
-
+ DiscreteProblemFmincon(iCP1)
 %%
 figure
 subplot(2,2,1)

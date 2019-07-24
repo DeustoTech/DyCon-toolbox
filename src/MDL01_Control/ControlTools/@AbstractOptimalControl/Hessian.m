@@ -39,15 +39,15 @@ for i = 1:Nt-1
        for j2 = 1:Ydim
            nrow = (j1 -1)*Nt + i;
            ncol = (j2 -1)*Nt + i;
-           HessCost(nrow,ncol) = dt*d2L_dY2_num(j1,j2); 
-           HessCost(ncol,nrow) = dt*d2L_dY2_num(j1,j2); 
+           HessCost(nrow,ncol) = dt*d2L_dY2_num(j2,j1); 
+           HessCost(ncol,nrow) = dt*d2L_dY2_num(j2,j1); 
        end
        
        for j2 = 1:Udim
            nrow = (j1 -1)*Nt + i;
            ncol = (j2 -1)*Nt + i + Ydim*Nt;
-           HessCost(nrow,ncol) = dt*d2L_dUdY_num(j2,j1); 
-           HessCost(ncol,nrow) = dt*d2L_dUdY_num(j2,j1); 
+           HessCost(nrow,ncol) = dt*d2L_dUdY_num(j1,j2); 
+           HessCost(ncol,nrow) = dt*d2L_dUdY_num(j1,j2); 
        end
    end
    
@@ -55,8 +55,8 @@ for i = 1:Nt-1
        for j2 = 1:Udim
            nrow = (j1 -1)*Nt + i + Ydim*Nt;
            ncol = (j2 -1)*Nt + i + Ydim*Nt;
-           HessCost(nrow,ncol) = dt*d2L_dU2_num(j2,j1); 
-           HessCost(ncol,nrow) = dt*d2L_dU2_num(j2,j1); 
+           HessCost(nrow,ncol) = dt*d2L_dU2_num(j1,j2); 
+           HessCost(ncol,nrow) = dt*d2L_dU2_num(j1,j2); 
 
        end
    end
@@ -97,16 +97,16 @@ for j1 = 1:Ydim
        d2F_dY2_num_2 = reshape(d2F_dY2_num_2,Ydim,Ydim,Ydim);
        % State-Control
        d2F_dYdU_num_1 = d2F_dUdY(tspan(i1-1),Y(i1-1,:).',U(i1-1,:).');
-       d2F_dYdU_num_1 = reshape(d2F_dYdU_num_1,Ydim,Ydim,Ydim);
+       d2F_dYdU_num_1 = reshape(d2F_dYdU_num_1,Ydim,Ydim,Udim);
        
        d2F_dYdU_num_2 = d2F_dUdY(tspan(i1),Y(i1,:).',U(i1,:).');
-       d2F_dYdU_num_2 = reshape(d2F_dYdU_num_2,Ydim,Ydim,Ydim);       
+       d2F_dYdU_num_2 = reshape(d2F_dYdU_num_2,Ydim,Ydim,Udim);       
        % Control-Control
        d2F_dU_2num_1 = d2F_dU2(tspan(i1-1),Y(i1-1,:).',U(i1-1,:).');
-       d2F_dU_2num_1 = reshape(d2F_dU_2num_1,Ydim,Ydim,Ydim);
+       d2F_dU_2num_1 = reshape(d2F_dU_2num_1,Ydim,Udim,Udim);
        
        d2F_dU_2num_2 = d2F_dU2(tspan(i1),Y(i1,:).',U(i1,:).');
-       d2F_dU_2num_2 = reshape(d2F_dU_2num_2,Ydim,Ydim,Ydim);     
+       d2F_dU_2num_2 = reshape(d2F_dU_2num_2,Ydim,Udim,Udim);     
    %%    
        for j2 = 1:Ydim
            %

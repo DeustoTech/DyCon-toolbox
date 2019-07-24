@@ -1,33 +1,29 @@
 function varargout = ConstraintDynamics(iCP,Y,U)
-%CONTRAINTDYNAMICS Summary of this function goes here
-%   Detailed explanation goes here
+%% Funcion que caracteriza la restrición de la dinamica, el formato que tiene es compatible con fmincon
+
 persistent Ydim Udim
 if isempty(Ydim) 
     Ydim = iCP.Dynamics.StateDimension;
     Udim = iCP.Dynamics.ControlDimension;    
 end
 
-indextime = 1:iCP.Dynamics.Nt;
 tspan     = iCP.Dynamics.tspan;
 Nt        = iCP.Dynamics.Nt;
 Params    = [iCP.Dynamics.Params.value];
 
 Fnum = iCP.Dynamics.DynamicEquation.Num;
 
-%F = arrayfun(@(it) Fnum(tspan(it),Y(it,:)',U(it,:)',Params),indextime,'UniformOutput',false);
 F = zeros(iCP.Dynamics.Nt,Ydim);
 for it = 1:Nt
     F(it,:) = Fnum(tspan(it),Y(it,:)',U(it,:)',Params);
 end
-%F = [F{:}].';
-
 
 Nt  = iCP.Dynamics.Nt;
 dt  = iCP.Dynamics.dt;
 
 c = [];
 ceq  = zeros(Nt -1,Ydim);
-theta = 1;
+theta = 0.0;
 for i = 1:Ydim
     ceq(:,i) = (- Y(2:Nt,i) + Y(1:Nt-1,i) + dt.*( (1-theta)*F(1:Nt-1,i) + theta*F(2:Nt,i) ));
 end
@@ -91,7 +87,6 @@ if nargout > 2
              
              Jacob(irow,icol) =  dt*(1-theta)*Fu2(k,i) ;
              
-
           end
        end
     end     
