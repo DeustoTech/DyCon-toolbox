@@ -26,16 +26,23 @@ function graphs_iter_GBR(axes,iCP,iter)
     %vd_tline = reshape(YO_tline(:,4*N+2*M+1:4*M+4*N),[TN 2 M]);
 
 delete(axY{1}.Children)
-line(ud_tline(:,1,1),ud_tline(:,2,1),'Parent',axY{1},'Color','b','LineStyle','--','LineWidth',1.3)
-line(ue_tline(:,1,1),ue_tline(:,2,1),'Parent',axY{1},'Color','r','LineStyle','-','LineWidth',1.1)
+line(ud_tline(:,1,1),ud_tline(:,2,1),'Parent',axY{1},'Color','b','LineStyle','-','LineWidth',0.5,'Marker','none')
+line(ue_tline(:,1,1),ue_tline(:,2,1),'Parent',axY{1},'Color','r','LineStyle','-','LineWidth',0.5,'Marker','none')
+%
+line(ud_tline(end,1,1),ud_tline(end,2,1),'Parent',axY{1},'Color','b','LineStyle','-','LineWidth',0.5,'Marker','o')
+line(ue_tline(end,1,1),ue_tline(end,2,1),'Parent',axY{1},'Color','r','LineStyle','-','LineWidth',0.5,'Marker','o')
+%
 for k=2:M
-    line(ud_tline(:,1,k),ud_tline(:,2,k),'Parent',axY{1},'Color','b','LineStyle','--','LineWidth',1.3)
+    line(ud_tline(:,1,k),ud_tline(:,2,k),'Parent',axY{1},'Color','b','LineStyle','-','LineWidth',0.5,'Marker','none')
+    line(ud_tline(end,1,k),ud_tline(end,2,k),'Parent',axY{1},'Color','b','LineStyle','-','LineWidth',0.5,'Marker','o')
+
 end
 for k=2:N
-    line(ue_tline(:,1,k),ue_tline(:,2,k),'Parent',axY{1},'Color','r','LineStyle','-','LineWidth',1.1)
+    line(ue_tline(:,1,k),ue_tline(:,2,k),'Parent',axY{1},'Color','r','LineStyle','-','LineWidth',0.5,'Marker','none')
+    line(ue_tline(end,1,k),ue_tline(end,2,k),'Parent',axY{1},'Color','r','LineStyle','-','LineWidth',0.5,'Marker','o')
+
 end
 line(u_f(1),u_f(2),'Parent',axY{1},'Color','k','Marker','s','MarkerSize',20)
-
 % for k=1:M
 % line(tline_UO,UO_tline(:,k),'Parent',axU{1},'Marker','.')   
 % end

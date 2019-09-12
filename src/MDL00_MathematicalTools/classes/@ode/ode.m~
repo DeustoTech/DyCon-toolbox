@@ -235,7 +235,7 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
             obj.FinalTime       = p.Results.FinalTime;
 
             %% Init Program
-            if  (~isempty(DynamicEquation)  && ~isempty(Control) ...
+            if  (~isempty(DynamicEquation) && ~isempty(StateVector) && ~isempty(Control) ...
                  && isempty(obj.A) && isempty(obj.B) )
                     
                    obj.lineal = false;
@@ -253,12 +253,11 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                         err.getReport
                         error(['You have a some problem in the definition of the dynamics equation.'])
                    end
-            elseif (isempty(DynamicEquation) && isempty(Control) ...
+            elseif (isempty(DynamicEquation) && isempty(StateVector) && isempty(Control) ...
                  && ~isempty(obj.A) )
              
                    obj.lineal = true;
             else
-                
                 error([newline, ...
                         'You can define the class ode in two different way:',newline, ...
                         '   - ode(DynamicEquation,StateVector,Control)    ',newline, ...
@@ -287,10 +286,11 @@ classdef ode < handle & matlab.mixin.Copyable & matlab.mixin.SetGet
                     obj.StateVector.Symbolic = sym('y',[nrow 1]);
                 else
                     if length(StateVector) == nrow
-                        obj.StateVector.Symbolic = StateVector;
+                        
                     else
-                        error('The Symbolical State Vector must be compatible with the A matrix.')
+                        error('The Symbolical State Vector must be compatible ')
                     end
+                    obj.StateVector.Symbolic = StateVector
                 end
                 % Creamos la estructura para el control
                 [~ ,ncol] = size(obj.B);

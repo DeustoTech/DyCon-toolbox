@@ -7,7 +7,7 @@ M = 2; N = N_sqrt^2;
 
 syms t
 Y = sym('y',[4*(M+N) 1]);
-U = sym('u',[M 1]);
+U = sym('u',[M 1],'real');
 
 ue = reshape(Y(1:2*N),[2 N]);
 ve = reshape(Y(2*N+1:4*N),[2 N]);
@@ -38,7 +38,7 @@ end
 
 %Y = [ue(:);ve(:);ud(:);vd(:)];
 F = [dot_ue(:);dot_ve(:);dot_ud(:);dot_vd(:)];
-numF = matlabFunction(F,'Vars',{t,Y,U});
+numF = matlabFunction(F,'Vars',{t,Y,U,sym.empty});
 
 ve_zero = zeros(2, N);
 vd_zero = zeros(2, M);

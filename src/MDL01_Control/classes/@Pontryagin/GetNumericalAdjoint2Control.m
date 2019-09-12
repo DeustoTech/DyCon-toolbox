@@ -5,10 +5,11 @@ function U = GetNumericalAdjoint2Control(iCP,P)
 
 tspan = iCP.Dynamics.tspan;
 
-U = zeros(iCP.Dynamics.Nt,iCP.Dynamics.Udim);
+U = zeros(iCP.Dynamics.Nt,iCP.Dynamics.ControlDimension);
+
 
 for it = 1:iCP.Dynamics.Nt
-   U(it,:) = iCP.Adjoint2Control.Num(tspan(it),P(it,:));
+   U(it,:) = iCP.AnalyticalControl.Num(tspan(it),[],P(it,:));
 end
 
 end

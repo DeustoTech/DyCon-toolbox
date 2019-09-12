@@ -2,13 +2,12 @@ classdef pde < ode
     
     properties
         
-        mesh
+        mesh        cell
         dimension
 
     end
     
     methods
-
     end
 end
 

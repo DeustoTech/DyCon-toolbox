@@ -15,8 +15,8 @@ xline = xline(2:end-1);
 Y = SymsVector('y',N);
 U = SymsVector('u',N);
 %% Dynamics 
-alpha   = 1e-3;
-epsilon = 0.1;
+alpha   = 1e-10;
+epsilon = 1e-10;
 A = FDLaplacian(xline);
 % 
 F  = @(Y) NonLinearTerm(Y,alpha);
@@ -34,7 +34,7 @@ Dyn = pde(Y_t,Y,U);
 Dyn.mesh   = xline;
 Dyn.Solver = @ode23tb;
 Dyn.Nt     = 50;
-Dyn.FinalTime        = 0.3;
+Dyn.FinalTime        = 0.2;
 Dyn.InitialCondition = InitialConditionFcn(xline);
 %
 % Jacobian F_u
@@ -65,5 +65,7 @@ OCP = Pontryagin(Dyn,Psi,L);
 U0 = -ones(Dyn.Nt,Dyn.ControlDimension);
 U0 = GradientMethod(OCP,U0,'Graphs',true,'EachIter',10,'DescentAlgorithm',@AdaptativeDescent,'tol',1e-2,'display','all');
 %%
-animation(OCP.Dynamics,'xx',0.01,'YLim',[0 1],'YLimControl',[-10 10],'Target',YT,'SaveGif',false)
+OCP.Dynamics.label = 'Control Dynamic';
+Dyn.label = 'Free Dynamic';
+animation([ Dyn],'xx',0.05,'YLim',[0 1],'YLimControl',[0 10],'Target',YT,'SaveGif',false)
 

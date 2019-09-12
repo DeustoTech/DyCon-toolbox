@@ -40,7 +40,7 @@ axFree.Color = fig.Color;
 FinalTime = 5;
 time = linspace(0,5,length(Pxvect));
 %% Rescale data  
-Factor = 0.01;
+Factor = 0.02;
 
 Rescale = @(x) Factor*x;
 p1y = Rescale(Pxvect);  
@@ -70,9 +70,9 @@ view(axFree,az,el)
 view(axControl,az,el)
 %% Animation in Time
 % angle == velocity of rotor rotation 
-dalpha = 20;
+dalpha = 70;
 
-for it = 1:30:length(time) 
+for it = 1:50:length(time) 
     %%
     irect.Position(3) = it/length(time);
     

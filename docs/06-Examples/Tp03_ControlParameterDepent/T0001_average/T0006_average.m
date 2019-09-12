@@ -77,17 +77,17 @@ iode.Nt = 100;
 Ys = iode.StateVector.Symbolic;
 U  = iode.Control.Symbolic;
 %%
-Ysm = arrayfun(@(index) mean(Ys(index:(M+1):N*M)),1:N).';
+Ysm = @(Ys) arrayfun(@(index) mean(Ys(index:(M+1):N*M)),1:N).';
 Yt = ones(N, 1); 
-Psi = (Ysm - Yt).'*(Ysm - Yt);
+Psi = @(T,Ys) (Ysm(Ys) - Yt).'*(Ysm(Ys) - Yt);
 beta = 1e-5;
-L   = 0.001*beta*(U.'*U);
+L   = @(t,Y,U) 0.001*beta*(U.'*U);
 %%
 % Create the optimal control 
 iCP1 = Pontryagin(iode,Psi,L);
 %% 
 % Solve 
-U0 = ones(iCP1.Dynamics.Nt,iCP1.Dynamics.Udim);
+U0 = ones(iCP1.Dynamics.Nt,iCP1.Dynamics.ControlDimension);
 GradientMethod(iCP1,U0,'DescentAlgorithm',@ConjugateDescent,'MaxIter',1000,'tol',1e-8)
 %%
 % See average free

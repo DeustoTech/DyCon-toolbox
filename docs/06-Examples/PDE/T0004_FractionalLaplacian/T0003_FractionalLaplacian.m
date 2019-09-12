@@ -58,7 +58,7 @@ Y0 =sin(pi*xline');
 % $$
 
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',100);
-dynamics.mesh = xline;
+dynamics.mesh{1} = xline;
 dynamics.MassMatrix = M;
 solve(dynamics);
 %%

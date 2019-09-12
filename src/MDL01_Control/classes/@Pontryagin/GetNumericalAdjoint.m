@@ -2,7 +2,17 @@ function P = GetNumericalAdjoint(iCP,U,Y)
 
         T = iCP.Dynamics.FinalTime;
         if isa(iCP.Dynamics,'pde')
-           Factor = 1/(iCP.Dynamics.mesh(2) - iCP.Dynamics.mesh(1));
+            switch length(iCP.Dynamics.mesh) 
+                case  1
+                    meshx = iCP.Dynamics.mesh{1}; 
+                    dx = meshx(2) -  meshx(1);
+                    Factor = 1/dx;
+                case  2
+                    meshx = iCP.Dynamics.mesh{1}; meshy = iCP.Dynamics.mesh{1};
+                    dx = meshx(2) -  meshx(1);
+                    dy = meshy(2) -  meshy(1); 
+                    Factor = 1/(dx*dy);
+            end
         else
            Factor = 1;
         end

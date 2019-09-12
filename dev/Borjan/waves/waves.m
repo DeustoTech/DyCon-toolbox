@@ -45,7 +45,7 @@ applyBoundaryCondition(model,'neumann','Edge',([1 2 3 4]),'g',0);
 
 %% Generate Mesh
 % Create and view a finite element mesh for the problem.
-generateMesh(model,'Hmax',0.05);
+generateMesh(model,'Hmax',0.2);
 %
 figure
 pdemesh(model);
@@ -111,7 +111,7 @@ isurf = surf(xms,yms,zms,xms*0,'LineStyle','none','FaceLighting','gouraud');
 axis('off')
 title('Obstacle Problem')
 colormap jet
-zlim([0 2.0])
+zlim([-2 2.0])
 
 az = 1;
 el = 1;
@@ -129,14 +129,11 @@ for i = 1:(30*n)
 
     %axis([-1 1 -1 1 umin-0.1 umax]); 
     %caxis([umin umax]);
-    xlabel x
-    ylabel y
-    zlabel u
     
     az = az + 0.1;
     el = el + 0.1;
     view(isol.Parent,az,el)
-        pause(0.001)
+        pause(0.0001)
 
 end
 

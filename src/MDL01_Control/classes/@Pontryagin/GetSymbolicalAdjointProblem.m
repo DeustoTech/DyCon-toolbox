@@ -33,7 +33,8 @@
     if obj.Dynamics.lineal
         Lu = obj.Functional.LagrangeDerivatives.State.Sym;
         if  sum(Lu) == sym(0)
-            obj.Adjoint.Dynamics = ode('A',iode.A);
+            
+            obj.Adjoint.Dynamics = ode('A',iode.A,'StateVector',symP);
             lineal = true;
         end
     end

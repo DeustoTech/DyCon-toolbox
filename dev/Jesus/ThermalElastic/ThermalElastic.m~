@@ -36,7 +36,7 @@ xlabel x
 ylabel y
 
 %% Specify PDE Coefficients
-specifyCoefficients(model,'m',0.001*m,'d',0.001*eye(385),'c',c,'a',a,'f',@source); % HMax 0.2
+specifyCoefficients(model,'m',m,'d',0.025*eye(385),'c',c,'a',a,'f',@source); % HMax 0.2
 %specifyCoefficients(model,'m',m,'d',0.05*eye(1453),'c',c,'a',a,'f',@source); % Hmax 0.1
 %specifyCoefficients(model,'m',m,'d',0.01*eye(5849),'c',c,'a',a,'f',@source);
 %specifyCoefficients(model,'m',m,'d',0.01*eye(9273),'c',c,'a',a,'f',@source);
@@ -79,7 +79,7 @@ setInitialConditions(model,u0,ut0);
 
 %% Define Solution Times
 % Find the solution at 31 equally-spaced points in time from 0 to 5.
-n = 20;
+n = 50;
 FinalTime = 20;
 tlist = linspace(0,FinalTime,n);
 
@@ -127,7 +127,10 @@ for i = 1:length(tspan_fine)
     pause(0.01)
 end
 %%
-
+v = linspace(-1,1,101);
+[X,Y] = meshgrid(v);
+querypoints = [X(:),Y(:)]';
+uintrp = interpolateSolution(result,querypoints);
 %%
 % To play the animation, use the |movie(M)| command.
 function value = source(domain,state)
@@ -147,9 +150,9 @@ function value = source(domain,state)
    % value = value-1e5*(state.u.*(1+exp(-2*k*(state.u-0.4))).^-1).*(1+exp(-2*k*(state.time-0.95*FinalTime)));
    
    alphatime = 0.1*FinalTime;
-   zplane = 0.3 - 0.25*exp(-((state.time-0.6*FinalTime)/alphatime).^2) + 0.2*sin(3*theta).^2;
+   zplane = 0.3 - 0.2*exp(-((state.time-0.6*FinalTime)/alphatime).^2) + 0.2*sin(3*theta).^2;
    
-   value = value-1e8*(state.u.*(1+exp(-2*k*(state.u-  zplane))).^-1);
+   value = value-1e5*(state.u.*(1+exp(-2*k*(state.u-  zplane))).^-1);
 end
 
 

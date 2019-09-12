@@ -4,7 +4,7 @@
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
 
 
-Nx = 70;
+Nx = 100;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,Nx);
 %xline = linspace(0,1,Nx+2);
@@ -31,7 +31,7 @@ B = sparse(B);
 % We can then define a final time and an initial datum
 Y0 = 0.5*cos(0.5*pi*xline.');
 
-Nt = 70;
+Nt = 0;
 FinalTime = 0.2;
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
 dynamics.Solver = @euleri;

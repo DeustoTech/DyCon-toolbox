@@ -98,13 +98,13 @@ function animation(iode,varargin)
    legend_string = {};
    int_ls = 0;
    if ~isempty(InitCondition)
-      line(iode(1).mesh,InitCondition,'Parent',axY,'Color','blue','LineWidth',1.5) 
+      line(iode(1).mesh{1},InitCondition,'Parent',axY,'Color','blue','LineWidth',1.5) 
       int_ls = int_ls + 1;
       legend_string{int_ls} = 'Initial datum';
    end
    
    if ~isempty(Target)
-      line(iode(1).mesh,Target,'Parent',axY,'Color',[0.4 0.3 0.6],'LineWidth',1.5) 
+      line(iode(1).mesh{1},Target,'Parent',axY,'Color',[0.4 0.3 0.6],'LineWidth',1.5) 
       int_ls = int_ls + 1;
       legend_string{int_ls} = 'Target';
    end
@@ -163,7 +163,7 @@ function animation(iode,varargin)
             ip = mod(index,2) + 1;
             index = index + 1;
    
-            l(index)   = line(iode(1).mesh,interp1(tspan,iY{:},t),'Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
+            l(index)   = line(iode(1).mesh{1},interp1(tspan,iY{:},t),'Parent',axY,'Marker',pt{ip},'LineStyle',LinS{il},'Color',colors{ic},'LineWidth',1.5);
             if ~isempty(U{index})
                 if ControlShadow && exist('luu','var')
                     luu(index).Color = 0.2*luu(index).Color + 0.8*[1 1 1];

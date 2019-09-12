@@ -12,3 +12,4 @@ wall = exp((-x.^2 - y.^2)/0.15^2);
 
 
 f = + (height/2) + (height/2)*tanh(hardness.*(- state.u + wall))  - 20;
+%f = state.u*0 - 20;

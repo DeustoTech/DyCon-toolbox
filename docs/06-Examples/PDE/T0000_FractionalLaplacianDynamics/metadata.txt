@@ -1,0 +1,8 @@
+title: Fractional Laplacian Dynamics
+author: JOroya
+description: Fractional Laplacian Dynamics
+date: 2019-09-12
+nav_order: 1
+grand_parent: Examples
+parent: PDE Examples
+layout: default

@@ -47,7 +47,7 @@ classdef (Abstract) AbstractOptimalControl  < handle & matlab.mixin.SetGet & mat
         % type: double
         % default: function_handle
         % description: The derivative of the Hamiltonian with respect to the control u 
-        Hamiltonian     
+        Hamiltonian             SymNumFun       = SymNumFun
         % type: struct
         % default: none
         % description: The adjoint propertir contain the numerical function that represents the adjoint problem this struct have a two properties. The first is dP_dt and the second is P0.   

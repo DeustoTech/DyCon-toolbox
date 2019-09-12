@@ -101,7 +101,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     Y0 = Y0(:)';
     
     Nt = 30;
-    dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
+    dynamics = pde('A',A,'B',B,'InitialCondition',Y0','FinalTime',FinalTime,'Nt',Nt);
     dynamics.Solver = @euleri;
     dynamics.MassMatrix = M;
     dynamics.mesh = xline;
@@ -135,7 +135,7 @@ function iOCP = FinalTime2OCP(FinalTime)
     Adjoint = pde('A',A.');
     
     OCParmaters = {'DiffLagrangeState'    , L_y    ,'DiffLagrangeControl'  ,L_u, ...
-                   'DiffFinalCostState'   , Psi_y  ,'Adjoint',Adjoint,'CheckDerivatives',true};
+                   'DiffFinalCostState'   , Psi_y  ,'Adjoint',Adjoint,'CheckDerivatives',false};
     %%
     % build problem with constraints
     iOCP =  Pontryagin(dynamics,Psi,L,OCParmaters{:});
@@ -145,14 +145,14 @@ function iOCP = FinalTime2OCP(FinalTime)
     %iOCP.Constraints.MinControl =  0;
 
         % Solver L1
-    Parameters = {'DescentAlgorithm',@ConjugateDescent, ...
+    Parameters = {'DescentAlgorithm',@AdaptativeDescent, ...
                  'tol',1e-8,                                    ...
                  'Graphs',false,                               ...
                  'MaxIter',5000,                               ...
                  'EachIter',5, ...
                  'display','functional',};
     %%
-    U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1e-3;
+    U0 = ones(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) ;
     %load('UO.mat')
     JOpt = GradientMethod(iOCP,U0,Parameters{:});
 %     options = optimoptions(@fmincon,              'display','iter'  , ...
