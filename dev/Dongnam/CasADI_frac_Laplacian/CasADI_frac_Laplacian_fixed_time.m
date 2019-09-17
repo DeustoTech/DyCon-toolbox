@@ -1,9 +1,9 @@
-%% Optimal Control Problem with CasADI on a constrained fractional heat control.
-% This code needs the installation of CasADI:
+%% Optimal Control Problem with CasADi on a constrained fractional heat control.
+% This code needs the installation of CasADi 3.4.5:
 % https://web.casadi.org/get/
 %%
 % The object of this code is to reproduce the simulation of AMPL (and
-% IpOpt) with CasADI (and IpOpt) in Matlab.
+% IpOpt) with CasADi (and IpOpt) in Matlab.
 %%
 % We start with the same problem as the DyCon Blog post,
 % https://deustotech.github.io/DyCon-Blog/tutorial/wp03/WP03-P0022
@@ -38,9 +38,7 @@
 %% Problem formulation
 % Parameters for the problem
 Nx = 20; % Space discretization
-Nt = 200; % Time discretization
-Y0 = 0.5*cos(0.5*pi*xline'); % Initial data of the given trajectory
-Y1 = 6.0*cos(0.5*pi*xline'); % Initial data of the target trajectory
+Nt = 100; % Time discretization : need to check the CFL condition
 C = 1; % Bound on the control below
 xi = -1; xf = 1; % Domain of the problem
 s = 0.8; % The order of the fractional Laplacian
@@ -51,6 +49,11 @@ T = 0.4; % Final time
 xline = linspace(xi,xf,Nx+2);
 xline = xline(2:end-1);
 dx = xline(2) - xline(1);
+
+Y0 = 0.5*cos(0.5*pi*xline'); % Initial data of the given trajectory
+Y1 = 6.0*cos(0.5*pi*xline'); % Initial data of the target trajectory
+
+f = @(x,u) A*x+B*u; % dx/dt = f(x,u)
 
 % Discretization of the fractional Laplacian with finite element method
 A = -FEFractionalLaplacian(s,1,Nx);
@@ -75,15 +78,13 @@ end
 YT = Y(:,Nt+1);
 
 %% Optimization problem
-opti = casadi.Opti(); 
+opti = casadi.Opti();  % CasADi function
 
 % ---- Input variables ---------
 X = opti.variable(Nx,Nt+1); % state trajectory
 U = opti.variable(Nx_u,Nt);   % control
 
 % ---- Dynamic constraints --------
-f = @(x,u) A*x+B*u; % dx/dt = f(x,u)
-
 for k=1:Nt % loop over control intervals
    % Euler forward method
    x_next = X(:,k) + (T/Nt)*f(X(:,k),U(:,k)); 
@@ -108,7 +109,7 @@ opti.subject_to(X(:,1)==Y0);
 
 % ---- Optimization objective  ----------
 Cost = (X(:,Nt+1)-YT)'*(X(:,Nt+1)-YT);
-opti.minimize(Cost); % minimizing L2
+opti.minimize(Cost); % minimizing L2 at the final time
 
 % ---- initial guesses for solver ---
 %opti.set_initial(X, repmat(Y0,[1 Nt+1]));
