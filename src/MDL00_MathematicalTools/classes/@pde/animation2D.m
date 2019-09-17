@@ -21,6 +21,6 @@ function animation2D(idynamics)
 
     for it = 2:Nt
         isurf.ZData = reshape(State(it,:,:),dimx,dimy);
-        pause(0.01)
+        pause(0.1)
     end
 end
