@@ -9,13 +9,13 @@ For each of these objects, we create different methods for problem resolution. I
 The symbolic interface of matlab makes the definition of problems easier. And in some cases, the problem can be solved analytically.
 
 For example, DyCon Toolbox able to define a continuous state equations
-```
+```matlab
 x = sym('x',[4 1]);
 u = sym('u',[4 1]);
 F = @(t,x,u) x + u;
 ```
 With the ode class, we can create a structure with all information for solve an initial condition problem
-```
+```matlab
 idynamics = ode(F,x,u);
 ```
 #### Modular Structure
