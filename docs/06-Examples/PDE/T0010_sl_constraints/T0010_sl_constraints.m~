@@ -32,10 +32,17 @@ symL    = @(t,symY,symU) 0 ;
 Y0 = 0.99+0*xline';
 %%
 % Diffusion part: the discretization of the 1d Laplacian
-A = FDLaplacian(xline);
+A=(N^2/L^2)*(full(gallery('tridiag',N,1,-2,1)));
+% A(1,1)=0;
+% A(1,2)=0;
+% A(end,end)=0;
+% A(end,end-1)=0;
 %%
 % We define the matrix B that will be the effect of the interior control to the dynamics
-B =  (N^2/L^2)*[1 ; zeros(N-2,1) ;1];
+B = zeros(N,1);
+B(1,1) = 1;
+B(end,end) = 1;
+B = (N^2/L^2)*B;
 %%
 % Definition of the non-linearity
 % $$ \partial_y[-5\exp(-y^2)] $$
@@ -81,10 +88,24 @@ AMPLFile(iCP1,'Domenec.txt')
 out = SendNeosServer('Domenec.txt');
 
 data = NeosLoadData(out);
+
+%%
+figure;
+SIZ=size(iCP1.Dynamics.StateVector.Numeric);
+
+surf(iCP1.Dynamics.StateVector.Numeric,'EdgeColor','none')
+title('Controlled Dynamics')
+ylabel('space discretization')
+xlabel('Time')
 %%
 % The control function inside the control region
 figure;
-surf(data.State)
-
+plot(iCP1.Dynamics.Control.Numeric)
+%%
+figure;
+line(xline,YT,'Color','red')
+line(xline,odeEqn.StateVector.Numeric(end,:),'Color','blue')
+line(xline,iCP1.Dynamics.StateVector.Numeric(end,:),'Color','green')
+legend('Target','Free Dynamics','controlled dynamics')
 %%
 
