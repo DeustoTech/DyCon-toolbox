@@ -22,7 +22,7 @@ square = @(u) u(1,:).^2+u(2,:).^2;
 
 f_e2 = @(x) repmat(2./x, [2 1]);
 f_d2 = @(x) repmat(-(-5.5./x+10./x.^2-2),[2 1]);
-f_glu = @(x) repmat(-5*exp(-x.^2) + 8*exp(-x.^2/(0.01^2)), [2 1]);
+f_glu = @(x) repmat(-5*exp(-x.^2) + exp(-x.^2/(0.01^2)), [2 1]);
 nu_e = 2.0;
 nu_d = 2.0;
 
@@ -83,7 +83,7 @@ Y0 = [ue_zero(:);ve_zero(:);ud_zero(:);vd_zero(:)];
 %%
 
 % T=5.1725, kappa = 1.5662 -> [-1,1]
-tf = 4.5
+tf = 3.5
 Nt = 201;
 dt = 1/(Nt-1);
 dynamics = ode(numF,Y,U,'FinalTime',tf,'Nt',Nt);
@@ -138,13 +138,13 @@ hold on
 
 Colors = jet(N)
 for k=1:N
-  line(ue_tline(:,1,k),ue_tline(:,2,k),'Color',Colors(k,:),'LineWidth',0.25);
+  line(ue_tline(:,1,k),ue_tline(:,2,k),'Color',Colors(k,:),'LineWidth',1.0);
 line(ue_tline(end,1,k),ue_tline(end,2,k),'Color',Colors(k,:),'LineWidth',1.3,'MarkerSize',15.0,'Marker','.');
 
 end
 %
 for k=1:M
-  line(ud_tline(1:end-2,1,k),ud_tline(1:end-2,2,k),'Color','k','LineWidth',2.0,'Marker','none');
+  line(ud_tline(1:end-2,1,k),ud_tline(1:end-2,2,k),'Color','k','LineWidth',3.5,'Marker','none');
   line(ud_tline(1,1,k),ud_tline(1,2,k),'Color','k','MarkerSize',15.0,'Marker','.');
 
    Xss = [ud_tline(end-2,:,k)];
@@ -164,21 +164,51 @@ grid on
 daspect([1 1 1])
 xlim([-3 3.6])
 ylim([-2 2.7])
-
-saveas(fig,'Barchart.png')
-
-
+%
+xlim([-1.5 2.5])
+ylim([-1.5 2.5])
 %%
-angles = 45
-xline = linspace(0 ,2,100)
-figure
+saveas(fig,'Barchart.png')
+%%
+ani(ud_tline,ue_tline,N,M)
 
-yline = [0.5*xline(end-50:end).*(sin(8*pi*xline(end-50:end)) + 1 ), ...
-      2+xline,  ...
-      0.1*xline(1:50).*(sin(8*pi*xline(1:50))) + 4];
+
+%% 
+function ani(ud_tline,ue_tline,N,M)
+fig = figure;
+ax = axes('unit','norm','pos',[0 0 1 1]);
+axis(ax,'off')
+hold on
+
+Colors = jet(N);
+
  
- line(1:length(yline),yline,yline)
+for k=1:N
+  line_evader(k) = line(ue_tline(1,1,k),ue_tline(1,2,k),'Color',Colors(k,:),'LineWidth',0.25,'Marker','o');
+  line(ue_tline(1,1,k),ue_tline(1,2,k),'Color',Colors(k,:),'LineWidth',1.3,'MarkerSize',15.0,'Marker','.');
 
+end
+%
+for k=1:M
+  line_driver(k) = line(ud_tline(1,1,k),ud_tline(1,2,k),'Color','k','LineWidth',2.0,'Marker','o');
+  line(ud_tline(1,1,k),ud_tline(1,2,k),'Color','k','MarkerSize',15.0,'Marker','.');
+end
+
+for it = 1:length(ud_tline(:,1,k))
+    for k=1:N
+        line_evader(k).XData = ue_tline(it,1,k);
+        line_evader(k).YData = ue_tline(it,2,k);
+    end
+    %
+    for k=1:M
+        line_driver(k).XData = ud_tline(it,1,k);
+        line_driver(k).YData = ud_tline(1:it,2,k);
+        
+    end
+    pause(0.1)
+end
+end
+%%
 function obj = dataArrow(p1,p2)
 %This function will draw an arrow on the plot for the specified data.
 %The inputs are 
