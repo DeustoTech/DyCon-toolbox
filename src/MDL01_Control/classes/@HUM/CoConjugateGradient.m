@@ -7,12 +7,14 @@ function f = CoConjugateGradient(iHUM,f,varargin)
     
     parse(p,iHUM,f,varargin{:})
     
-    dx = iHUM.Dynamics.mesh(2) - iHUM.Dynamics.mesh(1);
+    xline = iHUM.Dynamics.mesh{1};
+    dx = xline(2) - xline(1);
 
     M   =  iHUM.Dynamics.MassMatrix; 
     B   =  iHUM.Dynamics.B;
     
-    x = [-1,iHUM.Dynamics.mesh,1];
+    mesh = iHUM.Dynamics.mesh{1};
+    x = [-1,mesh,1];
     himd = x(2:end-1)-x(1:end-2);
     hipd = x(3:end)-x(2:end-1);
     hi = 0.5*(hipd+himd);

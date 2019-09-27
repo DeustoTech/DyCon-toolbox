@@ -36,6 +36,7 @@
 % $u \geq -1$. 
 
 %% Problem formulation
+clear
 % Parameters for the problem
 Nx = 20; % Space discretization
 Nt = 100; % Time discretization : need to check the CFL condition
@@ -52,7 +53,6 @@ dx = xline(2) - xline(1);
 Y0 = 0.5*cos(0.5*pi*xline'); % Initial data of the given trajectory
 Y1 = 6.0*cos(0.5*pi*xline'); % Initial data of the target trajectory
 
-f = @(x,u) A*x+B*u; % dx/dt = f(x,u)
 
 % Discretization of the fractional Laplacian with finite element method
 A = -FEFractionalLaplacian(s,1,Nx);
@@ -64,6 +64,8 @@ B = BInterior(xline,a,b,'min',false);
 PB = B; % Projection to the effective control function.
 Nx_u = Nx; % The size of control function
 B = M\B;
+
+f = @(x,u) A*x+B*u; % dx/dt = f(x,u)
 
 % Discretization of the time : we need to check CFL condition to change 'Nt'.
 FinalTime = 0.5; % Initial guess on the final time
@@ -79,19 +81,8 @@ T = opti.variable();      % final time
 % ---- Dynamic constraints --------
 for k=1:Nt % loop over control intervals
    % Euler forward method
-   x_next = X(:,k) + (T/Nt)*f(X(:,k),U(:,k)); 
-   opti.subject_to(X(:,k+1)==x_next); % close the gaps
+   opti.subject_to( X(:,k+1)== X(:,k) + (T/Nt)*f(X(:,k),U(:,k))  ); % close the gaps
 end
-
-% for k=1:Nt % loop over control intervals
-%    % Runge-Kutta 4 integration
-%    k1 = f(X(:,k),         U(:,k));
-%    k2 = f(X(:,k)+(T/Nt)/2*k1, U(:,k));
-%    k3 = f(X(:,k)+(T/Nt)/2*k2, U(:,k));
-%    k4 = f(X(:,k)+(T/Nt)*k3,   U(:,k));
-%    x_next = X(:,k) + (T/Nt)/6*(k1+2*k2+2*k3+k4); 
-%    opti.subject_to(X(:,k+1)==x_next); % close the gaps
-% end
 
 % ---- Control constraints -----------
 opti.subject_to(-C<=U(:));           % control is limited
@@ -102,6 +93,7 @@ opti.subject_to(X(:,Nt+1)==0);
 
 % ---- Optimization objective  ----------
 opti.minimize(T); % minimizing time
+opti.subject_to(T>=0.01);
 
 % ---- initial guesses for solver ---
 %opti.set_initial(X, repmat(Y0-Y1,[1 Nt+1]));
