@@ -5,9 +5,7 @@ Nx = 10;    Ny = 15;
 xline = linspace(-1,1,Nx+2); xline = xline(2:end-1); dx = xline(2) - xline(1);
 yline = linspace(-1,1,Ny+2); yline = yline(2:end-1); dy = yline(2) - yline(1);
 % 
-[~,~,A] = laplacian([Nx,Ny],{'NN' 'NN'});
-
-A = (1/(dx*dy)^2)*A;
+A = FDLaplacial2D(xline,yline);
 
 %% Dynamics
 
@@ -39,7 +37,7 @@ InvP.Constraints.MinControl = 0;
 InitControl = FinalState*0;
 
 %GradientMethod(InvP,InitControl)
-GradientMethod(InvP,InitControl,'display','all','tol',1e-9,'DescentAlgorithm',@ConjugateDescent,'DescentParameters',{'StopCriteria','JDiff'})
+GradientMethod(InvP,InitControl,'display','all','tol',1e-9,'DescentAlgorithm',@ClassicalDescent)
 
 %InitControl = FinalState*0;
 %GradientMethod(InvP,InitControl,'display','all','tol',1e-9,'DescentAlg

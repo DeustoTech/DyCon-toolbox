@@ -1,5 +1,5 @@
 layout: default
 title: Heat Equation 2D
-nav_order: 1
+nav_order: 5
 grand_parent: Examples
 parent: PDE Examples

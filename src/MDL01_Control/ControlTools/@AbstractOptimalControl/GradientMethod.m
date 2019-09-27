@@ -81,7 +81,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     %% Control Problem Parameters
     pinp = inputParser;
     addRequired(pinp,'iControlProblem')
-    addRequired(pinp,'InitialControl',@InitialControlDefault)
+    addRequired(pinp,'InitialControl',@(U) InitialControlDefault(U,iCP))
     %% Method Parameter
     % ------------------------------------------------------------------------------------------------------
     % |             | Name                  | Default               |            Validator                  | 
@@ -182,7 +182,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     for iter = 1:MaxIter
         % Create a funtion u(t) 
         % Update Control
-        [Unew, Ynew,Pnew,Jnew,dJnew,error,stop] = DescentAlgorithm(iCP,tol,tolU,tolJ,DescentParameters{:});
+        [Unew, Ynew,Pnew,Jnew,dJnew,erroriter,stop] = DescentAlgorithm(iCP,tol,tolU,tolJ,DescentParameters{:});
         if strcmp(SolverChar,'euleri')
             Unew(end,:) = 0;
         end
@@ -192,18 +192,18 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
         iCP.Solution.Phistory{iter}  = Pnew;
         iCP.Solution.Jhistory(iter)  = Jnew;
         iCP.Solution.dJhistory{iter} = dJnew;
-        iCP.Solution.Ehistory(iter)     = error;
+        iCP.Solution.Ehistory(iter)     = erroriter;
         
         if  1+mod(iter,EachIter) == 1 || stop
             switch display_parameter
                 case 'all'
-                display(     "error = "        + num2str(error,'%d')        + ...
+                display(     "error = "        + num2str(erroriter,'%d')        + ...
                          " | Functional = "    + num2str(Jnew,'%d')         + ...
                          " | norm(Gradient) = "+ num2str(norm(dJnew),'%d')  + ...
                          " | norm(U) = "       + num2str(norm(Unew),'%d')   + ...
                          " | iter = "          + iter)
                 case 'functional'
-                display(     "error = "        + num2str(error,'%d')        + ...
+                display(     "error = "        + num2str(erroriter,'%d')        + ...
                          " | Functional = "    + num2str(Jnew,'%d')         + ...
                          " | iter = "          + iter)
             end
@@ -224,7 +224,7 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
         warning('Max iteration number reached!!')
     end
     
-    iCP.Solution.precision      = error;
+    iCP.Solution.precision      = erroriter;
     iCP.Solution.ControlHistory = iCP.Solution.ControlHistory(1:iter);
     iCP.Solution.Jhistory       = iCP.Solution.Jhistory(1:iter);
     iCP.Solution.dJhistory      = iCP.Solution.dJhistory(1:iter);
@@ -251,9 +251,24 @@ function varargout = GradientMethod(iCP,InitialControl,varargin)
     end
     
     %% 
-    function InitialControlDefault(U0)
+    function InitialControlDefault(U0,iCP)
         mustBeNumeric(U0)
-    
+        
+        [Nt,NControl] = size(U0);
+        
+        
+        if isa(iCP,'InverseProblem')
+            if iCP.Dynamics.StateDimension ~=  NControl
+                error(newline+"   The Initial Condition seed must be a matrix: [1x"+iCP.Dynamics.StateDimension+"]" + newline)
+            end            
+        else
+            if iCP.Dynamics.ControlDimension ~=  NControl
+                error(newline+"   The Initial Control must be a matrix: ["+iCP.Dynamics.Nt+"x"+iCP.Dynamics.ControlDimension+"]" + newline)
+            end
+            if iCP.Dynamics.Nt ~=  Nt
+                error(newline+"   The Initial Control must be a matrix: ["+iCP.Dynamics.Nt+"x"+iCP.Dynamics.ControlDimension+"]" + newline)
+            end
+        end
     end
 end
 

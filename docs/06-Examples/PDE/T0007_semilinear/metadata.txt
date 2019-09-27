@@ -1,5 +1,5 @@
 layout: default
 title: Control for a semilinear heat equation and analogies with a collective behavior model
-nav_order: 1
+nav_order: 3
 grand_parent: Examples
 parent: PDE Examples

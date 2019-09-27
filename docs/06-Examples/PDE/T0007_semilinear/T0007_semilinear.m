@@ -121,7 +121,7 @@ T = 1;
 % certain time steps that will hide part of the dynamics.
 %%
 odeEqn = pde(F,symY,symU,'InitialCondition',Y0,'FinalTime',T);
-odeEqn.mesh = xline;
+odeEqn.mesh{1} = xline;
 odeEqn.Nt=30;
 odeEqn.Solver = @ode23tb;
 %%

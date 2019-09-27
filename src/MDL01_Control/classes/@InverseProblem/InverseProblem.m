@@ -11,7 +11,7 @@ classdef InverseProblem < AbstractOptimalControl
         function obj = InverseProblem(Dynamics,FinalState)
             
             obj.Dynamics            	= copy(Dynamics);
-            obj.Adjoint.dynamics        = copy(Dynamics);
+            obj.Adjoint.Dynamics        = copy(Dynamics);
             obj.FinalState              = FinalState;
             
             obj.Adjoint.FinalCondition  = @(Y) (Y-obj.FinalState) ;

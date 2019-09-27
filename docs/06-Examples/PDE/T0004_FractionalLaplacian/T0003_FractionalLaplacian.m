@@ -25,7 +25,7 @@
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-N = 50;
+N = 25;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N+2);
 xline = xline(2:end-1);
@@ -102,15 +102,7 @@ iCP1 = Pontryagin(dynamics,Psi,L);
 tol = 1e-4;
 %%
 U0 = dynamics.Control.Numeric;
-options = optimoptions(@fminunc,'SpecifyObjectiveGradient',true,'display','iter');
-[Uopt , JOpt] = fminunc(@(U) Control2Functional(iCP1,U),U0,options)
 GradientMethod(iCP1,U0,'DescentAlgorithm',@ConjugateDescent,'tol',tol,'display','all','MaxIter',1000)
-
-
-GetSymbolicalAdjoint2Control(iCP1)
-
-f0 = dynamics.InitialCondition*0;
-CoGradientMethod(iCP1,f0)
 %%
 % As we see, the algorithm has stopped since it has reached the maximum
 % number of iterations allowed, and not because it has encountered a 

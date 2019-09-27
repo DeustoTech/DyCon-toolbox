@@ -1,5 +1,5 @@
 layout: default
 title: Control of Fractional Heat Equation
-nav_order: 1
+nav_order: 2
 grand_parent: Examples
 parent: PDE Examples
