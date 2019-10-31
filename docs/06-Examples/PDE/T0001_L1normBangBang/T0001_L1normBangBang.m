@@ -36,7 +36,7 @@ FinalTime = 0.2;
 dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',Nt);
 dynamics.Solver = @euleri;
 dynamics.MassMatrix = M;
-dynamics.mesh = xline;
+dynamics.mesh{1} = xline;
 
 %% Calculate the Target
 Y0_other = 6*cos(0.5*pi*xline');
@@ -89,7 +89,7 @@ U0 = zeros(length(iOCP.Dynamics.tspan),iOCP.Dynamics.ControlDimension) + 1e-3;
 %
 JOpt = GradientMethod(iOCP,U0,Parameters{:});
 %
-animation(iOCP.Dynamics,'xx',0.1,'Target',YT,'YLim',[0 7],'YLimControl',[0 3000])
+animation(iOCP.Dynamics,'xx',0.01,'Target',YT,'YLim',[0 7],'YLimControl',[0 3000])
 %% References
 % 
 % [1] U. Biccari and V. Hern\'andez-Santamar\'ia - \textit{Controllability 

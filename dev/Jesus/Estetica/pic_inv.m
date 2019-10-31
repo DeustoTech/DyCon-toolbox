@@ -48,8 +48,9 @@ title('Geometry with Face Labels')
 % Generate a mesh for the geometry. Choose a mesh size that is coarse
 % enough to speed the solution, but fine enough to represent the geometry
 % reasonably accurately.
-generateMesh(thermalmodel,'Hmax',1);
- 
+% generateMesh(thermalmodel,'Hmax',1);
+ generateMesh(thermalmodel,'Hmax',0.6);
+
 %% Specify Thermal Properties
 % Specify thermal conductivity, mass density, and specific heat for each
 % layer of the sphere. The material properties are dimensionless values,
@@ -104,7 +105,7 @@ axs ={ax1,ax2}
 for i = [numel(tlist) 1]
     iter = iter + 1;
     set(h,'CurrentAxes',axs{iter})
-    pt = pdeplot3D(thermalmodel,'ColorMapData',R.Temperature(:,i),'mesh','off');
+    pt = pdeplot3D(thermalmodel,'ColorMapData',R.Temperature(:,i),'mesh','on');
     pt(2).Parent.Parent.Color = 'none'
     axs{iter}.Color = 'none';
     shading interp

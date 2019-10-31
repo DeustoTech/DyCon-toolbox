@@ -25,7 +25,7 @@
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-N = 50;
+N = 70;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N+2);
 xline = xline(2:end-1);
@@ -57,8 +57,8 @@ Y0 =sin(pi*xline');
 % \end{equation}
 % $$
 
-dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',100);
-dynamics.mesh = xline;
+dynamics = pde('A',A,'B',B,'InitialCondition',Y0,'FinalTime',FinalTime,'Nt',600);
+dynamics.mesh{1} = xline;
 dynamics.MassMatrix = M;
 %%
 Y0 =cos(pi*xline');
@@ -68,10 +68,7 @@ dynamics.InitialCondition = Y0;
 solve(dynamics);
 %%
 
-ssline = linspace(0.01,0.99,14);
-
-
-
+ssline = linspace(0.01,0.99,34);
 
 iter = 0;
 for s = ssline

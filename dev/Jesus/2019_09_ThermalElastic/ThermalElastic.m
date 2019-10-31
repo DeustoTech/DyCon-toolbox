@@ -37,8 +37,8 @@ ylabel y
 
 %% Specify PDE Coefficients
 %specifyCoefficients(model,'m',0.001*m,'d',0.001*eye(385),'c',c,'a',a,'f',@source); % HMax 0.2
-%specifyCoefficients(model,'m',m,'d',0.05*eye(1453),'c',c,'a',a,'f',@source); % Hmax 0.1
-specifyCoefficients(model,'m',m,'d',0.001*eye(5849),'c',c,'a',a,'f',@source); % Hmax 0.05
+specifyCoefficients(model,'m',m,'d',0.05*eye(1453),'c',c,'a',a,'f',@source); % Hmax 0.1
+%specifyCoefficients(model,'m',m,'d',0.001*eye(5849),'c',c,'a',a,'f',@source); % Hmax 0.05
 
 %specifyCoefficients(model,'m',m,'d',0.01*eye(9273),'c',c,'a',a,'f',@source);
 
@@ -54,8 +54,8 @@ applyBoundaryCondition(model,'dirichlet','Edge',1:model.Geometry.NumEdges,'u',0)
 
 %% Generate Mesh
 % Create and view a finite element mesh for the problem.
-generateMesh(model,'Hmax',0.05);
-%generateMesh(model,'Hmax',0.1);
+%generateMesh(model,'Hmax',0.05);
+generateMesh(model,'Hmax',0.1);
 %generateMesh(model,'Hmax',0.2);
 
 figure
@@ -88,7 +88,7 @@ tlist = linspace(0,FinalTime,n);
 %% Calculate the Solution 
 % Set the |SolverOptions.ReportStatistics| of |model| to |'on'|.
 model.SolverOptions.ReportStatistics ='on';
-
+%%
 hasdata = true;
 
 if hasdata
@@ -102,7 +102,6 @@ u = result.NodalSolution;
 % Plot the solution for all times. Keep a fixed vertical scale by first
 % calculating the maximum and minimum values of |u| over all times, and
 % scale all plots to use those $z$-axis limits.
-fig = figure;
 
 umax = max(max(u));
 umin = min(min(u));
@@ -113,29 +112,25 @@ uinterp = interp1(tlist,u',tspan_fine);
 uinterp = uinterp';
 
 ang = 20;
+fig = figure('unit','norm','pos',[0 0 1 1],'Color','g');
 for i = 1:1:length(tspan_fine)
     pt = pdeplot(model,'XYData',uinterp(:,i),'ZData',uinterp(:,i), ...
-                  'Mesh','off','ColorBar','off');
-    lightangle(pt.Parent,40,40)
+                  'Mesh','on','ColorBar','off');
+    lightangle(pt.Parent,50,10)
     daspect([1 1 0.2])
     axis(pt.Parent,'off')
-    
-%     axis([-1 1 -1 1 umin umax]); 
+
     caxis([umin umax]);
     zlim([umin umax])
-    xlabel x
-    ylabel y
-    zlabel u
-    percen = tspan_fine(i)/FinalTime;
-    title(num2str(percen,'.%.2f')+"%")
+    %title(num2str(percen,'.%.2f')+"%")
     %if percen < 0.5
-    ang = ang + 0.5;
+    ang = ang + 0.1;
     %end
    view(ang,25) 
 
     pause(0.01)
 end
-
+%%
 save
 %%
 

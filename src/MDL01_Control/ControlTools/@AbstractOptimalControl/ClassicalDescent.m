@@ -137,7 +137,7 @@ function  [ControlNew ,Ynew,Pnew,Jnew,dJnew,error,stop] = ClassicalDescent(iCP,t
 
         %%
         error = norm(dJnew)/norm(ControlNew);
-        if error < tol || OptimalLenght == 0 || norm(ControlNew - ControlOld)/(norm(ControlOld)+tolU) <tolU || abs(Jnew-Jold)/(Jold+tolJ) < tolJ
+        if error < tol || OptimalLenght == 0  % || norm(ControlNew - ControlOld)/(norm(ControlOld)+tolU) <tolU  %|| abs(Jnew-Jold)/(Jold+tolJ) < tolJ
             stop = true;
         else 
             stop = false;

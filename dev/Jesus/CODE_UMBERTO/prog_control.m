@@ -27,13 +27,13 @@ dx    = xline(2) - xline(1);
 epsilon = dx^4;
 
 
-A = -FEFractionalLaplacian(0.8,1,Nx);
+A = -FEFractionalLaplacian(0.2,1,Nx);
 B = BInterior(xline,-0.3,0.8,'Mass',true);
 
 idyn    = pde('A',A,'B',B);
 idyn.FinalTime  = 0.5;
 idyn.Nt = 100;
-idyn.mesh = xline;
+idyn.mesh{1} = xline;
 idyn.MassMatrix = MassMatrix(xline);
 
 y0 = sin(pi*xline');
@@ -42,7 +42,7 @@ idyn.InitialCondition = y0;
 adjoint    = pde('A',A);
 adjoint.FinalTime  = 0.5;
 adjoint.Nt = 100;
-adjoint.mesh = xline;
+adjoint.mesh{1} = xline;
 adjoint.MassMatrix = MassMatrix(xline);
 
 

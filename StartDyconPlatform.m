@@ -12,8 +12,8 @@ if ~exist(namedir,'dir')
        pause(1) 
     end
     rmdir(namedir,'s')
-    movefile([pathfile,'PythonClient-master'] , ...
-         [pathfile,'src/plugins/']);
+    movefile(fulfile(pathfile,'PythonClient-master') , ...
+         fullfile(pathfile,'src','plugins'));
 end
 
 % set password 
@@ -39,8 +39,8 @@ if ~exist(namedir,'dir')
        pause(1) 
     end
     rmdir(namedir,'s')
-    movefile([pathfile,'yamlmatlab-master'] , ...
-             [pathfile,'src/plugins/']);
+    movefile(fullfile(pathfile,'yamlmatlab-master') , ...
+             fullfile(pathfile,'src','plugins'));
 end
 
 %%
@@ -52,8 +52,8 @@ unzip('https://es.mathworks.com/matlabcentral/mlc-downloads/downloads/submission
        pause(1) 
     end
     rmdir(namedir,'s')
-    movefile([pathfile,'STLRead'] , ...
-             [pathfile,'src/plugins/']);
+    movefile(fullfile(pathfile,'STLRead') , ...
+             fullfile(pathfile,'src/plugins/'));
 end
 
 

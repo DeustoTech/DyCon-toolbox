@@ -17,8 +17,8 @@ function animation2DMovil(idynamics)
 
     heatpart = reshape(heatpart,Nt,dimx,dimy);
 
-    fig = figure('unit','norm','pos',[0 0 1 1],'Color',[0 0 0]);
-    ax  = axes('Parent',fig);
+    fig = figure('unit','norm','pos',[0 0 1 1],'Color',[0 1 0]);
+    ax  = axes('Parent',fig,'unit','norm','pos',[0 0 1 1]);
     
     maxz = max(max(max(heatpart)));
     minz = min(min(min(heatpart)));
@@ -48,7 +48,7 @@ function animation2DMovil(idynamics)
     X = Xs*radius + x; Y = Ys*radius + y; Z = 0.25*Zs*radius + 1.5*maxz;
     % create the sphere object
     jsurf = surf(X,Y,Z,'FaceLighting','gouraud','FaceColor','interp','LineStyle','none');
-    colormap(ax,'jet')
+    colormap(ax,'cool')
     shading(ax,'interp')
 %%
     
