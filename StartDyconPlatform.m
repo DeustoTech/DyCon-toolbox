@@ -11,11 +11,24 @@ if ~exist(namedir,'dir')
     while ~exist([pathfile,'PythonClient-master'],'dir')
        pause(1) 
     end
-    rmdir(namedir,'s')
-    movefile(fulfile(pathfile,'PythonClient-master') , ...
+    movefile(fullfile(pathfile,'PythonClient-master') , ...
          fullfile(pathfile,'src','plugins'));
 end
+%%
 
+namedir = fullfile(pathfile,'src','plugins','yamlmatlab-master');
+if ~exist(namedir,'dir')
+    unzip('https://github.com/ewiger/yamlmatlab/archive/master.zip')
+    while ~exist([pathfile,'yamlmatlab-master'],'dir')
+       pause(1) 
+    end
+%     rmdir(namedir,'s')
+    movefile(fullfile(pathfile,'yamlmatlab-master') , ...
+             fullfile(pathfile,'src','plugins'));
+     pause(1)
+     addpath(namedir)
+end
+%%
 % set password 
 % set user
 data        = yaml.ReadYaml(fullfile(pathfile,'UserConfig','NeosUser.yaml'));
@@ -30,32 +43,9 @@ OUTfile = fopen(fullfile(pathfile,'src','plugins','PythonClient-master','NeosCli
 fwrite(OUTfile,file_data);
 fclose(OUTfile);
 
-%%
 
-namedir = fullfile(pathfile,'src','plugins','yamlmatlab-master');
-if ~exist(namedir,'dir')
-    unzip('https://github.com/ewiger/yamlmatlab/archive/master.zip')
-    while ~exist([pathfile,'yamlmatlab-master'],'dir')
-       pause(1) 
-    end
-    rmdir(namedir,'s')
-    movefile(fullfile(pathfile,'yamlmatlab-master') , ...
-             fullfile(pathfile,'src','plugins'));
-end
 
 %%
-
-%%
-if ~exist(namedir,'dir')
-unzip('https://es.mathworks.com/matlabcentral/mlc-downloads/downloads/submissions/22409/versions/3/download/zip')
-    while ~exist([pathfile,'STLRead'],'dir')
-       pause(1) 
-    end
-    rmdir(namedir,'s')
-    movefile(fullfile(pathfile,'STLRead') , ...
-             fullfile(pathfile,'src/plugins/'));
-end
-
 
 addpath(genpath(pathfile))
 
