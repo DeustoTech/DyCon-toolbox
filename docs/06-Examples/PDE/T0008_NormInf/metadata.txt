@@ -1,5 +1,0 @@
-layout: default
-title: Infinite Norm
-nav_order: 4
-grand_parent: Examples
-parent: PDE Examples

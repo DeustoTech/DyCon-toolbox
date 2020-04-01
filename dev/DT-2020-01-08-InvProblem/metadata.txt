@@ -1,0 +1,4 @@
+title: Sparse sources identification through adjoint localization algorithm
+author: [AzaharM]
+date: 2019-06-14
+description: The aim of this work is to recover the initial sparse sources that lead to a given final measurements using the diffusion equation. It is assumed that the initial condition can be written down as a linear combination of unitary deltas and their weights. In that context, an algorithm that combines the adjoint methodology with least squares is presented. In particular, the adjoint methodology is used to find the localization of the sparse sources and least squares to find the corresponding intensities.

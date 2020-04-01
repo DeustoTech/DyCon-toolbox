@@ -1,8 +1,0 @@
-%%
-Nx = 100;
-xline = linspace(-1,1,Nx);
-Lap = FDLaplacial(xline);
-In = eye(Nx);
-
-A = [Lap,]
-%%

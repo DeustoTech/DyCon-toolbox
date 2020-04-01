@@ -1,0 +1,5 @@
+layout: default
+title: Control of Fractional Heat Equation Semi Linear
+nav_order: 2
+grand_parent: Examples
+parent: PDE Examples

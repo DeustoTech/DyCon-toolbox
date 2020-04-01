@@ -1,0 +1,14 @@
+{
+  "_schemaVersion": "1.0.0",
+  "ArmijoGradient":
+  {
+     "inputs":
+     [
+        {"name":"in1", "kind":"required", "type":["numeric"], "purpose":"ID of item"},
+        {"name":"in2", "kind":"required", "type":["numeric"], "purpose":"# Items"},
+        {"name":"in3", "kind":"ordered", "type":["numeric"], "purpose":"Input Value"},
+        {"name":"Name1", "kind":"namevalue", "type":["logical","scalar"],"purpose":"Option"},
+        {"name":"Name2", "kind":"namevalue", "type":["char", "choices={'Default','Choice1','Choice2'}"]}
+     ]
+  }
+}

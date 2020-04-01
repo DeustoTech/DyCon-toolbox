@@ -1,0 +1,109 @@
+	<!-- 0 -->
+	<section>
+		<h2>Bellman Equations</h2>
+
+		$$ \text{Let a function, }  V_l: \R^n  \rightarrow \R \text{ be defined as:}$$
+		$$	\displaystyle V_l(\Y) = \min_{\{ \vec{\U}_l\} \in \mathcal{U}^T} \mathbb{E}_{\{ \vec{\X}_l \}}\bigg[ \sum_{t=l}^{T-1} L(t,\X_t,\U_t) + S(\X_T) \bigg| \X_l = \Y\bigg]  $$
+		
+		$$ \mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ l,\dots,T-1\} $$
+
+		$$ \text{where } \vec{\U}_{l} = \{ \U_l,\U_{l+1}, ... , \U_{T-1}\}\text{ and, } \vec{\X}_{l} = \{ \X_l,\X_{l+1}, ... , \X_{T}\} $$
+	</section> 
+	<!-- 1 -->
+	<section>
+			$$ \text{When } l=0\text{, the } V_0 \text{ is the Markov decision process}  $$
+			$$	
+				V_0(\Y) = \min_{\{ \vec{\U}_0\} \in \mathcal{U}^T} 
+				\mathbb{E}_{\{ \vec{\X}_0 \}}	\bigg[ \sum_{t=0}^{T-1} L(t,\X_t,\U_t) + S(\X_T)  \bigg| \X_0 = \Y \bigg]  
+			$$
+			\begin{gather} 
+			\mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ 0,\dots,T-1\}
+			\end{gather}
+			$$ \text{where } \vec{\U}_{0} = \{ \U_0,\U_{1}, ... , \U_{T-1}\}\text{ and, } \vec{\X}_{0} = \{ \X_0,\X_{1}, ... , \X_{T}\} $$
+			$$ \text{ }$$		
+	</section>
+	<!-- 2 -->
+	<section>
+			We have a recursion law of function
+			$$ V_l(\Y)$$ 
+	</section>
+	<!-- 3 -->
+	<section>
+		We extract the first term from the sum
+		
+		$$ 
+		V_l(\Y) =\min_{ \vec{\U_l} \in \mathcal{U}^T}  
+				\mathbb{E}_{\{ \vec{\X}_l \}}\Bigg[  L(l,\X_l,\U_l)  +
+				\bigg[ \sum_{t=l+1}^{T-1} L(t,\X_t,\U_t) + S(\X_T) \bigg] \Bigg| \X_l = \Y \Bigg] 
+		$$
+			
+		$$ \mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ l,\dots,T-1\} $$
+	</section>
+	<!-- 4 -->
+	<section>
+			$$ 
+			V_l(\Y) =\min_{ \vec{\U_l}\in \mathcal{U}^T}  
+			\Bigg[
+				\mathbb{E}_{\{ \vec{\X}_l \}}\big[  L(l,\X_l,\U_l) \big| \X_l = \Y  \big]  +
+				\mathbb{E}_{\{ \vec{\X}_l \}}\Big[ \sum_{t=l+1}^{T-1} L(t,\X_t,\U_t) + S(\X_T) \Bigg| \X_l = \Y \Big]
+			\Bigg] 
+			$$
+
+			\begin{gather} 
+				\mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ l,\dots,T-1\} 
+			\end{gather}
+	</section>
+	<!-- 5 -->
+	<section>
+			$$ 
+			V_l(\Y) =\min_{ \vec{\U_l}\in \mathcal{U}^T}  
+			\Bigg[
+				 \textcolor{red}{L(l,\Y,\U_l)}   +
+				\mathbb{E}_{\{ \vec{\X}_l \}}\Big[ \sum_{t=l+1}^{T-1} L(t,\X_t,\U_t) + S(\X_T) \Bigg| \X_l = \Y \Big]
+			\Bigg] 
+			$$
+
+			\begin{gather} 
+				\mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ l,\dots,T-1\} 
+			\end{gather}
+	</section>
+	<!-- 6 -->
+	<section>
+		$$ 
+		V_l(\Y) =\min_{ \U_l\in \mathcal{U}}  
+		\Bigg[
+				L(l,\Y,\U_l)   +
+				\textcolor{red}{\min_{\{ \U_{l+1}\} \in \mathcal{U}^{T-l}}} 
+				\mathbb{E}_{\{ \vec{\X}_l \}}\Big[ \sum_{t=l+1}^{T-1} L(t,\X_t,\U_t) + S(\X_T) \Bigg| \X_l = \Y \Big]
+		\Bigg] 
+		$$
+
+		$$	\mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ l,\dots,T-1\} $$
+		</section>
+
+	<!-- 7 -->
+	<section>
+			We can obtain a sub-minimization problem with the same structure
+			$$ 
+			V_l(\Y) =\min_{\U_l} \big[ 
+			L(l,\Y,\U_l)   +
+			\textcolor{red}{\sum_{\X \in \mathcal{X}} \mathbb{P}(\X | \Y,\U_l)V_{l+1}(\X)\big]}
+			$$
+			with:
+			$$ V_T(\Y) = S(\Y)$$
+	</section>
+
+	<section>
+			<h3>Dynamic Programming Principle</h3>
+
+			$$ \{ V_{T}(\Y) , V_{T-1}(\Y) , \dots , V_{1}(\Y) , V_{0}(\Y) \}$$
+			$$ \text{We have a collection of functions,again}$$
+			$$ \text{ }$$
+	</section>
+	<section>
+			<h3>Dynamic Programming Principle</h3>
+
+			$$ \{ \Pi_{T}(\Y) , \Pi_{T-1}(\Y) , \dots , \Pi_{1}(\Y) , \Pi_{0}(\Y) \}$$
+			$$ \text{We have optimal control for all state and time}$$
+			$$ \text{ }$$
+	</section>

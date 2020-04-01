@@ -1,4 +1,0 @@
-layout: default
-title: ode class
-nav_order: 1
-parent: API docs

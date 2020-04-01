@@ -1,5 +1,0 @@
-layout: default
-title: Rotor Control
-nav_order: 1
-grand_parent: Examples
-parent: ODE Examples

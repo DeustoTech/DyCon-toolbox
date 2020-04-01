@@ -1,2 +1,0 @@
-%%
-% Ejemplo de Classical Descent

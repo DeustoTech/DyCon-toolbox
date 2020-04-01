@@ -1,0 +1,43 @@
+	<section>
+		<h2>Markov decision process</h2>
+	 	<p>Definition:</p> 
+
+		<ul>
+			<li>$$\text{State Space, } \mathcal{X} \text{ where } \forall (\X_t)_{t\in \N} \in \mathcal{X} $$</li>
+			<li>$$\text{Control Space, }\mathcal{U} \text{ where } \forall (\U_t)_{t\in \N} \in \mathcal{U}$$</li>
+			<li>$$ \text{Probability Distribution } \mathbb{P}(\X_{t+1}|\X_t,\U_t)$$</li>
+		</ul>
+		<br>
+	</section>
+	<!-- 1 -->
+	<section>
+		<h2>Markov decision process</h2>
+
+			Minimization problem with restrictions
+			\begin{gather}
+				\min_{\{\U_t\} \in \mathcal{U}^T} J(\Y_0,\{\U_t\})  \Leftarrow \text{Cost function}
+			\end{gather}
+			
+			subject to:
+	
+			\begin{gather} 
+			\mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ 0,\dots,T-1\} \ |  \X_0 = \Y_0
+			\end{gather}
+			$$ \text{ } $$
+	</section>
+	<!-- 2 -->
+	<section>
+			<h2>Markov decision process</h2>
+
+		Minimization problem with restrictions
+			\begin{gather}
+				\min_{\{\U_t\} \in \mathcal{U}^T} \mathbb{E}\bigg[ \underbrace{\sum_{t=0}^{T-1} L(t,\X_t,\U_t)}_{ \text{Path Cost}     } + 
+												\underbrace{S(\X_T)                        }_{ \text{Terminal Cost} } \bigg| \X_0 = \Y_0 \bigg]
+			\end{gather}
+			
+			subject to:
+	
+			\begin{gather} 
+				\mathbb{P}(\X_{t+1}|\X_t,\U_t) \ | \ \forall t \in \{ 0,\dots,T-1\} \ 
+			\end{gather}
+		</section>		

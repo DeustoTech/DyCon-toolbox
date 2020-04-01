@@ -1,4 +1,0 @@
-title: L1 norm
-author: JOroya
-description: First Example
-date: 2019-01-01

@@ -1,5 +1,0 @@
-layout: default
-title: Population Dynamics
-nav_order: 1
-grand_parent: Examples
-parent: PDE Examples
