@@ -55,15 +55,7 @@ function SetIntegrator(idyn,method)
             %
             Integrator = casadi.Function('Ft',{State0,Controltime},{Statetime});
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case 'RK8'
-            Statetime(:,1) = State0;
-
-            for it = 2:Nt
-                dt = tspan(it) - tspan(it-1);
-                Statetime(:,it) = RK8(F, tspan(it), Statetime(:,it-1), dt,Controltime(:,it-1),Controltime(:,it) );
-            end
-            %
-            Integrator = casadi.Function('Ft',{State0,Controltime},{Statetime});            
+        case 'RK('
         case 'LinearFordwardEuler'
         %%
             dt = tspan(2) - tspan(1);

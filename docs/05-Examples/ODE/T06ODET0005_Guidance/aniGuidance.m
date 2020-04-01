@@ -5,7 +5,7 @@ uePlot = zz(:,1:2*N);
 
 uePx = uePlot(:,1:2:2*N);
 uePy = uePlot(:,2:2:2*N);
- plot(uePx,uePy,'r-')
+ plot(uePx,uePy,'-','Color',[1 0.7 0.7])
  hold on
 % 
 vePlot = zz(:,4*N+1:4*N+2*M);
@@ -13,7 +13,7 @@ vePlot = zz(:,4*N+1:4*N+2*M);
 vePx = vePlot(:,1:2:2*M);
 vePy = vePlot(:,2:2:2*M);
 % 
-plot(vePx,vePy,'b-')
+plot(vePx,vePy,'-','Color',[0.7 0.7 1])
 
 
 lv = plot(vePx(1,:),vePy(1,:),'bo');
@@ -25,10 +25,15 @@ xmax = max(max([uePx(:);vePx(:)]));
 ymin = min(min([uePy(:);vePy(:)]));
 ymax = max(max([uePy(:);vePy(:)]));
 
+xmin = min([xmin u_t(1)]);
+xmax = max([xmax u_t(1)]);
+ymin = min([ymin u_t(2)]);
+ymax = max([ymax u_t(2)]);
+
 xlim([xmin xmax])
 ylim([ymin ymax])
 
-[TN,~ ]= size(YO_tline)
+[TN,~ ]= size(YO_tline);
 
 
 plot(u_t(1),u_t(2),'gp','MarkerSize',10)

@@ -3,13 +3,14 @@ clc;
 
 
 T=300*60; % 300 sec
-dx=4;%0.4 0.5 0.3 7.5
-L=128;
+dx=4 ;%0.4 0.5 0.3 7.5
+L=80;
 %L=200;
 dy= dx;
 
-xline = linspace(-1,1,L);
-yline = linspace(-1,1,L);
+xline = (-(L-1)*dx*0.5):dx:((L-1)*dx*0.5);
+yline = (-(L-1)*dy*0.5):dy:((L-1)*dy*0.5);
+
 [xms,yms] = meshgrid(xline,yline);
 
 dt=0.25;
@@ -40,8 +41,8 @@ W=zeros(L,L);
 rms = sqrt(xms.^2 + yms.^2);
 thms = atan2(yms,xms);
 
-cE(:,:,1) = sin(6*thms).*exp(-rms.^2/0.05^2);
-cD(:,:,1) = 1;
+cE(:,:,1) = sin(6*thms).^2.*exp(-(rms).^2/10^2);
+cD(:,:,1) = 1+0.0001*rms.^2;
 
 
 t=0;
@@ -84,7 +85,7 @@ while t<T-dt
     lap(end,:) = 0;
     lap(:,end) = 0;
     
-    cD(:,:,2)=(dt)*( f.*(1-cD(:,:,1)) - cD(:,:,1).*cE(:,:,1).^2   + DD.*lap ) + cD(:,:,1);
+    cD(:,:,2)=(dt)*( f.*(1-cD(:,:,1)) - cD(:,:,1).*cE(:,:,1).^2   + DD.*lap ) + cD(:,:,1) + 0.001*rand(size(cE(:,:,1)));
     
     lap(2:end-1,2:end-1)= (1/dx^2)*(cE(1:end-2,2:end-1,1)-2*cE(2:end-1,2:end-1,1)+cE(3:end,2:end-1,1)) + ...
                           (1/dy^2)*(cE(2:end-1,1:end-2,1)-2*cE(2:end-1,2:end-1,1)+cE(2:end-1,3:end,1));

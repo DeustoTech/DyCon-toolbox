@@ -41,7 +41,7 @@ for j=1:N
 end
 
 %% Create Dynamics
-tf = 10;Nt = 50;
+tf = 15;Nt = 100;
 tspan = linspace(0,tf,Nt);
 F = casadi.Function('Fs',{t,Y,U},{ [dot_ue(:);dot_ve(:);dot_ud(:);dot_vd(:)]});
 dynamics = ode(F,Y,U,tspan);
@@ -82,7 +82,7 @@ Psi = casadi.Function('Psi',{Y}    ,{ (1/N)*sum(sum((ue - u_f).^2))  });
 iP = ocp(dynamics,L,Psi);
 % Contratins
 %% Solve Optimal Control Problem
-ControlGuess = 1000*(rand(size(ZerosControl(dynamics)))-0.5);
+ControlGuess = rand(size(ZerosControl(dynamics)));
 
 [OptControl_1 ,OptThetaVector_1] =  ArmijoGradient(iP,ControlGuess,'MinLengthStep',1e-10,'MaxIter',500);
 % take the solution
