@@ -1,4 +1,0 @@
-layout: default
-title: Basic example of Pontryagin Problems 
-nav_order: 1
-parent: Pontryagin Problems 

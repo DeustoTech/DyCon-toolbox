@@ -5,6 +5,8 @@ classdef semilinearpde1d < pde1d
     properties
         A               double
         B               double
+        C
+        D
         NonLinearTerm   casadi.Function
         GradientNLT     casadi.Function
     end
@@ -16,23 +18,19 @@ classdef semilinearpde1d < pde1d
             
             import casadi.*
             ts = SX.sym('t');
-            DynamicFcn = Function('f',{ts,State,Control},{ A*State + B*Control + NonLinearTerm(State) });
+            DynamicFcn = Function('f',{ts,State,Control},{ A*State + B*Control + NonLinearTerm(ts,State,Control) });
 
             obj@pde1d(DynamicFcn,State,Control,tspan,mesh)
             
-            NLT = NonLinearTerm(State);
-            n   = length(State);
-            GradCell  = arrayfun(@(i) gradient(NLT(i),State(i)),1:n,'UniformOutput',false);
+            NLT = NonLinearTerm(ts,State,Control);
             
-            obj.GradientNLT = casadi.Function('GradNLT',{State},{[GradCell{:}]'});
+            obj.GradientNLT = casadi.Function('GradNLT',{ts,State,Control},{jacobian(NLT,State)});
 
             obj.NonLinearTerm = NonLinearTerm;
             obj.A = A;
             obj.B = B;
             %
-            SetIntegrator(obj,'SemiLinearFordwardEuler')
-
-%            obj.solver = @Domenec;
+            SetIntegrator(obj,'OperatorSplitting')
             
         end
         

@@ -14,7 +14,7 @@ k = 3;
 thefcn  = @(r) 0.5 + 0.5*tanh(k*r);
 winfcn  = @(r,sz) 1 - thefcn(r-0.5*sz) - thefcn(-r-0.5*sz);
 %
-szx = 0.25;szy = 0.25;
+szx = 0.1;szy = 0.1;
 %
 win2d = @(x,y) winfcn(yms-y,szy).*winfcn(xms-x,szx);
 
@@ -42,10 +42,10 @@ Fs = Function('f',{ts,State,Control},{ [A*Us + 4*Us + B(rs(1),rs(2)).*Vs ;
 
 %%
 T = 0.25;
-Nt = 100;
+Nt = 50;
 tspan = linspace(0,T,Nt);
 dynamics = pde2d(Fs,[Us;rs;vs],[Vs;as],tspan,xline,yline);
-SetIntegrator(dynamics,'RK4')
+SetIntegrator(dynamics,'RK8')
 %%
 alpha = 0.05;
 W0 = exp(-((xms-0.5).^2 + yms.^2)/alpha.^2) + ...
@@ -56,7 +56,7 @@ W0 = exp(-((xms-0.5).^2 + yms.^2)/alpha.^2) + ...
 W0 = 10*W0(:)';
 % Add two additional variables - position of obj
 r0 = [0.75 0.5];
-v0 = [0.0 0.0];
+v0 = [0.0 5];
 %
 W0 = [W0 r0 v0]';
 %
@@ -68,21 +68,21 @@ Control0(end,:)   = 0;
 
 Yfree = solve(dynamics,Control0);
 %%
-fig = figure(3);
-clf
-animation2DMovil(fig,dynamics,full(Yfree)')
+%fig = figure(3);
+%clf
+%animation2DMovil(fig,dynamics,full(Yfree)')
 %%
 YT = 0*W0;
-PathCost  = casadi.Function('L'  ,{ts,State,Control},{ Control'*Control  + 1e6*(Us'*Us) });
-FinalCost = casadi.Function('Psi',{State}           ,{ 1e6*(Us'*Us)   });
+PathCost  = casadi.Function('L'  ,{ts,State,Control},{ Control'*Control  });
+FinalCost = casadi.Function('Psi',{State}           ,{ 1e8*(Us'*Us)   });
 
 iocp = ocp(dynamics,PathCost,FinalCost);
 %%
-ControlGuess =  ZerosControl(dynamics) - 20;
-ControlGuess(end  ,:) = +50; 
-ControlGuess(end-1,:) = +50; 
+ControlGuess =  ZerosControl(dynamics) - 100;
+ControlGuess(end  ,:) = +10; 
+ControlGuess(end-1,:) =  0; 
 
-[ControlOpt,Yopt] = ArmijoGradient(iocp,ControlGuess,'MaxIter',30,'MinLengthStep',1e-20);
+[ControlOpt,Yopt] = ArmijoGradient(iocp,ControlGuess,'MaxIter',100,'MinLengthStep',1e-10);
 %%
 figure(1);
 clf
@@ -94,7 +94,6 @@ plot(Yopt(end-3,:),Yopt(end-2,:))
 %%
 fig = figure(3); 
 clf
-animation2DMovil(fig,dynamics,full(Yopt)')
-
-
+animation2DMovil(fig,dynamics,Yopt')
+%%
 

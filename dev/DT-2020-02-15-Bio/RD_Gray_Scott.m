@@ -1,11 +1,8 @@
-clear;
-clc;
+function [cDt, cEt] = RD_Gray_Scott(L)
 
-
-T=300*60; % 300 sec
 dx=4 ;%0.4 0.5 0.3 7.5
-L=80;
-%L=200;
+%L=80;
+%L=100;
 dy= dx;
 
 xline = (-(L-1)*dx*0.5):dx:((L-1)*dx*0.5);
@@ -14,7 +11,6 @@ yline = (-(L-1)*dy*0.5):dy:((L-1)*dy*0.5);
 [xms,yms] = meshgrid(xline,yline);
 
 dt=0.25;
-steps=ceil(T/dt);
 
 %parameters
 f = .018;
@@ -49,33 +45,12 @@ t=0;
 
 
 
+%%
+Nt = 10000;
+cDt=zeros(L,L,Nt);
+cEt=zeros(L,L,Nt);
 
-
-figure(2)
-subplot(1,3,1)
-isurf = surf(xms,yms,cD(:,:,2));
-caxis([-1 1])
-view(0,90)
-colorbar
-colormap jet
-
-shading interp
-subplot(1,3,2)
-jsurf = surf(xms,yms,cE(:,:,2));
-caxis([-1 1])
-view(0,90)
-colorbar
-colormap jet
-shading interp
-iter = 0;
-subplot(1,3,3)
-ksurf = surf(xms,yms,W);
-view(0,90)
-colorbar
-shading interp
-colormap jet
-
-while t<T-dt
+for it = 1:Nt
     
     lap(2:end-1,2:end-1)= (1/dx^2)*(cD(1:end-2,2:end-1,1)-2*cD(2:end-1,2:end-1,1)+cD(3:end,2:end-1,1)) + ...
                           (1/dy^2)*(cD(2:end-1,1:end-2,1)-2*cD(2:end-1,2:end-1,1)+cD(2:end-1,3:end,1));
@@ -106,23 +81,15 @@ while t<T-dt
     cE(2:end-1,1,:)     = cE(2:end-1,2,:);
     cE(2:end-1,end,:)   = cE(2:end-1,end-1,:);
 
-    if (mod(iter,200)==0) 
-        
-         ht.String = ['Time = ' num2str(t)];
-         isurf.ZData = cD(:,:,2);
-         jsurf.ZData = cE(:,:,2);
-         ksurf.ZData = W;
-
-         pause(0.1)
-     end
     
         t=t+dt;
-        iter=iter+1;
 
     cD(:,:,1) = cD(:,:,2);
     cE(:,:,1) = cE(:,:,2);
     
-    W = W + cD(:,:,1);
+    cDt(:,:,it) = cD(:,:,1);
+    cEt(:,:,it) = cE(:,:,1);
+
 
 end
 

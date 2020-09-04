@@ -20,7 +20,7 @@ function CreateAdjointStruture(iocp)
         %
         % So, Hx = (F_x)'*P +L_x
         %
-        Hx = casadi.Function('Hx',{ts,Ps,XUs},{F_x(ts,XUs(1:Nx),XUs(Nx+1:end))'*Ps + Lag_x(ts,XUs(1:Nx),XUs(Nx+1:end))});
+        Hx = casadi.Function('Hx',{ts,Ps,XUs},{F_x(ts,XUs(1:Nx),XUs(Nx+1:end))'*Ps + Lag_x(ts,Xs,Us)});
         %    
         classDynamics = class(DynSys);
         
@@ -64,8 +64,9 @@ function CreateAdjointStruture(iocp)
                 B     = zeros(n,m+n);
                 mesh  = DynSys.xline;
                 
-                iocp.AdjointStruct.DynamicSystem  = semilinearpde1d(Ps,XUs,A,B,DynSys.GradientNLT,DynSys.tspan,mesh);
-   
+                G = casadi.Function('G_adjoint',{ts,Ps,XUs},{DynSys.GradientNLT(ts,Xs,Us)*Ps+Lag_x(ts,Xs,Us)});
+                iocp.AdjointStruct.DynamicSystem  = semilinearpde1d(Ps,XUs,A,B,G,DynSys.tspan,mesh);
+                
             case 'pdefem'
                 Nodes = DynSys.Nodes;
                 Elements = DynSys.Elements;
@@ -80,7 +81,7 @@ function CreateAdjointStruture(iocp)
         CopySystemProperties(iocp.AdjointStruct,DynSys);
 
         switch class(iocp.AdjointStruct.DynamicSystem)
-            case {'ode','pde1d'}
+            case {'ode','pde1d','pde2d','pdefem'}
                 SetIntegrator(iocp.AdjointStruct.DynamicSystem,'RK4')
             otherwise
                 

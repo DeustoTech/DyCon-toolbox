@@ -45,7 +45,7 @@ function animation2DMovil(fig,idynamics,State)
     [Xs,Ys,Zs] = sphere;
     X = Xs*radius + x; Y = Ys*radius + y; Z = 0.25*Zs*radius + 0.5*maxz;
     % create the sphere object
-    jsurf = surf(X,Y,Z,'FaceLighting','gouraud','FaceColor','interp','LineStyle','none');
+    jsurf = surf(X,Y,Z,X*0+10,'FaceLighting','gouraud','FaceColor','interp','LineStyle','none');
     colormap(ax,'jet')
     shading(ax,'interp')
 %%
@@ -61,13 +61,15 @@ function animation2DMovil(fig,idynamics,State)
     lightangle(0,0)
 
     zlim(ax,[minz 1.5*maxz+radius])
-    daspect([1 1 1])
+    %daspect([1 1 1])
     axis(ax,'off')
     
     xlim([-1.5 1.5]);
     ylim([-1.5 1.5]);
     zlim([-0.5 0.5])
     caxis([-0.4 0.4])
+    %
+    
     for it = 2:Nt
         
         Vfine = interp2(xms,yms,reshape(heatpart(it,:,:),dimx,dimy),xms_fine,yms_fine,'spline');
@@ -80,7 +82,7 @@ function animation2DMovil(fig,idynamics,State)
         x = movilpart(it,1);
         y = movilpart(it,2);
     %
-    	X = Xs*radius + x; Y = Ys*radius + y; Z = 0.25*Zs*radius + 0.1*maxz;
+    	X = Xs*radius + x; Y = Ys*radius + y; Z = 0.25*Zs*radius + 0.05*maxz;
 
         jsurf.XData = X;
         jsurf.YData = Y;

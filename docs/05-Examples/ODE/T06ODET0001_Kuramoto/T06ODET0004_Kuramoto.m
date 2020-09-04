@@ -41,7 +41,7 @@
 % We first need to define the system of ODEs in terms of symbolic variables.
 %%
 clear all
-m = 50;  % [m]: number of oscillators.
+m = 20;  % [m]: number of oscillators.
 
 import casadi.*
 
@@ -71,7 +71,7 @@ Om_init = Om_init - mean(Om_init);  % Mean zero frequencies
 Th_init = normrnd(0,pi/8,m,1);    
 %%
 K_init = ones(m,m);                 % Constant coupling strength, 1.
-T = 5;                              % We give enough time for the frequency synchronization.
+T = 7;                              % We give enough time for the frequency synchronization.
 
 file = 'T06ODET0004_Kuramoto.m';
 path_data = replace(which(file),file,'');
@@ -79,14 +79,14 @@ path_data = replace(which(file),file,'');
 %%
 symF = casadi.Function('F',{t,symTh,symU},{Vsys(Om_init,K_init,symTh,symU)});
 
-tspan = linspace(0,T,110);
+tspan = linspace(0,T,100);
 odeEqn = ode(symF,symTh,symU,tspan);
 SetIntegrator(odeEqn,'RK4')
 odeEqn.InitialCondition = Th_init;
 %%
 % We next construct cost functional for the control problem.
 PathCost  = casadi.Function('L'  ,{t,symTh,symU},{ (1/2)*(symU'*symU)           });
-FinalCost = casadi.Function('Psi',{symTh}      ,{  1e5*(1/m^2)*sum(sum((symThth.' - symThth).^2))  });
+FinalCost = casadi.Function('Psi',{symTh}      ,{  1e6*(1/m^2)*sum(sum((symThth.' - symThth).^2))  });
 
 iCP_1 = ocp(odeEqn,PathCost,FinalCost);
 

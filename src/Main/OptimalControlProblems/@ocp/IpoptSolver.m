@@ -5,13 +5,17 @@ function [OptControl ,OptState] = IpoptSolver(iocp,ControlGuess,varargin)
 p = inputParser;
 addRequired(p,'iocp')
 addRequired(p,'ControlGuess')
+addOptional(p,'StateGuess',[])
+
 addOptional(p,'integrator','CrankNicolson',@(s) mustBeMember(s,{'BackwardEuler','ForwardEuler','rk4','rk5','CrankNicolson','rk8','SemiLinearBackwardEuler'}))
 
 parse(p,iocp,ControlGuess,varargin{:})
 
 integrator = p.Results.integrator;
-
+StateGuess = p.Results.StateGuess;
+%
 opti = casadi.Opti();  % CasADi function
+
 
 dyn = iocp.DynamicSystem; 
 Nx =  dyn.StateDimension;
@@ -111,7 +115,7 @@ switch integrator
         NLT = dyn.NonLinearTerm;%
         Ys  = dyn.State.sym;
 
-        g = casadi.Function('g',{Ys},{NLT(Ys(1))./Ys(1)});
+        g = casadi.Function('g',{ts,Ys,Us},{NLT(ts,Ys(1),Us)./Ys(1)});
 
         %
         for k = 2:Nt
@@ -126,7 +130,10 @@ end
 %% 
 
 opti.set_initial(U, ControlGuess);
-opti.set_initial(X, ones(Nx,Nt));
+if isempty(StateGuess)
+    StateGuess = zeros(Nx,Nt);
+end
+opti.set_initial(X, StateGuess);
 %%
 if ~isempty(iocp.constraints.MaxControlValue)
     opti.subject_to((U(:)) <  iocp.constraints.MaxControlValue)

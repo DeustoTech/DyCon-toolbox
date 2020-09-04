@@ -3,15 +3,14 @@ clear
 [tnodes,telements] = CreateGeometry();
 %
 model = createpde();
-geometryFromMesh(model,tnodes,telements);
+
+(model,tnodes,telements);
 %% Define Equation
 applyBoundaryCondition(model,'neumann','Edge',1:model.Geometry.NumEdges,'g',0);
 %
 specifyCoefficients(model,'m',0,'d',0,'c',1,'a',0,'f',0);
 %% Generate Mesh 
-hmax = 0.0275;
-hmax = 0.0275;
-
+hmax = 0.45;
 generateMesh(model,'Hmax',hmax,'GeometricOrder','linear','Hgrad',2);
 %% Get a Finite elements Matrices
 FEM = assembleFEMatrices(model,'stiff-spring');
@@ -19,9 +18,12 @@ Ns = length(FEM.Fs);
 %
 import casadi.*
 %
-Ws = SX.sym('w',2*Ns,1);
+Vs = SX.sym('v',Ns,1);
+Us = SX.sym('u',Ns,1);
 Ss = SX.sym('s',Ns,1);
 ts = SX.sym('t');
+Ws = [Vs;Us];
+
 %%
 lambda = 1.15;
 kappa  = 0.0;
@@ -35,65 +37,69 @@ mu = 0.001;
 
 Au = -du*FEM.Ks; Av = -dv*FEM.Ks;
 %
-B = sparse(Ns,Ns);
-
+A = [  Au        eye(Ns,Ns)  ;
+     eye(Ns,Ns)     Av      ];
 %%
-f= @(u) lambda*u - u.^3 - kappa;
+Bu = sparse(Ns,Ns);
 
-% Fs = casadi.Function('f',{ts,Ws,Ss},{ [ FEM.Fs + Au*Us + f(Us) - sigma*Vs             ; ...
-%                                         FEM.Fs + Av*Vs +  Us   - Vs       + B*Ss       ]});
+B = [    Bu     ;
+     eye(Ns,Ns) ];
 %
-
-Fs = casadi.Function('f',{ts,Ws,Ss},{ [ FEM.Fs + Au*Us + Us.*(Us.*Vs - mu)             ; ...
-                                        FEM.Fs + Av*Vs - Vs.*Us.^2 + B*Ss       ]});
-
+%%
+NLT = Function('NLT',{ts,Ws,Ss},{ [  FEM.Fs + Us.*(Us.*Vs - mu)         ; ...
+                                  FEM.Fs - Vs.*Us.^2       ]});
+%%
 Nodes    = model.Mesh.Nodes;
 Elements = model.Mesh.Elements;
 %
-Nt =  100;
-tspan = linspace(0,170,Nt);
+Nt =  20;
+tspan = linspace(0,10,Nt);
 %
-idyn = pdefem(Fs,Ws,Ss,tspan,Nodes,Elements);
-SetIntegrator(idyn,'RK4')
+idyn = semilinearpde2d(Ws,Ss,A,B,NLT,tspan,Nodes,Elements);
+
+SetIntegrator(idyn,'OperatorSplitting')
 %% Initial Condition
 xms = Nodes(1,:)' ;yms = Nodes(2,:)' ;
 rng(100)
 
 rms = sqrt(xms.^2+yms.^2);
 thms = atan2(yms,xms);
-
-expf = @(x,y) exp((-(xms-x).^2-(yms-y).^2)/0.04^2);
-U0  =  (cos(6*thms).^10).*expf(0.0,0.0); 
-U0  = U0 + 0.00075*rand(size(U0));
-
-V0  = rms.^2 + 0.75 ;
-%%
+ 
+U0  = exp(-rms.^2/0.25^2);
+V0  = 1;
+%
 idyn.InitialCondition = [U0(:); V0(:)];
-%
-%
-rep = 400;
-%
-St = ZerosControl(idyn);
-
-Wt_tot =zeros(2*Ns,rep);
-for IT = 1:rep
-    Wt_tot(:,IT) = full(idyn.InitialCondition); 
-
-    Wt = solve(idyn,St);
-    %
-    idyn.InitialCondition = Wt(:,end);
-    if mod(IT,100) == 0
-        fprintf( "  iter = "+ num2str(IT,'%d') +"\n")
-    end
+%%
+Wt = zeros(2*Ns,10*Nt);
+for IT = 1:10
+   wtsol =  solve(idyn,S0);
+    
 end
+S0 = ZerosControl(idyn);
 %%
-St_tot_gr = full(Wt_tot(1:Ns,:))';
-St_tot = cumsum(St_tot_gr)';
-%%
-fig = figure(2);
-fig.Units = 'norm';
-fig.Position = [0.1 0.1 0.5 0.3];
+U1 = full(Wt(1:Ns,1));
+V1 = full(Wt(Ns+1:end,1));
+%
+figure(1)
 clf
-plotTB(St_tot,Wt_tot,Ns,model,hmax)
+%
+subplot(1,2,1)
+ipatch = patch('Vertices',Nodes','Faces',Elements','FaceVertexCData',U1,'FaceColor','interp');
+title('U')
+colorbar
+caxis([-1 1])
+subplot(1,2,2)
+jpatch = patch('Vertices',Nodes','Faces',Elements','FaceVertexCData',V1,'FaceColor','interp');
+title('V')
+colorbar
+caxis([-1 1])
+%
+for it = 1:Nt
+    ipatch.FaceVertexCData = full(Wt(1:Ns,it));
+    jpatch.FaceVertexCData = full(Wt(Ns+1:end,it));
+    pause(0.1)
+end
 
 %%
+
+

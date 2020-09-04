@@ -65,7 +65,7 @@ iocp = ocp(idyn,PathCost,FinalCost);
 iocp.TargetState = YT;
 %%
 U0 = ZerosControl(idyn)+2;
-[OptControl ,OptState]  = ClassicalGradient(iocp,U0,'MaxIter',100);
+[OptControl ,OptState]  = ArmijoGradient(iocp,U0,'MaxIter',100);
 
 %[OptControl ,OptState]  = IpoptSolver(iocp,U0);
 %%

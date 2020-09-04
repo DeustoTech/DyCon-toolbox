@@ -1,0 +1,161 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>tp766b811e_9e24_4471_b734_be7c875c0c20</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-10"><meta name="DC.source" content="tp766b811e_9e24_4471_b734_be7c875c0c20.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">import <span class="string">casadi.*</span>
+
+A = [-2  1;
+      1 -2];
+B = [1;0];
+<span class="comment">%</span>
+tspan = linspace(0,1,7);
+idyn = linearode(A,B,tspan);
+idyn.InitialCondition = [1;2];
+</pre><pre class="codeinput">ts = idyn.ts;
+Xs = idyn.State.sym;
+Us = idyn.Control.sym;
+<span class="comment">%</span>
+epsilon = 1e4;
+PathCost  = Function(<span class="string">'L'</span>  ,{ts,Xs,Us},{ Us'*Us           });
+FinalCost = Function(<span class="string">'Psi'</span>,{Xs}      ,{ epsilon*(Xs'*Xs) });
+
+iocp = ocp(idyn,PathCost,FinalCost);
+</pre><pre class="codeinput">uguess = tspan;
+[uopt,xopt] = ArmijoGradient(iocp,uguess);
+</pre><pre class="codeoutput">===================================================================================================
+|   iter   |   norm(dJ/du)  |  abs(Jc-Ja)/Jc  |  LengthStep  |       J       |   Distance2Target  |
+===================================================================================================
+|   008    |    2.017e+03   |    1.780e-01    |   2.50e-04   |  1.13750e+03  |       NaN          |
+|   012    |    1.651e+03   |    2.549e-01    |   2.50e-04   |  6.18609e+02  |       NaN          |
+|   016    |    2.011e+03   |    1.540e-01    |   1.00e-03   |  4.12580e+02  |       NaN          |
+|   020    |    3.068e+03   |    4.962e-02    |   1.00e-03   |  3.26251e+02  |       NaN          |
+|   024    |    8.769e+02   |    8.368e-02    |   1.00e-03   |  2.07381e+02  |       NaN          |
+|   028    |    8.176e+02   |    1.259e-01    |   1.00e-03   |  1.28015e+02  |       NaN          |
+|   032    |    1.172e+03   |    7.778e-02    |   1.00e-03   |  1.02105e+02  |       NaN          |
+|   036    |    3.997e+02   |    1.316e-01    |   2.50e-04   |  8.07760e+01  |       NaN          |
+|   040    |    4.187e+02   |    2.306e-02    |   1.00e-03   |  6.74948e+01  |       NaN          |
+===================================================================================================
+|   iter   |   norm(dJ/du)  |  abs(Jc-Ja)/Jc  |  LengthStep  |       J       |   Distance2Target  |
+===================================================================================================
+|   048    |    1.864e+02   |    3.809e-02    |   2.50e-04   |  5.13924e+01  |       NaN          |
+|   052    |    1.509e+02   |    3.159e-02    |   2.50e-04   |  4.71590e+01  |       NaN          |
+|   056    |    1.803e+02   |    1.423e-02    |   1.00e-03   |  4.55183e+01  |       NaN          |
+|   060    |    8.734e+01   |    8.959e-03    |   1.00e-03   |  4.47686e+01  |       NaN          |
+|   064    |    7.475e+01   |    1.117e-02    |   2.50e-04   |  4.39292e+01  |       NaN          |
+|   068    |    5.289e+01   |    3.286e-04    |   2.50e-04   |  4.35600e+01  |       NaN          |
+|   072    |    9.023e+01   |    2.091e-03    |   1.00e-03   |  4.32197e+01  |       NaN          |
+|   076    |    3.367e+01   |    1.155e-03    |   1.00e-03   |  4.31266e+01  |       NaN          |
+|   080    |    2.741e+01   |    3.512e-05    |   2.50e-04   |  4.30802e+01  |       NaN          |
+===================================================================================================
+|   iter   |   norm(dJ/du)  |  abs(Jc-Ja)/Jc  |  LengthStep  |       J       |   Distance2Target  |
+===================================================================================================
+
+    Mininum Length Step have been achieve !! 
+
+</pre><pre class="codeinput">uopt
+</pre><pre class="codeoutput">
+uopt =
+
+   -7.9370   -8.1077   -7.8352   -6.7968   -4.4915   -0.1483    7.4126
+
+</pre><pre class="codeinput">xopt
+</pre><pre class="codeoutput">
+xopt =
+
+    1.0000   -0.0772   -0.9118   -1.4622   -1.6301   -1.2395   -0.0019
+    2.0000    1.4904    1.0038    0.5701    0.2238    0.0129    0.0094
+
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+import casadi.*
+
+A = [-2  1;
+      1 -2];
+B = [1;0];
+%
+tspan = linspace(0,1,7);
+idyn = linearode(A,B,tspan);
+idyn.InitialCondition = [1;2];
+%%
+ts = idyn.ts;
+Xs = idyn.State.sym;
+Us = idyn.Control.sym;
+%
+epsilon = 1e4;
+PathCost  = Function('L'  ,{ts,Xs,Us},{ Us'*Us           });
+FinalCost = Function('Psi',{Xs}      ,{ epsilon*(Xs'*Xs) });
+
+iocp = ocp(idyn,PathCost,FinalCost);
+%%
+uguess = tspan;
+[uopt,xopt] = ArmijoGradient(iocp,uguess);
+%%
+uopt
+%%
+xopt
+##### SOURCE END #####
+--></body></html>

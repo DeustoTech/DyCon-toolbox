@@ -16,7 +16,7 @@ EvolutionFcn = Function('f',{ts,Xs,Us},{ A*Xs + B*Us });
 tspan = linspace(0,2,10);
 idyn = ode(EvolutionFcn,Xs,Us,tspan);
 idyn.InitialCondition = [1;2];
-
+SetIntegrator(idyn,'RK4')
 Control0 = ZerosControl(idyn);
 
 FreeState = solve(idyn,Control0);
@@ -38,6 +38,6 @@ plot(tspan,OptState');
 title('Optimal State')
 ylim([-1 2])
 subplot(1,2,2);
-plot(tspan,FreeState')
+plot(tspan,full(FreeState)')
 title('Free')
 ylim([-1 2])

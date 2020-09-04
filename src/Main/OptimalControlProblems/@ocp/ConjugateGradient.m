@@ -21,12 +21,22 @@ function varargout = ConjugateGradient(iocp,ControlGuess,varargin)
     Utb = ControlGuess;
     [dUtb,~,~] = Control2ControlGradient(iocp,Utb);
     stb = - dUtb;
+    
+    ls = casadi.SX.sym('ls');
+
     for iter = 1:MaxIter
         % Choose Optimal Length Step in st direction.
         fobj = @(LengthStep) LengthStep2Functional(iocp,LengthStep);
-        options  = optimoptions(@fminunc,'display','off','SpecifyObjectiveGradient',false,'MaxFunEvals',100,'StepTolerance',1e-8);
-        %
-        OptimalLengthStep = fminunc(fobj,GuessLengthStep,options);
+        
+        nlp = struct('x',ls, 'f',fobj(ls));
+        opt_ipopt = struct('print_level'    ,   0);
+                       
+        opt = struct('print_time',false,'verbose_init',false,'ipopt',opt_ipopt);
+        
+        S = casadi.nlpsol('S', 'ipopt', nlp,opt);
+        r = S('x0',GuessLengthStep);
+        OptimalLengthStep = full(r.x);
+        
         % Compute Utc, Current Control, with the optimal length step
         Utc = Utb + OptimalLengthStep*stb;
         [dUtc,Jc,Xsolc] = Control2ControlGradient(iocp,Utc);
@@ -35,7 +45,6 @@ function varargout = ConjugateGradient(iocp,ControlGuess,varargin)
         % Compute beta, this paramter represent the fraction of new
         % gradient and previus gradient.
         beta = dotprod(iocp,dUtc,dUtc)/dotprod(iocp,dUtb,dUtb);
-        dotprod(iocp,dUtc,dUtb)
         % With this compute the new direction of descent
         stc  = -dUtc + beta*stb;
         % Save current information in before variables 

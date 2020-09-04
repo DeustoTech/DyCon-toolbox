@@ -33,9 +33,9 @@ xline = xline(2:end-1);
 % Out of that, we can construct the FE approxiamtion of the fractional
 % Lapalcian, using the program FEFractionalLaplacian developped by our
 % team, which implements the methodology described in [1].
-s = 0.2;
+s = 0.8;
 A = -FEFractionalLaplacian(s,1,N);
-M = massmatrix(xline);
+M = MassMatrix(xline);
 %%
 % Moreover, we build the matrix $B$ defining the action of the control, by
 % using the program "BInterior" (see below).
@@ -43,7 +43,7 @@ a = -0.3; b = 0.8;
 B = BInterior(xline,a,b,'Mass',true);
 %%
 % We can then define a final time and an initial datum
-FinalTime = 0.55;
+FinalTime = 0.3;
 Y0 =sin(pi*xline');
 %%
 % and construct the system
@@ -63,7 +63,7 @@ dynamics = linearpde1d(A,B,tspan,xline);
 dynamics.InitialCondition = Y0;
 
 dynamics.MassMatrix = M;
-SetIntegrator(dynamics,'LinearFordwardEuler')
+SetIntegrator(dynamics,'LinearBackwardEuler','TimeUniform',true)
 
 
 U0 = ZerosControl(dynamics);
@@ -104,7 +104,7 @@ import casadi.*
 ts = SX.sym('t');
 
 PathCost  = casadi.Function('L'  ,{ts,Y,U},{ (1/2)*(U'*U) });
-FinalCost = casadi.Function('Psi',{Y}      ,{ (1/(2*epsilon))*((Y-YT)'*(Y-YT)) });
+FinalCost = casadi.Function('Psi',{Y}     ,{ (1/(2*epsilon))*((Y-YT)'*(Y-YT)) });
 
 
 iCP1 = ocp(dynamics,PathCost,FinalCost);
@@ -115,7 +115,8 @@ iCP1 = ocp(dynamics,PathCost,FinalCost);
 % to use the **Adaptive Gradient Descent** algorithm.
 tol = 1e-4;
 %%
-[OptControl ,OptState] = IpoptSolver(iCP1,U0);
+%[OptControl ,OptState] = IpoptSolver(iCP1,U0);
+[OptControl ,OptState] = ArmijoGradient(iCP1,U0);
 
 %%
 % As we see, the algorithm has stopped since it has reached the maximum
@@ -140,7 +141,7 @@ subplot(2,1,1)
 surf(OptState)
 title('Opt')
 subplot(2,1,2)
-surf(Yfree)
+surf(full(Yfree))
 title('Free')
 %%
 %  ```
@@ -148,21 +149,7 @@ title('Free')
 % ```
 %%
 % ![](extra-data/063235.gif)
-%%
-function M = massmatrix(mesh)
-    N = length(mesh);
-    dx = mesh(2)-mesh(1);
-    M = 2/3*eye(N);
-    for i=2:N-1
-        M(i,i+1)=1/6;
-        M(i,i-1)=1/6;
-    end
-    M(1,2)=1/6;
-    M(N,N-1)=1/6;
-            
-    M=dx*sparse(M);
-        
-end
+
 %% References
 % 
 % [1] U. Biccari and V. Hern\'andez-Santamar\'ia - \textit{Controllability 

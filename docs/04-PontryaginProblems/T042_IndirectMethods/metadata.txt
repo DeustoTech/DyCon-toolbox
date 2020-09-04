@@ -1,4 +1,0 @@
-layout: default
-title: Indirect Methods
-nav_order: 2
-parent: Pontryagin Problems 

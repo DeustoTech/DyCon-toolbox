@@ -80,7 +80,7 @@ iu.Parent.YAxis.Color = 'w';
 iu.Parent.Color = [0 0 0];
 legend({'U','V'},'Color','w')
 
-for it=2:50:length(Ut_total)
+for it=2:5:length(Ut_total)
     iu.XData = it;iu.YData = Ut_total(it);
     iv.XData = it;iv.YData = Vt_total(it);
     

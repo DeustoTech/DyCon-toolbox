@@ -33,7 +33,7 @@ classdef linearode < ode
             
             obj.D = obj.C*(dt*B);
 
-            SetIntegrator(obj,'LinearFordwardEuler')
+            SetIntegrator(obj,'LinearBackwardEuler')
             
         end
         

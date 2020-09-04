@@ -1,5 +1,0 @@
-layout: default
-title: Choose a differents solvers
-nav_order: 2
-has_children: false
-parent: Interface for Dynamics (ODEs)

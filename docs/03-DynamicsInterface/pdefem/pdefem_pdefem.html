@@ -1,0 +1,176 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>tp1dcb0d7a_2812_4059_b0c9_63df7a20d6c0</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-04-10"><meta name="DC.source" content="tp1dcb0d7a_2812_4059_b0c9_63df7a20d6c0.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><p>Create a points an elements</p><pre class="codeinput">t = linspace(pi/30,2*pi,30);
+pgon = polyshape({[0.5*sin(t)]},{[0.5*cos(t)]});
+
+tr = triangulation(pgon);
+<span class="comment">%</span>
+tnodes    = tr.Points';
+telements = tr.ConnectivityList';
+</pre><p>With these we can create a FEM matrices with help to MATLAB PDE Toolbox</p><pre class="codeinput">model = createpde();
+geometryFromMesh(model,tnodes,telements);
+</pre><p>Define Equation</p><pre class="codeinput">applyBoundaryCondition(model,<span class="string">'neumann'</span>,<span class="string">'Edge'</span>,1:model.Geometry.NumEdges,<span class="string">'g'</span>,0);
+specifyCoefficients(model,<span class="string">'m'</span>,0,<span class="string">'d'</span>,0,<span class="string">'c'</span>,1,<span class="string">'a'</span>,0,<span class="string">'f'</span>,0);
+</pre><p>and generate mesh</p><pre class="codeinput">hmax = 0.05;
+generateMesh(model,<span class="string">'Hmax'</span>,hmax,<span class="string">'GeometricOrder'</span>,<span class="string">'linear'</span>,<span class="string">'Hgrad'</span>,2);
+</pre><p>Get a Finite elements Matrices</p><pre class="codeinput">FEM = assembleFEMatrices(model,<span class="string">'stiff-spring'</span>);
+Ns = length(FEM.Fs);
+</pre><pre class="codeinput">import <span class="string">casadi.*</span>
+<span class="comment">%</span>
+Us = SX.sym(<span class="string">'w'</span>,Ns,1);
+Vs = SX.sym(<span class="string">'v'</span>,Ns,1);
+ts = SX.sym(<span class="string">'t'</span>);
+</pre><p>Define the dynamic</p><pre class="codeinput">Fs = casadi.Function(<span class="string">'f'</span>,{ts,Us,Vs},{ FEM.Fs + FEM.Ks*Us + Vs });
+<span class="comment">%</span>
+tspan = linspace(0,2,50);
+<span class="comment">%</span>
+idyn = pdefem(Fs,Us,Vs,tspan,tnodes,tnodes);
+SetIntegrator(idyn,<span class="string">'RK4'</span>)
+</pre><p>Initial Condition</p><pre class="codeinput">xms = Nodes(1,:)' ;yms = Nodes(2,:)' ;
+<span class="comment">% radial coordinates</span>
+rms  = sqrt(xms.^2+yms.^2);
+thms = atan2(yms,xms);
+
+U0 =  exp((-xms.^2-yms.^2)/0.25^2);
+</pre><pre class="codeinput">idyn.InitialCondition = U0(:);
+<span class="comment">%</span>
+Vt = ZerosControl(idyn);
+Wt = solve(idyn,Vt);
+<span class="comment">%</span>
+Wt
+</pre><pre class="codeoutput">
+Wt = 
+
+
+[[0.0183156, 0.0179932, 0.0176703, ..., -0.0567949, -0.0654909, -0.0753068], 
+ [0.0182246, 0.0178072, 0.0173858, ..., -0.0430701, -0.0483894, -0.0542836], 
+ [0.0185783, 0.018069, 0.0175525, ..., -0.0577603, -0.0643154, -0.0715892], 
+ ...,
+ [0.141174, 0.140772, 0.140377, ..., 0.447323, 0.49929, 0.559693], 
+ [0.122455, 0.122056, 0.12166, ..., 0.203015, 0.218401, 0.236377], 
+ [0.102459, 0.102, 0.101541, ..., 0.139265, 0.149296, 0.161212]]
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%%
+% Create a points an elements
+t = linspace(pi/30,2*pi,30);
+pgon = polyshape({[0.5*sin(t)]},{[0.5*cos(t)]});
+          
+tr = triangulation(pgon);
+%
+tnodes    = tr.Points';
+telements = tr.ConnectivityList';
+%%
+% With these we can create a FEM matrices with help to MATLAB PDE Toolbox
+model = createpde();
+geometryFromMesh(model,tnodes,telements);
+%%
+% Define Equation
+applyBoundaryCondition(model,'neumann','Edge',1:model.Geometry.NumEdges,'g',0);
+specifyCoefficients(model,'m',0,'d',0,'c',1,'a',0,'f',0);
+%%
+% and generate mesh 
+hmax = 0.05;
+generateMesh(model,'Hmax',hmax,'GeometricOrder','linear','Hgrad',2);
+%%
+% Get a Finite elements Matrices
+FEM = assembleFEMatrices(model,'stiff-spring');
+Ns = length(FEM.Fs);
+%%
+import casadi.*
+%
+Us = SX.sym('w',Ns,1);
+Vs = SX.sym('v',Ns,1);
+ts = SX.sym('t');
+%% 
+% Define the dynamic
+Fs = casadi.Function('f',{ts,Us,Vs},{ FEM.Fs + FEM.Ks*Us + Vs });
+%
+tspan = linspace(0,2,50);
+%
+idyn = pdefem(Fs,Us,Vs,tspan,tnodes,tnodes);
+SetIntegrator(idyn,'RK4')
+%% 
+% Initial Condition
+xms = Nodes(1,:)' ;yms = Nodes(2,:)' ;
+% radial coordinates
+rms  = sqrt(xms.^2+yms.^2);
+thms = atan2(yms,xms);
+
+U0 =  exp((-xms.^2-yms.^2)/0.25^2);
+%%
+idyn.InitialCondition = U0(:);
+%
+Vt = ZerosControl(idyn);
+Wt = solve(idyn,Vt);
+%
+Wt
+
+##### SOURCE END #####
+--></body></html>

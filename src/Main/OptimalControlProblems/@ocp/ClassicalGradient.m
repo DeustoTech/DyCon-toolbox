@@ -46,10 +46,10 @@ function varargout = ClassicalGradient(iocp,ControlGuess,varargin)
 
     switch nargout
         case 1
-            varargout{1} = Ut;
+            varargout{1} = full(Ut);
         case 2
-            varargout{1} = Ut;
-            varargout{2} = Xsol;
+            varargout{1} = full(Ut);
+            varargout{2} = full(Xsol);
     end
 end
 

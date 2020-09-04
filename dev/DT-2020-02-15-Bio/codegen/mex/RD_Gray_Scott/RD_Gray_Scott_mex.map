@@ -1,0 +1,15 @@
+MEX {
+	global:
+		mexFunction;
+		mexfilerequiredapiversion;
+		emlrtMexFcnProperties;
+		RD_Gray_Scott_initialize;
+		RD_Gray_Scott_terminate;
+		RD_Gray_Scott_atexit;
+		RD_Gray_Scott;
+		emxEnsureCapacity_real_T;
+		emxInit_real_T;
+		emxFree_real_T;
+	local:
+		*;
+};

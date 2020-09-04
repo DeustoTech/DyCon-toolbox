@@ -1,4 +1,0 @@
-layout: default
-title: Interface for Dynamics (ODEs)
-nav_order: 3
-has_children: true

@@ -1,5 +1,0 @@
-layout: default
-title: Basic example of dynamics objects
-nav_order: 1
-has_children: false
-parent: Interface for Dynamics (ODEs)

@@ -29,7 +29,7 @@ classdef linearpde1d < pde1d
             
             obj.D = obj.C*(dt*(M\B));
 
-            SetIntegrator(obj,'LinearFordwardEuler')
+            SetIntegrator(obj,'LinearBackwardEuler')
         end
         
         

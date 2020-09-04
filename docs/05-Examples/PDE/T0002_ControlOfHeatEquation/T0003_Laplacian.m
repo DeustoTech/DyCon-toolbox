@@ -33,8 +33,8 @@ iCP1.TargetState = YT;
 tol = 1e-5;
 %
 U0 =ZerosControl(dynamics);
-%[OptControl ,OptState] = ArmijoGradient(iCP1,ControlGuess,'Maxiter',100);
-[OptControl ,OptState] = IpoptSolver(iCP1,U0);
+[OptControl ,OptState] = ArmijoGradient(iCP1,U0,'Maxiter',100);
+%[OptControl ,OptState] = IpoptSolver(iCP1,U0);
 
 %%
 State = solve(dynamics,U0);
