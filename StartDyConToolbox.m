@@ -1,4 +1,9 @@
 function StartDyConToolbox()
+
+
+if verLessThan('matlab','9.3')
+    error('The matlab version must be almots 9.3')
+end
 %STARTDYCONPLATFORM - Agrea las carpetas necesarias para ejecutar todos los tutoriales
 file        = 'StartDyConToolbox.m';
 pathfile    =  replace(which(file),file,''); 
