@@ -1,4 +1,4 @@
-clear all;close all
+function T0009_ocp_linearode_CG
 import casadi.*
 %
 A = [-2 1;
@@ -14,13 +14,12 @@ idyn.InitialCondition = [1;2];
 U0 = ZerosControl(idyn);
 FreeState = solve(idyn,U0);
 
-ts = idyn.ts;
-Xs = idyn.State.sym;
-Us = idyn.Control.sym;
+[ts,Xs,Us] = symvars(idyn);
+
 %
 epsilon = 1e4;
-PathCost  = Function('L'  ,{ts,Xs,Us},{ Us'*Us           });
-FinalCost = Function('Psi',{Xs}      ,{ epsilon*(Xs'*Xs) });
+PathCost  =  Us'*Us           ;
+FinalCost =   epsilon*(Xs'*Xs) ;
 
 iocp = ocp(idyn,PathCost,FinalCost);
 
@@ -28,12 +27,3 @@ ControlGuess = ZerosControl(idyn);
 [OptControl ,OptState] = ConjugateGradient(iocp,ControlGuess);
 
 %%
-figure
-subplot(1,2,1);
-plot(tspan,OptState');
-title('Optimal State')
-ylim([-1 2])
-subplot(1,2,2);
-plot(tspan,FreeState')
-title('Free')
-ylim([-1 2])

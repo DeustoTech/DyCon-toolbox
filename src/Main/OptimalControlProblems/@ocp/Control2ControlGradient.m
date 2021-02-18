@@ -11,7 +11,7 @@ function [dU,J,Xsol] = Control2ControlGradient(iocp,Control)
     Cost = iocp.CostFcn;
 
     %%
-    Xsol = solve(Xsystem,Control);
+    Xsol = devsolve(Xsystem,Control);
 
     % take final state with this control
     XT    = Xsol(:,end);
@@ -20,7 +20,7 @@ function [dU,J,Xsol] = Control2ControlGradient(iocp,Control)
     PT = FinalConditionAdjointFcn(XT);
     % Now, we can solve the Adjoint problem
     Psystem.InitialCondition = PT;
-    Psol = solve(Psystem,[fliplr(Xsol);fliplr(Control)]);
+    Psol = devsolve(Psystem,[fliplr(Xsol);fliplr(Control)]);
     Psol = fliplr(Psol);
     % ConpControle Control Gradient
     dU = ControlGradient(tspan,Xsol,Control,Psol);

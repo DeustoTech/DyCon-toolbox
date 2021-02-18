@@ -32,6 +32,6 @@ function [DynamicFcn,x,u] = Matrixs2CasFun(A,B,varargin)
         x = SX.sym(NameStateVar, StateDim  ,1);
         u = SX.sym(NameControlVar, ControlDim,1);
 
-        DynamicFcn= casadi.Function('F',{t,x,u},{A*x+B*u});
+        DynamicFcn= A*x+B*u;
 end
 

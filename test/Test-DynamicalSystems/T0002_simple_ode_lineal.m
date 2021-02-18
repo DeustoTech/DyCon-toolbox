@@ -1,3 +1,5 @@
+function T0002_simple_ode_lineal
+
 A = [-1 0;
       0 -4];
 
@@ -11,4 +13,3 @@ idyn.InitialCondition = [1;2];
 U0 = ZerosControl(idyn);
 xt = solve(idyn,U0);
 
-plot(xt')

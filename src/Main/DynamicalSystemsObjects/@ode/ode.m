@@ -10,17 +10,18 @@ classdef ode < dtsys
         solver %casadi.Function
     end
     
+    properties (Hidden)
+        HasSolver = false
+    end
     methods
-        function obj = ode(DynamicFcn,State,Control,tspan,varargin)
+        function obj = ode(DynamicFcn,ts,State,Control,tspan,varargin)
             %ODE Continuous dynamical systems
-            obj = obj@dtsys(DynamicFcn,State,Control,varargin{:});
-            obj.tspan = tspan;
+            obj = obj@dtsys(DynamicFcn,State,Control,ts,varargin{:});
             
-            obj.ts    = casadi.SX.sym('t');
             
             N = length(obj.State.sym);
             obj.MassMatrix = eye(N);
-
+            obj.tspan = tspan;
         end
         
         function set.solver(obj,solver)
@@ -32,6 +33,7 @@ classdef ode < dtsys
             obj.tspan = tspan;
             obj.Nt    = length(tspan);
         end
+
 
     end
 end

@@ -17,6 +17,10 @@ function varargout = ConjugateGradient(iocp,ControlGuess,varargin)
     tol             = p.Results.tol;
     EachIter        = p.Results.EachIter;
     %%     
+    %%
+    if ~iocp.HasGradients
+        PreIndirectMethod(iocp)
+    end
     %% Classical Gradient
     Utb = ControlGuess;
     [dUtb,~,~] = Control2ControlGradient(iocp,Utb);
@@ -87,10 +91,10 @@ function varargout = ConjugateGradient(iocp,ControlGuess,varargin)
 
     switch nargout
         case 1
-            varargout{1} = full(Utb);
+            varargout{1} = Utb;
         case 2
-            varargout{1} = full(Utb);
-            varargout{2} = full(Xsolc);
+            varargout{1} = Utb;
+            varargout{2} = Xsolc;
     end
     
     function J = LengthStep2Functional(iocp,LengthStep)

@@ -15,7 +15,9 @@ classdef linearpde1d < pde1d
             %LINEARPDE1D Construct an instance of this class
             %   Detailed explanation goes here
             [DynamicFcn,x,u] = Matrixs2CasFun(A,B);
-            obj@pde1d(DynamicFcn,x,u,tspan,mesh)
+            ts = casadi.SX.sym('t');
+
+            obj@pde1d(DynamicFcn,ts,x,u,tspan,mesh)
             
             obj.A = A;
             obj.B = B;

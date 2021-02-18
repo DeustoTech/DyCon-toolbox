@@ -1,5 +1,4 @@
-function T0001_ocp
-
+function T0000_ocp
 import casadi.*
 
 Xs = SX.sym('x',3,1); % State
@@ -31,7 +30,7 @@ FreeState = solve(idyn,Control0);
 PathCost  = 1e-1*(Us'*Us);
 FinalCost = Xs'*Xs ;
 %
-p = ocpOptions();
+
 % Inequality Path Constraint
 IPC = [];
 % Inequality End Constraint

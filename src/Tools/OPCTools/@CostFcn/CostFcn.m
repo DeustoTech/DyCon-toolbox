@@ -10,10 +10,13 @@ classdef CostFcn < handle
     end
     
     methods
-        function obj = CostFcn(PathCostFcn,FinalCostFcn)
+        function obj = CostFcn(PathCostFcn,FinalCostFcn,Dyn)
             %COSTFCN 
-            obj.PathCostFcn  = PathCostFcn;
-            obj.FinalCostFcn = FinalCostFcn;    
+            %
+            [ts,Ys,Us] = symvars(Dyn);
+            %
+            obj.PathCostFcn  = casadi.Function('L',{ts,Ys,Us},{PathCostFcn});
+            obj.FinalCostFcn = casadi.Function('Psi',{Ys},{FinalCostFcn});    
                       
         end
         

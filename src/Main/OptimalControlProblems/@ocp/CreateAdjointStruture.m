@@ -2,10 +2,10 @@ function CreateAdjointStruture(iocp)
 %CREATEADJOINTSTRUTURE Summary of this function goes here
 %   Detailed explanation goes here
         DynSys = iocp.DynamicSystem;
-        ts = DynSys.ts;
-        Xs = DynSys.State.sym;
-        Us = DynSys.Control.sym;
-        Ps = casadi.SX.sym('p',size(Xs));
+        %
+        [ts,Xs,Us] = symvars(DynSys);
+        %
+        Ps = casadi.SX.sym('p_adjoint',size(Xs));
         %%
         F_x   = iocp.DynamicSystem.Jacobians.State;
         Psi_x = iocp.CostFcn.FinalCostGradients.State;
@@ -20,7 +20,7 @@ function CreateAdjointStruture(iocp)
         %
         % So, Hx = (F_x)'*P +L_x
         %
-        Hx = casadi.Function('Hx',{ts,Ps,XUs},{F_x(ts,XUs(1:Nx),XUs(Nx+1:end))'*Ps + Lag_x(ts,Xs,Us)});
+        Hx = F_x(ts,XUs(1:Nx),XUs(Nx+1:end))'*Ps + Lag_x(ts,Xs,Us);
         %    
         classDynamics = class(DynSys);
         
@@ -34,22 +34,22 @@ function CreateAdjointStruture(iocp)
         
         switch classDynamics
             case 'ode'
-                iocp.AdjointStruct.DynamicSystem  = ode(Hx,Ps,XUs,DynSys.tspan);
+                iocp.AdjointStruct.DynamicSystem  = ode(Hx,ts,Ps,XUs,DynSys.tspan);
             case 'linearode'
                 if  Lag_value == 0
                     A = DynSys.A;
                     B     = zeros(n,m+n);
                     iocp.AdjointStruct.DynamicSystem  = linearode(A,B,DynSys.tspan);
                 else
-                    iocp.AdjointStruct.DynamicSystem  = ode(Hx,Ps,XUs,DynSys.tspan);
+                    iocp.AdjointStruct.DynamicSystem  = ode(Hx,ts,Ps,XUs,DynSys.tspan);
                 end
             case 'pde1d'
                 mesh  = DynSys.xline;
-                iocp.AdjointStruct.DynamicSystem  = pde1d(Hx,Ps,XUs,DynSys.tspan,mesh);
+                iocp.AdjointStruct.DynamicSystem  = pde1d(Hx,ts,Ps,XUs,DynSys.tspan,mesh);
             case 'pde2d'
                 xline  = DynSys.xline;
                 yline  = DynSys.yline;
-                iocp.AdjointStruct.DynamicSystem  = pde2d(Hx,Ps,XUs,DynSys.tspan,xline,yline);                
+                iocp.AdjointStruct.DynamicSystem  = pde2d(Hx,ts,Ps,XUs,DynSys.tspan,xline,yline);                
             case 'linearpde1d'
                 mesh  = DynSys.xline;
                 if  Lag_value == 0
@@ -57,20 +57,12 @@ function CreateAdjointStruture(iocp)
                     B     = zeros(n,m+n);
                     iocp.AdjointStruct.DynamicSystem  = linearpde1d(A,B,DynSys.tspan,mesh);
                 else
-                    iocp.AdjointStruct.DynamicSystem  = pde1d(Hx,Ps,XUs,DynSys.tspan,mesh);
+                    iocp.AdjointStruct.DynamicSystem  = pde1d(Hx,ts,Ps,XUs,DynSys.tspan,mesh);
                 end
-            case 'semilinearpde1d'
-                A     = DynSys.A;
-                B     = zeros(n,m+n);
-                mesh  = DynSys.xline;
-                
-                G = casadi.Function('G_adjoint',{ts,Ps,XUs},{DynSys.GradientNLT(ts,Xs,Us)*Ps+Lag_x(ts,Xs,Us)});
-                iocp.AdjointStruct.DynamicSystem  = semilinearpde1d(Ps,XUs,A,B,G,DynSys.tspan,mesh);
-                
             case 'pdefem'
                 Nodes = DynSys.Nodes;
                 Elements = DynSys.Elements;
-                iocp.AdjointStruct.DynamicSystem  = pdefem(Hx,Ps,XUs,DynSys.tspan,Nodes,Elements);                
+                iocp.AdjointStruct.DynamicSystem  = pdefem(Hx,ts,Ps,XUs,DynSys.tspan,Nodes,Elements);                
 
         end
         

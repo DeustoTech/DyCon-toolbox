@@ -41,7 +41,7 @@
 % We first need to define the system of ODEs in terms of symbolic variables.
 %%
 clear all
-m = 20;  % [m]: number of oscillators.
+m = 10;  % [m]: number of oscillators.
 
 import casadi.*
 
@@ -71,30 +71,33 @@ Om_init = Om_init - mean(Om_init);  % Mean zero frequencies
 Th_init = normrnd(0,pi/8,m,1);    
 %%
 K_init = ones(m,m);                 % Constant coupling strength, 1.
-T = 7;                              % We give enough time for the frequency synchronization.
+T =5;                              % We give enough time for the frequency synchronization.
 
 file = 'T06ODET0004_Kuramoto.m';
 path_data = replace(which(file),file,'');
 
 %%
-symF = casadi.Function('F',{t,symTh,symU},{Vsys(Om_init,K_init,symTh,symU)});
+symF =Vsys(Om_init,K_init,symTh,symU);
+ts = SX.sym('t');
 
-tspan = linspace(0,T,100);
-odeEqn = ode(symF,symTh,symU,tspan);
+tspan = linspace(0,T,200);
+odeEqn = ode(symF,ts,symTh,symU,tspan);
 SetIntegrator(odeEqn,'RK4')
 odeEqn.InitialCondition = Th_init;
 %%
 % We next construct cost functional for the control problem.
-PathCost  = casadi.Function('L'  ,{t,symTh,symU},{ (1/2)*(symU'*symU)           });
-FinalCost = casadi.Function('Psi',{symTh}      ,{  1e6*(1/m^2)*sum(sum((symThth.' - symThth).^2))  });
+L  =  1e-6*(1/2)*(symU'*symU)          ;
+Psi =  (1/m^2)*sum(sum((symThth.' - symThth).^2)) ;
 
-iCP_1 = ocp(odeEqn,PathCost,FinalCost);
+iCP_1 = ocp(odeEqn,L,Psi);
 
 %% Solve Gradient descent
 tic
 ControlGuess = ZerosControl(odeEqn);
-[OptControl_1 ,OptThetaVector_1] =  ArmijoGradient(iCP_1,ControlGuess);
-%[OptControl_1 ,OptThetaVector_1] =  IpoptSolver(iCP_1,ControlGuess,'Integrator','BackwardEuler');
+[OptControl_1 ,OptThetaVector_1] =  IpoptSolver(iCP_1,ControlGuess);
+OptControl_1 = full(OptControl_1);
+OptThetaVector_1 = full(OptThetaVector_1);
+
 toc
 %% Visualization
 % First, we present the dynamics without control,
@@ -125,12 +128,14 @@ title('The control function')
 % In this part, we change the regularization into $L^1$-norm and see the
 % difference.
 
-PathCost  = casadi.Function('L'  ,{t,symTh,symU},{ sqrt(symU.^2+1e-3)});
-iCP_2 = ocp(odeEqn,PathCost,FinalCost);
+L  =  1e-7*sqrt(symU.^2+1e-3);
+iCP_2 = ocp(odeEqn,L,Psi);
 
 %%
 tic
-[OptControl_2 ,OptThetaVector_2] =  ArmijoGradient(iCP_2,ControlGuess);
+[OptControl_2 ,OptThetaVector_2] =  IpoptSolver(iCP_2,ControlGuess);
+OptControl_2 = full(OptControl_2);
+OptThetaVector_2 = full(OptThetaVector_2);
 toc
 %%
 figure

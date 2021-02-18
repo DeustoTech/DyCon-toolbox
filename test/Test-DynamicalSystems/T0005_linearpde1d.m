@@ -1,9 +1,10 @@
-clear all;
+function T0005_linearpde1d
+
 import casadi.*
 
-Nt = 100;
-Nx = 100;
-T = 1;
+Nt = 50;
+Nx = 50;
+T = 0.1;
 L = 1;
 xmesh = linspace(-L,L,Nx+2);
 xmesh = xmesh(2:end-1);
@@ -17,4 +18,3 @@ isys = linearpde1d(A,B,tspan,xmesh);
 isys.InitialCondition = sin(pi*xmesh'/L);
 Sol = solve(isys,ZerosControl(isys));
 %%
-surf(Sol)

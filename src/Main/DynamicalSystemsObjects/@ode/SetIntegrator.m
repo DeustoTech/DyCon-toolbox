@@ -13,10 +13,11 @@ function SetIntegrator(idyn,method,varargin)
     %
     %% Get Vars
     F  = idyn.DynamicFcn;
-    Nt = idyn.Nt;
     Nx = idyn.StateDimension;
     Nu = idyn.ControlDimension;
-    tspan = idyn.tspan;
+    tspan = idyn.tspan ;
+    Nt = idyn.Nt;
+
     % Create Symbolical 
     State0  = idyn.State.sym; 
     Statetime   = casadi.SX.sym('Xt',Nx,Nt);
@@ -166,6 +167,7 @@ function SetIntegrator(idyn,method,varargin)
     %%
     idyn.method = method;
     idyn.solver = Integrator;
+    idyn.HasSolver = true;
     
     function sol = InitAndControl2Sol(F,InitialCondition,Control)
         

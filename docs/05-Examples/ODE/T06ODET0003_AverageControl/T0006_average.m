@@ -60,16 +60,16 @@ ts = casadi.SX.sym('ts');
 Ysm = arrayfun(@(index) mean(Ys(index:(M+1):N*M)),1:N,'UniformOutput',0);
 Ysm = [Ysm{:}]';
 Yt = zeros(N, 1); 
-Psi = casadi.Function('Psi',{Ys},{ 1e8*(Ysm - Yt).'*(Ysm - Yt)});
+Psi =  1e8*(Ysm - Yt).'*(Ysm - Yt);
 beta = 1e-5;
-L   = casadi.Function('L',{ts,Ys,Us},{(Us.'*Us)});
+L   = (Us.'*Us);
 %%
 % Create the optimal control 
 iocp = ocp(iode,L,Psi);
 %% 
 % Solve 
 U0 = ZerosControl(iode);
-[OptControl ,Ycontrol] = IpoptSolver(iocp,U0,'integrator','rk8');
+[OptControl ,Ycontrol] = IpoptSolver(iocp,U0,'odeSolver','rk5');
 %%
 % See average free
 [Yfree] = solve(iode,U0);

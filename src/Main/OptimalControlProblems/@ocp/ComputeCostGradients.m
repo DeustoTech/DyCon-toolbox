@@ -1,11 +1,7 @@
 function ComputeCostGradients(iocp)
 
-    ts = casadi.SX.sym('t');
-    Xs = iocp.DynamicSystem.State.sym;
-    Us = iocp.DynamicSystem.Control.sym;
 
-    % L   = PathCost
-    % Psi = TerminalCost
+    [ts,Xs,Us] = symvars(iocp.DynamicSystem);
 
     iocp.CostFcn.PathCostGradients.State   = casadi.Function('Lx',{ts,Xs,Us},{gradient(iocp.CostFcn.PathCostFcn(ts,Xs,Us),Xs)});
 

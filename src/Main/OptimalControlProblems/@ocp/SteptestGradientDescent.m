@@ -16,6 +16,11 @@ function varargout = SteptestGradientDescent(iocp,ControlGuess,varargin)
     MaxIter       = p.Results.MaxIter;
     tol           = p.Results.tol;
     EachIter      = p.Results.EachIter;
+    %%
+    %%
+    if ~iocp.HasGradients
+        PreIndirectMethod(iocp)
+    end
     %% Classical Gradient
     Utb = ControlGuess;
     [dUtb,~,~] = Control2ControlGradient(iocp,Utb);

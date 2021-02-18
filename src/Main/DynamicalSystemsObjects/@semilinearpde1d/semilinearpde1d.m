@@ -12,18 +12,18 @@ classdef semilinearpde1d < pde1d
     end
     
     methods
-        function obj = semilinearpde1d(State,Control,A,B,NonLinearTerm,tspan,mesh)
+        function obj = semilinearpde1d(ts,State,Control,A,B,NLT,tspan,mesh)
             %LINEARPDE1D Construct an instance of this class
             %   Detailed explanation goes here
             
             import casadi.*
-            ts = SX.sym('t');
-            DynamicFcn = Function('f',{ts,State,Control},{ A*State + B*Control + NonLinearTerm(ts,State,Control) });
+            
+            NonLinearTerm = casadi.Function('GradNLT',{ts,State,Control},{NLT});
+            
+            DynamicFcn =  A*State + B*Control + NLT ;
 
-            obj@pde1d(DynamicFcn,State,Control,tspan,mesh)
-            
-            NLT = NonLinearTerm(ts,State,Control);
-            
+            obj@pde1d(DynamicFcn,ts,State,Control,tspan,mesh)
+                        
             obj.GradientNLT = casadi.Function('GradNLT',{ts,State,Control},{jacobian(NLT,State)});
 
             obj.NonLinearTerm = NonLinearTerm;

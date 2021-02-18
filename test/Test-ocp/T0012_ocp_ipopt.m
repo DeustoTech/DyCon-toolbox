@@ -1,4 +1,5 @@
-clear all;close all
+function T0012_ocp_ipopt
+
 import casadi.*
 %%
 Nt = 50;
@@ -23,8 +24,8 @@ Xs = idyn.State.sym;
 Us = idyn.Control.sym;
 %
 epsilon = (L/Nx)^4;
-PathCost  = Function('L'  ,{ts,Xs,Us},{ epsilon*(Us'*Us)           });
-FinalCost = Function('Psi',{Xs}      ,{ (Xs'*Xs) });
+PathCost  =  epsilon*(Us'*Us)       ;
+FinalCost =  (Xs'*Xs) ;
 
 iocp = ocp(idyn,PathCost,FinalCost);
 
@@ -32,14 +33,3 @@ ControlGuess = ZerosControl(idyn);
 [OptControl ,OptState] = IpoptSolver(iocp,ControlGuess);
 
 %%
-figure
-subplot(1,3,1);
-surf(OptState');
-title('Optimal State')
-subplot(1,3,2);
-surf(FreeState')
-title('Free')
-
-subplot(1,3,3);
-surf(OptControl')
-title('Control')

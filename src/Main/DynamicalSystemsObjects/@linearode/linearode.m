@@ -18,7 +18,9 @@ classdef linearode < ode
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             [DynamicFcn,x,u] = Matrixs2CasFun(A,B);
 
-            obj@ode(DynamicFcn,x,u,tspan)
+            ts = casadi.SX.sym('t');
+
+            obj@ode(DynamicFcn,ts,x,u,tspan)
             
             obj.A = A;
             obj.B = B;

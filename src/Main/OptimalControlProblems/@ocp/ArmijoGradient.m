@@ -20,6 +20,12 @@ function varargout = ArmijoGradient(iocp,ControlGuess,varargin)
     EachIter      = p.Results.EachIter;
     MaxLengthStep = p.Results.MaxLengthStep;
     FunctionRelativeTol = p.Results.FunctionRelativeTol;
+    
+    %%
+    if ~iocp.HasGradients
+        PreIndirectMethod(iocp)
+    end
+    %%
     %% Classical Gradient
     Uta = ControlGuess;
     [dUta,Ja,~] = Control2ControlGradient(iocp,Uta);
@@ -97,10 +103,10 @@ function varargout = ArmijoGradient(iocp,ControlGuess,varargin)
     end
     switch nargout
             case 1
-                varargout{1} = full(Utc);
+                varargout{1} = Utc;
             case 2
-                varargout{1} = full(Utc);
-                varargout{2} = full(Xsolc);
+                varargout{1} = Utc;
+                varargout{2} = Xsolc;
     end
     
 

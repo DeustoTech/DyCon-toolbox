@@ -15,6 +15,14 @@ function varargout = ClassicalGradient(iocp,ControlGuess,varargin)
     MaxIter    = p.Results.MaxIter;
     tol        = p.Results.tol;
     EachIter   = p.Results.EachIter;
+    %%
+    if ~iocp.DynamicSystem.HasSolver
+        warning('The object ode doesn''t have solver. By default, we SetIntegrator = Euler  ')
+        SetIntegrator(iocp.DynamicSystem,'Euler')
+    end
+    if ~iocp.HasGradients
+        PreIndirectMethod(iocp)
+    end
     %% Classical Gradient
     Ut = ControlGuess;
     for iter = 1:MaxIter
@@ -46,10 +54,10 @@ function varargout = ClassicalGradient(iocp,ControlGuess,varargin)
 
     switch nargout
         case 1
-            varargout{1} = full(Ut);
+            varargout{1} = Ut;
         case 2
-            varargout{1} = full(Ut);
-            varargout{2} = full(Xsol);
+            varargout{1} = Ut;
+            varargout{2} = Xsol;
     end
 end
 

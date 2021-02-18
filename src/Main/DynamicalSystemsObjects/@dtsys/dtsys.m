@@ -21,7 +21,7 @@ classdef dtsys < handle & matlab.mixin.Copyable
        Jacobians  dtsysJacobians = dtsysJacobians
     end
     methods
-        function obj = dtsys(DynamicFcn,State,Control,varargin)
+        function obj = dtsys(DynamicFcn,State,Control,ts,varargin)
             % dtsys - Discrete Dynamical System. Need 
             %   - the evolution function as: @(k,State,Control) F(k,State,Control), 
             %   - the Symbolic State by CasADi 
@@ -30,11 +30,11 @@ classdef dtsys < handle & matlab.mixin.Copyable
             addRequired(p,'DynamicFcn')
             addRequired(p,'State')
             addRequired(p,'Control')
-
+            addRequired(p,'ts')
             addOptional(p,'Nt',100)
 
             
-            parse(p,DynamicFcn,State,Control,varargin{:})
+            parse(p,DynamicFcn,State,Control,ts,varargin{:})
             %
             %%
             lenState = length(State);
@@ -46,7 +46,9 @@ classdef dtsys < handle & matlab.mixin.Copyable
             obj.State   = fun(State,numState);
             obj.Control = fun(Control,numControl);
             %
-            obj.DynamicFcn = DynamicFcn;
+            obj.ts = ts;
+            
+            obj.DynamicFcn = casadi.Function('F',{ts,obj.State.sym,obj.Control.sym},{DynamicFcn});
             %
             % Zeros Initial Condition
             obj.InitialCondition = zeros(lenState,1);

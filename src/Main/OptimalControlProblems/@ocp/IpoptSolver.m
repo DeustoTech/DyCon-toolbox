@@ -1,28 +1,36 @@
 function [OptControl ,OptState] = IpoptSolver(iocp,ControlGuess,varargin)
-%IPOPT Summary of this function goes here
-%   Detailed explanation goes here
-
+%% IPOPT 
 p = inputParser;
 addRequired(p,'iocp')
 addRequired(p,'ControlGuess')
 addOptional(p,'StateGuess',[])
 
-addOptional(p,'integrator','CrankNicolson',@(s) mustBeMember(s,{'BackwardEuler','ForwardEuler','rk4','rk5','CrankNicolson','rk8','SemiLinearBackwardEuler'}))
-
+addOptional(p,'odeSolver','CrankNicolson', ...
+                @(s) mustBeMember(s,{'BackwardEuler', ...
+                                     'ForwardEuler',  ...
+                                     'rk4',           ...
+                                     'rk5',           ...
+                                     'CrankNicolson'}))
+                                 
+%
+addOptional(p,'IntegralSolver','trapz', ...
+                @(s) mustBeMember(s,{'trapz', ...
+                                     'riemann'}))
+%%
 parse(p,iocp,ControlGuess,varargin{:})
 
-integrator = p.Results.integrator;
-StateGuess = p.Results.StateGuess;
-%
+odeSolver       = p.Results.odeSolver;
+IntegralSolver  = p.Results.IntegralSolver;
+StateGuess      = p.Results.StateGuess;
+%%
 opti = casadi.Opti();  % CasADi function
-
-
+%
 dyn = iocp.DynamicSystem; 
-Nx =  dyn.StateDimension;
-Nu =  dyn.ControlDimension;
-Nt =  dyn.Nt;
-f  =  dyn.DynamicFcn;
-M  = dyn.MassMatrix;
+Nx  =  dyn.StateDimension;
+Nu  =  dyn.ControlDimension;
+Nt  =  dyn.Nt;
+f   =  dyn.DynamicFcn;
+M   =  dyn.MassMatrix;
 %%
 X = opti.variable(Nx,Nt); % state trajectory
 U = opti.variable(Nu,Nt);   % control
@@ -31,25 +39,25 @@ tspan = dyn.tspan;
 
 %% Functional
 CFcn = iocp.CostFcn;
-Cost = CFcn.FinalCostFcn(X(:,end)); 
-
-L = {};
-for k = 1:Nt
-   L{k} = CFcn.PathCostFcn(tspan(k),X(:,k),U(:,k)) ;
-end
-
+Psi = CFcn.FinalCostFcn(X(:,end)); 
 L_t = CFcn.PathCostFcn(tspan,X,U);
-result = sum(diff(tspan).*(L_t(2:end)+L_t(1:end-1))/2);
 
-%%
-opti.minimize(Cost + result) ; % minimizing L2 at the final time
+switch IntegralSolver
+    case 'trapz'
+        int_L_t = sum(diff(tspan).*(L_t(2:end)+L_t(1:end-1))/2);
+    case 'riemann'
+        int_L_t = sum(diff(tspan).*(L_t(2:end)-L_t(1:end-1)));
 
-%% Dynamic Constraint
-% Initial Condition
+end
+%% 
+opti.minimize(Psi + int_L_t) ; % minimizing L2 at the final time
+
+%% Initial Condition Constraint
 opti.subject_to(X(:,1)==dyn.InitialCondition); % close the gaps
 
-%% 
-switch integrator
+%% Dynamic Constraint
+
+switch odeSolver
     case 'ForwardEuler'
         for k=2:Nt % loop over control intervals
            % Euler forward method
@@ -102,46 +110,33 @@ switch integrator
            x_next = X(:,k-1) + (dt/90)*(7*k1+32*k3+12*k4+32*k5+7*k6); 
            opti.subject_to(X(:,k)==x_next); % close the gaps
         end
-    case 'rk8'
-        for k = 2:Nt
-           dt = tspan(k) - tspan(k-1);
-           t  = tspan(k-1);
-           opti.subject_to(X(:,k) == rk8_step(f,t,X(:,k-1),dt,U(:,k-1),U(:,k)));
-        end
-    case 'SemiLinearBackwardEuler'
-        A = dyn.A;
-        B = dyn.B;
-        %
-        NLT = dyn.NonLinearTerm;%
-        Ys  = dyn.State.sym;
-
-        g = casadi.Function('g',{ts,Ys,Us},{NLT(ts,Ys(1),Us)./Ys(1)});
-
-        %
-        for k = 2:Nt
-            dt = dyn.tspan(k) - dyn.tspan(k-1);
-            C  = diag(1-dt*g(X(:,k-1))) - dt*A;
-            yu = X(:,k-1)  + B*U(:,k-1);
-            opti.subject_to(X(:,k) == C\yu);
-        end
-    
 end
 
-%% 
+%% Set Initial Guess
 
 opti.set_initial(U, ControlGuess);
 if isempty(StateGuess)
     StateGuess = zeros(Nx,Nt);
 end
 opti.set_initial(X, StateGuess);
-%%
-if ~isempty(iocp.constraints.MaxControlValue)
-    opti.subject_to((U(:)) <  iocp.constraints.MaxControlValue)
-end
-if ~isempty(iocp.constraints.MinControlValue)
-    opti.subject_to((U(:)) > iocp.constraints.MinControlValue)
-end
 
+%% Inequality Constraints
+if ~isempty(iocp.Constraints.InequalityEnd)
+     opti.subject_to(iocp.Constraints.InequalityEnd(X(:,end)) > 0)
+end
+%
+if ~isempty(iocp.Constraints.InequalityPath)
+     opti.subject_to(iocp.Constraints.InequalityPath(tspan,X,U) > 0)
+end
+%% Equality Constraints
+if ~isempty(iocp.Constraints.EqualityEnd)
+     opti.subject_to(iocp.Constraints.EqualityEnd(X(:,end)) == 0)
+end
+%
+if ~isempty(iocp.Constraints.EqualityPath)
+     opti.subject_to(iocp.Constraints.EqualityPath(tspan,X,U) == 0)
+end
+%%
 opti.solver('ipopt'); % set numerical backend
 tic
 sol = opti.solve();   % actual solve

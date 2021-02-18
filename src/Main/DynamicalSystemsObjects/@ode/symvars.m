@@ -1,7 +1,5 @@
-function [ts,Xs,Us] = symvars(iode)
-%SYMVARS Summary of this function goes here
-%   Detailed explanation goes here
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+function [time,state,control] = symvars(obj)
+    state   = obj.State.sym;
+    control = obj.Control.sym;
+    time    = obj.ts;
 end
-

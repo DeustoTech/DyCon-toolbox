@@ -1,4 +1,5 @@
-clear all
+function T0003_simple_pde1d
+
 import casadi.*
 
 Nt = 200;
@@ -15,11 +16,10 @@ ts = SX.sym('t');
 A = FDLaplacian(xmesh);
 B = BInterior(xmesh,-0.5,0.5);
 
-Fs = Function('f',{ts,Ys,Us},{ A*Ys + B*Us + 2*sin(pi*Ys/L) });
+Fs =  A*Ys + B*Us + 2*sin(pi*Ys/L) ;
 %
-isys = pde1d(Fs,Ys,Us,tspan,xmesh);
+isys = pde1d(Fs,ts,Ys,Us,tspan,xmesh);
 isys.InitialCondition = sin(pi*xmesh'/L);
 Sol = solve(isys,ZerosControl(isys)+0);
 
 
-surf(Sol)

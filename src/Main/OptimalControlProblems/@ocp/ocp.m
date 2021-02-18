@@ -8,7 +8,7 @@ classdef ocp < handle
         DynamicSystem
         CostFcn          CostFcn
         VariableTime     logical     = false
-        constraints       constraints = constraints
+        Constraints      constraints 
         TargetState      double
     end
     
@@ -16,7 +16,10 @@ classdef ocp < handle
         Hamiltonian             casadi.Function  
         AdjointStruct           AdjointStruct = AdjointStruct
         ControlGradient         casadi.Function
+        HasGradients            logical = false;
     end
+    
+    
     
     methods
         function obj = ocp(DynamicSystem,PathCostFcn,FinalCostFcn,varargin)
@@ -31,40 +34,33 @@ classdef ocp < handle
             p = inputParser;
             addRequired(p,'idynamics'   );
             %
-            addRequired(p,'PathCostFcn' );
-            addRequired(p,'FinalCostFcn');
+            addRequired(p,'PathCostFcn' ,@checkPathCost);
+            addRequired(p,'FinalCostFcn',@checkFinalCost);
             %
-            addOptional(p,'SymCalculations',true)
+            addOptional(p,'EqualityEndConstraint',[]);
+            addOptional(p,'EqualityPathConstraint',[]);
+            addOptional(p,'InequalityEndConstraint',[]);
+            addOptional(p,'InequalityPathConstraint',[]);
+            %
 
             parse(p,DynamicSystem,PathCostFcn,FinalCostFcn,varargin{:})
             %%
             obj.DynamicSystem   =  copy(DynamicSystem);
-            obj.CostFcn         =  CostFcn(PathCostFcn,FinalCostFcn);
+            obj.CostFcn         =  CostFcn(PathCostFcn,FinalCostFcn,obj.DynamicSystem);
             %
-            DynSys = obj.DynamicSystem;
-            %% Compute Gradient and Jacobians
-            ComputeJacobians(obj.DynamicSystem)
+            Equa_End  = p.Results.EqualityEndConstraint;
+            Equa_Path = p.Results.EqualityPathConstraint;
+            Ineq_End  = p.Results.InequalityEndConstraint;
+            Ineq_Path = p.Results.InequalityPathConstraint;
             %
-            ComputeCostGradients(obj)
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            Lag_u = obj.CostFcn.PathCostGradients.Control;
             %
-            F_u   = obj.DynamicSystem.Jacobians.Control;
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %% Obtain Symbolical Variables
-            ts = DynSys.ts;
-            Xs = DynSys.State.sym;
-            Us = DynSys.Control.sym;
-            %% Compute Adjoint Problem           
-            CreateAdjointStruture(obj)
-            
-            %% Compute Control Gradient as Symbolical Function
-            Ps = obj.AdjointStruct.DynamicSystem.State.sym;
-
-            obj.ControlGradient = casadi.Function('Hu',{ts,Xs,Us,Ps},{F_u(ts,Xs,Us)'*Ps + Lag_u(ts,Xs,Us)});
+            obj.Constraints = constraints(Equa_End      , ...
+                                          Equa_Path     , ...
+                                          Ineq_End      , ...
+                                          Ineq_Path     , ...
+                                          obj.DynamicSystem);
             %
-            obj.constraints = constraints;
-            %          
+    
         end
         %%
         %% SETTERS
@@ -92,3 +88,14 @@ classdef ocp < handle
     end
 end
 
+
+function checkPathCost(x)
+    if ~( isa(x,'casadi.SX') || isnumeric(x))
+       error('The PathCostFcn must be a casadi.SX obj') 
+    end
+end
+function checkFinalCost(x)
+    if ~( isa(x,'casadi.SX') || isnumeric(x))
+       error('The FinalCostFcn must be a casadi.SX obj') 
+    end
+end

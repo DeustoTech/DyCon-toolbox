@@ -1,26 +1,26 @@
-clear all;close all
+function T0002_ocp_linearode
+
 import casadi.*
 %
-A = [-2 1;
+A = [-2  1;
       1 -2];
 
 B = [1 0;
      0 1];
 %
-tspan = linspace(0,2,10);
+tspan = linspace(0,1,10);
 idyn = linearode(A,B,tspan);
 idyn.InitialCondition = [1;2];
 
 Control0  = ZerosControl(idyn);
 FreeState = solve(idyn,Control0);
 
-ts = idyn.ts;
-Xs = idyn.State.sym;
-Us = idyn.Control.sym;
+
 %
-epsilon = 1e4;
-PathCost  = Function('L'  ,{ts,Xs,Us},{ Us'*Us           });
-FinalCost = Function('Psi',{Xs}      ,{ epsilon*(Xs'*Xs) });
+[ts,Xs,Us] = symvars(idyn);
+
+PathCost  = Us'*Us           ;
+FinalCost = 1e4*(Xs'*Xs) ;
 
 iocp = ocp(idyn,PathCost,FinalCost);
 
@@ -31,10 +31,10 @@ ControlGuess = ZerosControl(idyn);
 %%
 figure
 subplot(1,2,1);
-plot(tspan,OptState');
+plot(tspan,full(OptState'));
 title('Optimal State')
 ylim([-1 2])
 subplot(1,2,2);
-plot(tspan,FreeState')
+plot(tspan,full(FreeState'))
 title('Free')
 ylim([-1 2])
