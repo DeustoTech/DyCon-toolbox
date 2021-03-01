@@ -18,3 +18,5 @@ UserConfig/NeosUser\.yaml
 tmp/AMPL-executions/
 
 tmp/AMPL-models/
+
+CasADi

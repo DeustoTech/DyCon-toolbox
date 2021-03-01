@@ -126,7 +126,8 @@ if ~isempty(iocp.Constraints.InequalityEnd)
 end
 %
 if ~isempty(iocp.Constraints.InequalityPath)
-     opti.subject_to(iocp.Constraints.InequalityPath(tspan,X,U) > 0)
+    IPC = iocp.Constraints.InequalityPath(tspan,X,U);
+     opti.subject_to(IPC(:) > 0)
 end
 %% Equality Constraints
 if ~isempty(iocp.Constraints.EqualityEnd)

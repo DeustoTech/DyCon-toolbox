@@ -28,17 +28,17 @@ FreeState = solve(idyn,Control0);
 %%
 % Cost Function 
 PathCost  = 1e-1*(Us'*Us);
-FinalCost = Xs'*Xs ;
+FinalCost = 0 ;
 %
 
 % Inequality Path Constraint
-IPC = [];
+IPC = - Us;
 % Inequality End Constraint
 IEC = [];
 % Equality Path Constraint
 EPC = [];
 % Equality End Constraints
-EEC = [];
+EEC = Xs;
 %
 %%
 iocp = ocp(idyn,PathCost,FinalCost,'EqualityPathConstraint'   , EPC , ...
@@ -49,6 +49,10 @@ iocp = ocp(idyn,PathCost,FinalCost,'EqualityPathConstraint'   , EPC , ...
 %%
 ControlGuess = ZerosControl(idyn);
 
-[OptControl ,OptState] = ClassicalGradient(iocp,ControlGuess);
+[OptControl ,OptState] = IpoptSolver(iocp,ControlGuess);
 
 %%
+subplot(2,1,1)
+plot(full(OptState)')
+subplot(2,1,2)
+plot(full(OptControl)')
