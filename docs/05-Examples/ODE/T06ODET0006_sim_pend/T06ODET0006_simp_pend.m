@@ -17,33 +17,40 @@ params.m2 = 1;
 
 import casadi.*
 % define optimal 
-Ss = SX.sym('x',6,1);As = SX.sym('u',1,1);ts = SX.sym('t');
+Xs = SX.sym('x',6,1);
+Us = SX.sym('u',1,1);
+ts = SX.sym('t');
 %
 esti_params = params;
 esti_params.m1 = 1.0;
-EvolutionFcn = Function('f',{ts,Ss,As},{ cartpole_dynamics_simple(ts,Ss,As,params) });
+EvolutionFcn = cartpole_dynamics_simple(ts,Xs,Us,params) ;
 %
-dyn = ode(EvolutionFcn,Ss,As,tspan);
+dyn = ode(EvolutionFcn,ts,Xs,Us,tspan);
 dyn.InitialCondition = s0;
 SetIntegrator(dyn,'RK4')
+%%
+% J = Psi(X,T) + \int_0^T L(X,U,t) dt 
 %
-PathCost  = Function('L'  ,{ts,Ss,As},{ (Ss.'*Ss) + 1e-3*(As.'*As) });
-FinalCost = Function('Psi',{Ss}      ,{ (Ss.'*Ss ) });
-ocp_obj = ocp(dyn,PathCost,FinalCost);
+L  =  (Xs.'*Xs) + 1e-3*(Us.'*Us) ;
+Psi = (Xs.'*Xs ) ;
+ocp_obj = ocp(dyn,L,Psi);
 
 % ocp_obj.constraints.MaxControlValue = +1e3;
 % ocp_obj.constraints.MinControlValue = -1e3;
 
 %%
 U0 = 1e3*rand(size(ZerosControl(dyn)));
+U0 = 1e-5*ones(size(ZerosControl(dyn)));
+
 [OptControl ,OptState] = IpoptSolver(ocp_obj,U0);
 %%
-OptState = full(solve(dyn,OptControl));
+%OptState = full(solve(dyn,OptControl));
 %
 %% Animation 
 st = OptState';
 fig = figure(1); 
 cartpole_animation_simple(fig,st(:,1:3),tspan,1)
+
 %%
 figure(2)
 clf

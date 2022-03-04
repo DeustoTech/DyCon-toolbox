@@ -2,7 +2,7 @@
 clear all
 import casadi.*
 %
-Ns = 40;
+Ns = 5;
 xline = linspace(-1,1,Ns);
 yline = linspace(-1,1,Ns);
 %%
@@ -32,13 +32,13 @@ A = [     Au           sparse(Ns^2,Ns^2)  ; ...
 %
 B = [ Bu   ;  sparse(Ns^2,Ns^2) ];
 %
-nlt = casadi.Function('nlt',{State},{[ +us.*(us.*vs - mu)  ;  ...
-                                       -vs.*us.^2         ]});
+nlt =  [+us.*(us.*vs - mu)  ;  ...
+                                       -vs.*us.^2 ]    ;
 
-Nt =  2;
-tspan = linspace(0,0.1,Nt);
+Nt =  20;
+tspan = linspace(0,1,Nt);
 %
-ipde2d = semilinearpde2d(State,rs,A,B,nlt,tspan,xline,yline);
+ipde2d = semilinearpde2d(ts,State,rs,A,B,nlt,tspan,xline,yline);
 %% Initial Condition
 xms = ipde2d.xms;
 yms = ipde2d.yms;
@@ -55,6 +55,7 @@ U0  = U0 + 0.00075*rand(size(U0));
 V0  = rms.^2 + 0.75 ;
 %%
 ipde2d.InitialCondition = [U0(:); V0(:)];
+SetIntegrator(ipde2d,'OperatorSplitting')
 %
 %
 rt_0 = ZerosControl(ipde2d);

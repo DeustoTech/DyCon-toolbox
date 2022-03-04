@@ -35,16 +35,16 @@ ts = SX.sym('t');
 State = [Us;rs;vs];
 Control = [Vs;as];
 %
-Fs = Function('f',{ts,State,Control},{ [A*Us + 4*Us + B(rs(1),rs(2)).*Vs ; 
-                                                 vs;
-                                                 1e1*as - 1e4*rs  - vs]});
+Fs =  [A*Us + 4*Us + B(rs(1),rs(2)).*Vs ; 
+                                     vs;
+                     1e1*as - 1e4*rs  - vs];
 
 
 %%
 T = 0.25;
 Nt = 50;
 tspan = linspace(0,T,Nt);
-dynamics = pde2d(Fs,[Us;rs;vs],[Vs;as],tspan,xline,yline);
+dynamics = pde2d(Fs,ts,[Us;rs;vs],[Vs;as],tspan,xline,yline);
 SetIntegrator(dynamics,'RK8')
 %%
 alpha = 0.05;
@@ -73,8 +73,8 @@ Yfree = solve(dynamics,Control0);
 %animation2DMovil(fig,dynamics,full(Yfree)')
 %%
 YT = 0*W0;
-PathCost  = casadi.Function('L'  ,{ts,State,Control},{ Control'*Control  });
-FinalCost = casadi.Function('Psi',{State}           ,{ 1e8*(Us'*Us)   });
+PathCost  =  Control'*Control;
+FinalCost = 1e8*(Us'*Us)   ;
 
 iocp = ocp(dynamics,PathCost,FinalCost);
 %%
@@ -83,6 +83,7 @@ ControlGuess(end  ,:) = +10;
 ControlGuess(end-1,:) =  0; 
 
 [ControlOpt,Yopt] = ArmijoGradient(iocp,ControlGuess,'MaxIter',100,'MinLengthStep',1e-10);
+Yopt = full(Yopt);
 %%
 figure(1);
 clf

@@ -22,7 +22,7 @@ Us = SX.sym('u',[2 1]);
 % Definition of the non-linearity
 % $$ \partial_y[-5\exp(-y^2)] $$
 %%
-G = casadi.Function('NLT',{Ys},{-10*Ys.*exp(-Ys.^2)/N^2 });%  
+G = -10*Ys.*exp(-Ys.^2)/N^2;%  
 %%
 % Creation of the ODE object
 % Time horizon
@@ -32,7 +32,7 @@ tspan = linspace(0,T,Nt);
 %
 xi = 0; xf = 1;
 xline = linspace(xi,xf,N);
-idyn = semilinearpde1d(Ys,Us,A,B,G,tspan,xline);
+idyn = semilinearpde1d(ts,Ys,Us,A,B,G,tspan,xline);
 
 % Initial condition
 Y0 = sin(pi*xline');
@@ -47,8 +47,8 @@ Yfree = full(Yfree);
 %%
 % We create the object that collects the formulation of an optimal control problem  by means of the object that describes the dynamics odeEqn, the functional to minimize Jfun and the time horizon T
 %%
-L   = Function('L'  ,{ts,Ys,Us},{ Us.'*Us  });
-Psi = Function('Psi',{Ys}      ,{ 1e4*(Ys.'*Ys) });
+L   =  Us.'*Us  ;
+Psi =  1e4*(Ys.'*Ys);
 
 iocp = ocp(idyn,L,Psi);
 %%

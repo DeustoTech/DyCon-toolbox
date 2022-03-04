@@ -24,7 +24,9 @@ nu = linspace(1,6,M);
 Nt = 500;T  = 0.8;
 tspan = linspace(0,T,Nt);
 % create linear dynamic
-iode = linearode(A,B,tspan);
+ts  = SX.sym('t'); % <= Create a symbolical time
+
+iode = linearode(A,B,ts,tspan);
 % set initial condition
 Y0 = ones(2, 1);
 iode.InitialCondition = repmat(Y0,M,1);
@@ -32,7 +34,6 @@ iode.InitialCondition = repmat(Y0,M,1);
 % Get Symbolical variable
 Ys  = iode.State.sym;
 Us  = iode.Control.sym;
-ts  = SX.sym('t'); % <= Create a symbolical time
 
 % Set Target
 YT = zeros(2, 1); 

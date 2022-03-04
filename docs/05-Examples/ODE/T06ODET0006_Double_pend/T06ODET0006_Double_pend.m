@@ -21,14 +21,14 @@ Ss = SX.sym('x',6,1);As = SX.sym('u',1,1);ts = SX.sym('t');
 %
 esti_params = params;
 esti_params.m1 = 1.0;
-EvolutionFcn = Function('f',{ts,Ss,As},{ cartpole_dynamics(ts,Ss,As,params) });
+EvolutionFcn =  cartpole_dynamics(ts,Ss,As,params);
 %
-dyn = ode(EvolutionFcn,Ss,As,tspan);
+dyn = ode(EvolutionFcn,ts,Ss,As,tspan);
 dyn.InitialCondition = s0;
-SetIntegrator(dyn,'rk4')
+SetIntegrator(dyn,'RK4')
 %
-PathCost  = Function('L'  ,{ts,Ss,As},{ (Ss.'*Ss) + 1e-3*(As.'*As) });
-FinalCost = Function('Psi',{Ss}      ,{ (Ss.'*Ss ) });
+PathCost  = (Ss.'*Ss) + 1e-3*(As.'*As) ;
+FinalCost =  (Ss.'*Ss ) ;
 ocp_obj = ocp(dyn,PathCost,FinalCost);
 
 % ocp_obj.constraints.MaxControlValue = +1e3;
@@ -36,9 +36,9 @@ ocp_obj = ocp(dyn,PathCost,FinalCost);
 
 %%
 U0 = 1e3*rand(size(ZerosControl(dyn)));
-[OptControl ,OptState] = IpoptSolver(ocp_obj,U0,'integrator','rk8');
+[OptControl ,OptState] = IpoptSolver(ocp_obj,U0,'odeSolver','rk4');
 %%
-OptState = full(solve(dyn,OptControl));
+%OptState = full(solve(dyn,OptControl));
 %
 %% Animation 
 st = OptState';

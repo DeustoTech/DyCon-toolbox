@@ -7,22 +7,23 @@ classdef semilinearpde2d < pde2d
         B               double
         C               double
         D               double
-        NonLinearTerm   casadi.Function
-        GradientNLT     casadi.Function
+        NonLinearTerm   
+        GradientNLT    
     end
     
     methods
-        function obj = semilinearpde2d(State,Control,A,B,NonLinearTerm,tspan,xline,yline)
+        function obj = semilinearpde2d(ts,State,Control,A,B,NonLinearTerm,tspan,xline,yline)
             %LINEARpde2d Construct an instance of this class
             %   Detailed explanation goes here
             
             import casadi.*
-            ts = SX.sym('t');
-            DynamicFcn = Function('f',{ts,State,Control},{ A*State + B*Control + NonLinearTerm(ts,State,Control) });
+            DynamicFcn =  A*State + B*Control + NonLinearTerm;
 
-            obj@pde2d(DynamicFcn,State,Control,tspan,xline,yline)
+            obj@pde2d(DynamicFcn,ts,State,Control,tspan,xline,yline)
             
-            NLT = NonLinearTerm(ts,State,Control);
+            ts = obj.ts;
+            
+            NLT = NonLinearTerm;
             n   = length(State);
             GradCell  = arrayfun(@(i) gradient(NLT(i),State(i)),1:n,'UniformOutput',false);
             

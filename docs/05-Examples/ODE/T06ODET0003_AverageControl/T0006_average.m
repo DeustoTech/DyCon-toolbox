@@ -48,14 +48,15 @@ M = length(nu);
 %%
 Nt = 100; T = 0.5;
 tspan = linspace(0,T,Nt);
-iode = linearode(A,B,tspan);
+ts = casadi.SX.sym('ts');
+
+iode = linearode(A,B,ts,tspan);
 Y0 = ones(N, 1);
 iode.InitialCondition = repmat(Y0,M,1);
 
 %% 
 Ys = iode.State.sym;
 Us  = iode.Control.sym;
-ts = casadi.SX.sym('ts');
 %%
 Ysm = arrayfun(@(index) mean(Ys(index:(M+1):N*M)),1:N,'UniformOutput',0);
 Ysm = [Ysm{:}]';

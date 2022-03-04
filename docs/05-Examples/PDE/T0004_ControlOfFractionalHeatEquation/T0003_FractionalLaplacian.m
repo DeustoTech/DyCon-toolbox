@@ -58,8 +58,8 @@ Y0 =sin(pi*xline');
 % $$
 Nt = 50;
 tspan = linspace(0,FinalTime,Nt);
-
-dynamics = linearpde1d(A,B,tspan,xline);
+ts = casadi.SX.sym('ts');
+dynamics = linearpde1d(A,B,ts,tspan,xline);
 dynamics.InitialCondition = Y0;
 
 dynamics.MassMatrix = M;
@@ -103,8 +103,8 @@ epsilon = dx^4;
 import casadi.*
 ts = SX.sym('t');
 
-PathCost  = casadi.Function('L'  ,{ts,Y,U},{ (1/2)*(U'*U) });
-FinalCost = casadi.Function('Psi',{Y}     ,{ (1/(2*epsilon))*((Y-YT)'*(Y-YT)) });
+PathCost  = (1/2)*(U'*U) ;
+FinalCost =  (1/(2*epsilon))*((Y-YT)'*(Y-YT)) ;
 
 
 iCP1 = ocp(dynamics,PathCost,FinalCost);
@@ -138,7 +138,7 @@ tol = 1e-4;
 Yfree = solve(dynamics,U0);
 %%
 subplot(2,1,1)
-surf(OptState)
+surf(full(OptState))
 title('Opt')
 subplot(2,1,2)
 surf(full(Yfree))

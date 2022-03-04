@@ -45,6 +45,13 @@ classdef ocp < handle
 
             parse(p,DynamicSystem,PathCostFcn,FinalCostFcn,varargin{:})
             %%
+            if isa(PathCostFcn,'casadi.Function')
+                PathCostFcn = PathCostFcn(ts,State,Control);
+            end
+            if isa(FinalCostFcn,'casadi.Function')
+                FinalCostFcn = FinalCostFcn(State);
+            end
+            %%
             obj.DynamicSystem   =  copy(DynamicSystem);
             obj.CostFcn         =  CostFcn(PathCostFcn,FinalCostFcn,obj.DynamicSystem);
             %
@@ -90,12 +97,12 @@ end
 
 
 function checkPathCost(x)
-    if ~( isa(x,'casadi.SX') || isnumeric(x))
+    if ~( isa(x,'casadi.SX') || isa(x,'casadi.Function') || isnumeric(x))
        error('The PathCostFcn must be a casadi.SX obj') 
     end
 end
 function checkFinalCost(x)
-    if ~( isa(x,'casadi.SX') || isnumeric(x))
+    if ~( isa(x,'casadi.SX') || isa(x,'casadi.Function') || isnumeric(x))
        error('The FinalCostFcn must be a casadi.SX obj') 
     end
 end

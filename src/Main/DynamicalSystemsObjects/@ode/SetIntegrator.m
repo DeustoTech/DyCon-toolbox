@@ -5,7 +5,7 @@ function SetIntegrator(idyn,method,varargin)
     p = inputParser;
     addRequired(p,'idyn')
     addRequired(p,'method')
-    addOptional(p,'TimeUniform',false)
+    addOptional(p,'TimeUniform',true)
     
     parse(p,idyn,method,varargin{:})
     %
@@ -159,7 +159,7 @@ function SetIntegrator(idyn,method,varargin)
                 % no lineal Part
                 Control = 0.5*Controltime(:,it-1) + 0.5*Controltime(:,it);
                 t  = 0.5*tspan(it-1) + 0.5*tspan(it);
-                Statetime(:,it) = State + 0.5*dt*(M\NLT(t,State,Control));
+                Statetime(:,it) = State + 0.5*dt*(M\NLT);
             end
             Integrator = casadi.Function('Ft',{State0,Controltime},{Statetime});
             

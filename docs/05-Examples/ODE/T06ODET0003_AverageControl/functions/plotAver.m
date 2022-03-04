@@ -11,6 +11,7 @@ title('Free ',options{:})
 xlabel('t',options{:})
 ylabel('$x_1^\nu$',options{:})
 xticks([tspan(1) tspan(end)])
+grid on
 %ylim([-0.2 2])
 %
 subplot(3,3,4);
@@ -18,6 +19,8 @@ title('Free',options{:})
 xlabel('t',options{:})
 ylabel('$x_2^\nu$',options{:})
 xticks([tspan(1) tspan(end)])
+grid on
+
 %ylim([-2 5])
 %
 subplot(3,3,2);
@@ -25,6 +28,8 @@ title('Controlled',options{:})
 xlabel('t',options{:})
 ylabel('$x_1^\nu$',options{:})
 xticks([tspan(1) tspan(end)])
+grid on
+
 %ylim([-0.2 2])
 %
 subplot(3,3,5);
@@ -32,6 +37,7 @@ title('Controlled',options{:})
 xlabel('t',options{:})
 ylabel('$x_2^\nu$',options{:})
 xticks([tspan(1) tspan(end)])
+grid on
 
 %ylim([-2 5])
 
@@ -58,6 +64,7 @@ plot(tspan,OptControl_1)
 ylabel('u(t)',options{:})
 xlabel('t',options{:})
 title('Control',options{:})
+grid on
 
 %%
 
@@ -76,11 +83,13 @@ xticks([tspan(1) tspan(end)])
 cellstate = arrayfun(@(index) mean(Ycontrol(index:(M+1):N*M,:),1)',1:N,'UniformOutput',0);
 meanvector = [cellstate{:}];
 subplot(3,3,8)
+grid on
 
 plot(tspan,meanvector);
 legend(strcat(repmat('x_',N,1),num2str((1:N)')))
 title('Control Average States',options{:})
 xticks([tspan(1) tspan(end)])
+grid on
 
 end
 

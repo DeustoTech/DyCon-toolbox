@@ -12,7 +12,8 @@ tspan = linspace(0,T,Nt);
 A = FDLaplacian(xmesh);
 B = BInterior(xmesh,-0.5,0.5);
 %
-idyn = linearpde1d(A,B,tspan,xmesh);
+ts = casadi.SX.sym('ts');
+idyn = linearpde1d(A,B,ts,tspan,xmesh);
 %
 idyn.InitialCondition = sin(pi*xmesh'/L);
 %%

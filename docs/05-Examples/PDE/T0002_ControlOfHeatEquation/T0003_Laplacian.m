@@ -1,3 +1,5 @@
+import casadi.*
+ts = SX.sym('t');
 %% Parametros de discretizacion
 N = 50;
 xi = -1; xf = 1;
@@ -14,17 +16,16 @@ FinalTime = 0.1;
 Nt = 100;
 Y0 =sin(pi*xline');
 tspan = linspace(0,FinalTime,Nt);
-dynamics = linearpde1d(A',B,tspan,xline);
+dynamics = linearpde1d(A',B,ts,tspan,xline);
 dynamics.InitialCondition = Y0;
 %% Creamos Problema de Control
 Y = dynamics.State.sym;
 U = dynamics.Control.sym;
-import casadi.*
-ts = SX.sym('t');
+
 
 YT = 0*cos(pi*xline');
-PathCost  = casadi.Function('L'  ,{ts,Y,U},{ (1/2)*(U'*U) });
-FinalCost = casadi.Function('Psi',{Y}      ,{ 1e5*(1/2)*((Y-YT)'*(Y-YT)) });
+PathCost  = (1/2)*(U'*U) ;
+FinalCost = 1e5*(1/2)*((Y-YT)'*(Y-YT)) ;
 
 iCP1 = ocp(dynamics,PathCost,FinalCost);
 %%
@@ -40,4 +41,4 @@ U0 =ZerosControl(dynamics);
 State = solve(dynamics,U0);
 
 %%
-surf(OptState)
+surf(full(OptState))

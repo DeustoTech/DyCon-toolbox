@@ -8,8 +8,10 @@ A = [-2  1;
 B = [1 0;
      0 1];
 %
+ts = casadi.SX.sym('ts');
+
 tspan = linspace(0,1,10);
-idyn = linearode(A,B,tspan);
+idyn = linearode(A,B,ts,tspan);
 idyn.InitialCondition = [1;2];
 
 Control0  = ZerosControl(idyn);

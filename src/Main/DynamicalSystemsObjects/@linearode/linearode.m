@@ -10,7 +10,7 @@ classdef linearode < ode
     end
     
     methods
-        function obj = linearode(A,B,tspan)
+        function obj = linearode(A,B,ts,tspan)
             % LINEARODE
 
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -18,7 +18,6 @@ classdef linearode < ode
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             [DynamicFcn,x,u] = Matrixs2CasFun(A,B);
 
-            ts = casadi.SX.sym('t');
 
             obj@ode(DynamicFcn,ts,x,u,tspan)
             

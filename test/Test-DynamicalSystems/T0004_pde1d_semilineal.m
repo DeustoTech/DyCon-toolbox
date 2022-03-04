@@ -11,7 +11,7 @@ tspan = linspace(0,T,Nt);
 
 Ys = SX.sym('x',Nx,1);
 Us = SX.sym('u',Nx,1);
-ts = SX.sym('t');
+ts = SX.sym('ts');
 
 A = FDLaplacian(xmesh);
 B = BInterior(xmesh,-0.5,0.5);

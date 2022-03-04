@@ -9,7 +9,7 @@ ts = SX.sym('ts');
 EvolutionFcn = -cos(1*pi*Xs)*sin(2*pi*Xs(2)/T) + 2*sin(ts)+ eye(2)*Us ;
 %
 tspan = linspace(0,T,50);
-isys = ode(EvolutionFcn,Xs,Us,ts,tspan);
+isys = ode(EvolutionFcn,ts,Xs,Us,tspan);
 %
 isys.InitialCondition = [1;2];
 %%

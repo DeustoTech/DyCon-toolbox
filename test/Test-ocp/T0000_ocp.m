@@ -15,6 +15,7 @@ B = [1 0 ;
      0 1];
 %% Dynamics
 F = A*Xs + B*Us ;
+%F = casadi.Function('F',{ts,Xs,Us},{F});
 %
 tspan = linspace(0,2,50);
 %

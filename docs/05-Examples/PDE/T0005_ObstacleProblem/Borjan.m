@@ -34,8 +34,8 @@ NonLinTerm = Function('N',{Ys},{     -1                                     ... 
 %
 tspan = linspace(0,1.0,100);
 
-Fs = Function('f',{ts,Ys,Us},{ A*Ys + B*Us + NonLinTerm(Ys) });
-idyn = pde1d(Fs,Ys,Us,tspan,xline);
+Fs =  A*Ys + B*Us + NonLinTerm(Ys) ;
+idyn = pde1d(Fs,ts,Ys,Us,tspan,xline);
 SetIntegrator(idyn,'RK4')
 
 idyn.InitialCondition = InitialConditionFcn(xline);
@@ -58,8 +58,8 @@ surf(Ysol_withbonda)
 %
 YT = 0.8 + 0*xline';
 eps = dx^4;
-PathCost  = Function('L'  ,{ts,Ys,Us},{ Us.'*Us  });
-FinalCost = Function('Psi',{Ys}      ,{ 1/(2*eps)*((Ys-YT).'*(Ys-YT)) });
+PathCost  =  Us.'*Us  ;
+FinalCost =  1/(2*eps)*((Ys-YT).'*(Ys-YT)) ;
 
 iocp = ocp(idyn,PathCost,FinalCost);
 iocp.TargetState = YT;
@@ -70,10 +70,10 @@ U0 = ZerosControl(idyn)+2;
 %[OptControl ,OptState]  = IpoptSolver(iocp,U0);
 %%
 subplot(3,1,1)
-surf(OptState)
+surf(full(OptState))
 title('Dynamics')
 subplot(3,1,2)
-surf(OptControl)
+surf(full(OptControl))
 title('Control')
 subplot(3,1,3)
 surf(Yfree)

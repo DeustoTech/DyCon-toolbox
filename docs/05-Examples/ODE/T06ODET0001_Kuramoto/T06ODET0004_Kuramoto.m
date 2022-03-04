@@ -129,6 +129,8 @@ title('The control function')
 % difference.
 
 L  =  1e-7*sqrt(symU.^2+1e-3);
+L  =  1e-7*sqrt(symU.^2);
+L  = 1e-7*sum(abs(symU))
 iCP_2 = ocp(odeEqn,L,Psi);
 
 %%

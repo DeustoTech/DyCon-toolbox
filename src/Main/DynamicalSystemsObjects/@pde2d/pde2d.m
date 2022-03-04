@@ -10,9 +10,9 @@ classdef pde2d < ode
     end
     
     methods
-        function obj = pde2d(DynamicFcn,State,Control,tspan,xline,yline,varargin)
+        function obj = pde2d(DynamicFcn,ts,State,Control,tspan,xline,yline,varargin)
             %ODE Continuous dynamical systems
-            obj = obj@ode(DynamicFcn,State,Control,tspan,varargin{:});
+            obj = obj@ode(DynamicFcn,ts,State,Control,tspan,varargin{:});
             obj.xline = xline;
             obj.yline = yline;
             [obj.xms,obj.yms] = meshgrid(xline,yline);

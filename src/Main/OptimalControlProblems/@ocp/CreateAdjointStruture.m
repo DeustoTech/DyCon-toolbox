@@ -39,7 +39,7 @@ function CreateAdjointStruture(iocp)
                 if  Lag_value == 0
                     A = DynSys.A;
                     B     = zeros(n,m+n);
-                    iocp.AdjointStruct.DynamicSystem  = linearode(A,B,DynSys.tspan);
+                    iocp.AdjointStruct.DynamicSystem  = linearode(A,B,ts,DynSys.tspan);
                 else
                     iocp.AdjointStruct.DynamicSystem  = ode(Hx,ts,Ps,XUs,DynSys.tspan);
                 end
@@ -55,14 +55,14 @@ function CreateAdjointStruture(iocp)
                 if  Lag_value == 0
                     A     = DynSys.A;
                     B     = zeros(n,m+n);
-                    iocp.AdjointStruct.DynamicSystem  = linearpde1d(A,B,DynSys.tspan,mesh);
+                    iocp.AdjointStruct.DynamicSystem  = linearpde1d(A,B,ts,DynSys.tspan,mesh);
                 else
                     iocp.AdjointStruct.DynamicSystem  = pde1d(Hx,ts,Ps,XUs,DynSys.tspan,mesh);
                 end
             case 'pdefem'
                 Nodes = DynSys.Nodes;
                 Elements = DynSys.Elements;
-                iocp.AdjointStruct.DynamicSystem  = pdefem(Hx,ts,Ps,XUs,DynSys.tspan,Nodes,Elements);                
+                iocp.AdjointStruct.DynamicSystem  = pdefem(Hx,Ps,XUs,DynSys.tspan,Nodes,Elements);                
 
         end
         

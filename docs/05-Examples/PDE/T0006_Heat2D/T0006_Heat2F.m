@@ -2,8 +2,8 @@
 clear 
 %% DEFINIMOS MALLA
 
-Ns =  30;
-Nt =  200;
+Ns =  20;
+Nt =  100;
 xline = linspace(-1,1,Ns+2);
 yline = linspace(-1,1,Ns+2);
 xline = xline(2:end-1);
@@ -28,9 +28,9 @@ Vs = SX.sym('v',Ns*Ns,1);
 ts = SX.sym('t');
 
 %% Defines dinamica
-Fs = Function('f',{ts,Us,Vs},{ A*Us + B*Vs + sin(pi*Us) });
+Fs =  A*Us + B*Vs + sin(pi*Us);
 %% CREAS OBJETO
-idyn = pde2d(Fs,Us,Vs,tspan,xline,yline);
+idyn = pde2d(Fs,ts,Us,Vs,tspan,xline,yline);
 SetIntegrator(idyn,'RK4')
 %% ESTOS SON LOS MESHGRID PARA CREAR LA CONDICION INICIAL
 xms = idyn.xms;
@@ -46,8 +46,8 @@ eps = 0.5*dx^4 + 0.5*dy^4;
 UT = U0(:)*0; %% TARGET ZERO
 UT = 0.25*U0(:);   %% TARGET CONDICION INICIAL
 
-PathCost  = casadi.Function('L'  ,{ts,Us,Vs},{ Vs.'*Vs  });
-FinalCost = casadi.Function('Psi',{Us}      ,{ (1/(2*eps))*((Us-UT).'*(Us-UT)) });
+PathCost  =  Vs.'*Vs  ;
+FinalCost =  (1/(2*eps))*((Us-UT).'*(Us-UT)) ;
 
 iocp = ocp(idyn,PathCost,FinalCost);
 iocp.TargetState = UT;
@@ -55,10 +55,15 @@ iocp.TargetState = UT;
 %% RESOLVEMOS CONTROL OPTIMO
 V0 = ZerosControl(idyn)+1;
 [Vt ,Ut]  = ArmijoGradient(iocp,V0,'MaxIter',100,'MinLengthStep',1e-19);
+
+Vt = full(Vt);
+Ut = full(Ut);
+
 %[Vt ,Ut]  = IpoptSolver(iocp,V0);
 
 %% CALCULAMOS FREE SOLUTION
 UtFree = full(solve(idyn,ZerosControl(idyn)));
+UtFree = full(UtFree);
 %% ANIMACION
 clf
 subplot(2,2,1)

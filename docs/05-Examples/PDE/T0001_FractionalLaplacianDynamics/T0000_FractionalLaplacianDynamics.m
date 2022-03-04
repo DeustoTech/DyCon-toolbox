@@ -25,7 +25,7 @@
 %% Discretization of the problem
 % As a first thing, we need to discretize \eqref{frac_heat}. 
 % Hence, let us consider a uniform N-points mesh on the interval $(-1,1)$.
-N = 70;
+N = 50;
 xi = -1; xf = 1;
 xline = linspace(xi,xf,N+2);
 xline = xline(2:end-1);
@@ -43,7 +43,7 @@ a = -0.3; b = 0.8;
 B = BInterior(xline,a,b,'Mass',true);
 %%
 % We can then define a final time and an initial datum
-FinalTime = 2;
+FinalTime = 5;
 Y0 =sin(pi*xline');
 %%
 % and construct the system
@@ -56,8 +56,9 @@ Y0 =sin(pi*xline');
 %   \end{cases}
 % \end{equation}
 % $$
-tspan = linspace(0,FinalTime,200);
-dynamics = linearpde1d(A,B,tspan,xline);
+ts = casadi.SX.sym('ts');
+tspan = linspace(0,FinalTime,50);
+dynamics = linearpde1d(A,B,ts,tspan,xline);
 
 dynamics.InitialCondition = Y0;
 dynamics.MassMatrix = M;
@@ -79,11 +80,11 @@ for s = ssline
     A = -FEFractionalLaplacian(s,1,N);
     dynamics.A = A;
     [Ysolution] = solve(dynamics,U0);
-    Data(iter).Y = Ysolution';
+    Data(iter).Y = full(Ysolution');
 end
 
 %%
-%animation_FLD(ssline,Data,xline)
+%animation_FLD(ssline,full(Data),xline)
 
 %% References
 % 

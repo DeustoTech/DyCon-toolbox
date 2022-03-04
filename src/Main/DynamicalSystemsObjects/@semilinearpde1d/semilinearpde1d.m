@@ -7,8 +7,8 @@ classdef semilinearpde1d < pde1d
         B               double
         C
         D
-        NonLinearTerm   casadi.Function
-        GradientNLT     casadi.Function
+        NonLinearTerm  
+        GradientNLT     
     end
     
     methods
@@ -18,15 +18,15 @@ classdef semilinearpde1d < pde1d
             
             import casadi.*
             
-            NonLinearTerm = casadi.Function('GradNLT',{ts,State,Control},{NLT});
+            %NonLinearTerm = casadi.Function('GradNLT',{ts,State,Control},{NLT});
             
             DynamicFcn =  A*State + B*Control + NLT ;
 
             obj@pde1d(DynamicFcn,ts,State,Control,tspan,mesh)
-                        
+                    
             obj.GradientNLT = casadi.Function('GradNLT',{ts,State,Control},{jacobian(NLT,State)});
 
-            obj.NonLinearTerm = NonLinearTerm;
+            obj.NonLinearTerm = NLT;
             obj.A = A;
             obj.B = B;
             %

@@ -26,13 +26,13 @@ mu = 0.001;
 A = FDLaplacian2D(xline,yline);
 B = sparse(Ns*Ns,Ns*Ns);
 %%
-NLT = Function('NLT',{ts,Us,Ms},{ Us.*(Ms - Us) });
+NLT =  Us.*(Ms - Us) ;
 %%
 %
 Nt = 10;
 tspan = linspace(0,1,Nt);
 %
-idyn = semilinearpde2d(Us,Ms,A,B,NLT,tspan,xline,yline);
+idyn = semilinearpde2d(ts,Us,Ms,A,B,NLT,tspan,xline,yline);
 
 SetIntegrator(idyn,'OperatorSplitting')
 %% Initial Condition
